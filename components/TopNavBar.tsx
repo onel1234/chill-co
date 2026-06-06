@@ -36,7 +36,7 @@ export default function TopNavBar() {
             </Link>
           </li>
           <li>
-            <Link href="#" className="text-on-surface hover:text-primary-container transition-colors font-label-caps text-label-caps hover:opacity-80 duration-300">
+            <Link href="/collections" className="text-on-surface hover:text-primary-container transition-colors font-label-caps text-label-caps hover:opacity-80 duration-300">
               Collections
             </Link>
           </li>
@@ -66,7 +66,7 @@ export default function TopNavBar() {
           <Link href="/shop" className="block text-on-surface hover:text-primary-container transition-colors font-label-caps text-label-caps uppercase tracking-widest py-2">
             Shop
           </Link>
-          <Link href="#" className="block text-on-surface hover:text-primary-container transition-colors font-label-caps text-label-caps uppercase tracking-widest py-2">
+          <Link href="/collections" className="block text-on-surface hover:text-primary-container transition-colors font-label-caps text-label-caps uppercase tracking-widest py-2">
             Collections
           </Link>
           <Link href="/about" className="block text-on-surface hover:text-primary-container transition-colors font-label-caps text-label-caps uppercase tracking-widest py-2">

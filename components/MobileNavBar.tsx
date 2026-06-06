@@ -38,7 +38,7 @@ export default function MobileNavBar() {
         </button>
         <ul className="flex flex-col gap-stack-lg">
           <li><Link className="font-display-xl text-headline-md uppercase text-primary border-b border-primary w-full block pb-2" href="/shop" onClick={() => setIsMenuOpen(false)}>Shop</Link></li>
-          <li><Link className="font-display-xl text-headline-md uppercase text-on-surface-variant hover:text-primary transition-colors" href="#" onClick={() => setIsMenuOpen(false)}>Collections</Link></li>
+          <li><Link className="font-display-xl text-headline-md uppercase text-on-surface-variant hover:text-primary transition-colors" href="/collections" onClick={() => setIsMenuOpen(false)}>Collections</Link></li>
           <li><Link className="font-display-xl text-headline-md uppercase text-on-surface-variant hover:text-primary transition-colors" href="/about" onClick={() => setIsMenuOpen(false)}>About</Link></li>
           <li><Link className="font-display-xl text-headline-md uppercase text-on-surface-variant hover:text-primary transition-colors" href="#" onClick={() => setIsMenuOpen(false)}>Contact</Link></li>
         </ul>
