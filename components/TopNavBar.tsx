@@ -27,8 +27,11 @@ export default function TopNavBar() {
         </Link>
         
         <ul className="hidden md:flex items-center gap-gutter">
-          <li>
-            <Link href="#" className="text-on-surface hover:text-primary-container transition-colors font-label-caps text-label-caps hover:opacity-80 duration-300">
+          <li className="">
+            <Link 
+              className="text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary pb-1 font-label-caps text-label-caps" 
+              href="/shop"
+            >
               Shop
             </Link>
           </li>
@@ -38,7 +41,7 @@ export default function TopNavBar() {
             </Link>
           </li>
           <li>
-            <Link href="#" className="text-on-surface hover:text-primary-container transition-colors font-label-caps text-label-caps hover:opacity-80 duration-300">
+            <Link href="/about" className="text-on-surface hover:text-primary-container transition-colors font-label-caps text-label-caps hover:opacity-80 duration-300">
               About
             </Link>
           </li>
@@ -60,13 +63,13 @@ export default function TopNavBar() {
       {/* Mobile Menu Dropdown */}
       {isMobileMenuOpen && (
         <div className="md:hidden border-t border-surface-variant bg-white/95 dark:bg-background/95 backdrop-blur-lg px-margin-mobile py-4 space-y-4 shadow-lg absolute w-full">
-          <Link href="#" className="block text-on-surface hover:text-primary-container transition-colors font-label-caps text-label-caps uppercase tracking-widest py-2">
+          <Link href="/shop" className="block text-on-surface hover:text-primary-container transition-colors font-label-caps text-label-caps uppercase tracking-widest py-2">
             Shop
           </Link>
           <Link href="#" className="block text-on-surface hover:text-primary-container transition-colors font-label-caps text-label-caps uppercase tracking-widest py-2">
             Collections
           </Link>
-          <Link href="#" className="block text-on-surface hover:text-primary-container transition-colors font-label-caps text-label-caps uppercase tracking-widest py-2">
+          <Link href="/about" className="block text-on-surface hover:text-primary-container transition-colors font-label-caps text-label-caps uppercase tracking-widest py-2">
             About
           </Link>
           <div className="pt-4 border-t border-surface-variant/50 flex gap-4">
