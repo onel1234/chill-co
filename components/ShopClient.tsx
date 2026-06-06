@@ -70,7 +70,7 @@ export default function ShopClient() {
         {/* Product Grid */}
         <div className="flex-1 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-gutter lg:gap-8">
           {/* Product Card 1 */}
-          <div className="group relative flex flex-col gap-4">
+          <Link href="/product/oversized-signature-tee" className="group relative flex flex-col gap-4">
             <div className="relative aspect-[3/4] bg-surface-container-low overflow-hidden w-full h-full">
               <img alt="Chill Co. Oversized Tee" className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 ease-out" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA1VzJMnLSSXBMrMZ3M01fEj0Tj8a9cIMkSS6VazeTtz9xoFWsvgWohz4wy1pLzBnuTxnjvPViQPvG6xQz3HCX9AuqwiwwkKThP7jGxs9pE2PXr7v2sozniLsxnBxvA4AN_KJfCgHqW6RbMhCXHRt2vRjj1KqKHN3wkIAeAk3sxg3Gdq0Twpe5rYAHYq8h-6k9EJ8-L60s144E1pwjz4WqK4Ea00js9QtkWKZlXB_dYpYClSyyRxuhDklUyw5DFrYKOYcmLa61BKZM" />
               {/* Quick Add Hover Overlay */}
@@ -91,7 +91,7 @@ export default function ShopClient() {
               </div>
               <span className="font-body-md text-body-md text-on-background">$45.00</span>
             </div>
-          </div>
+          </Link>
           
           {/* Product Card 2 */}
           <div className="group relative flex flex-col gap-4">

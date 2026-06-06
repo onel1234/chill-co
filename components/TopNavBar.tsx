@@ -2,9 +2,11 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function TopNavBar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <nav className="fixed top-0 w-full z-50 bg-white/90 dark:bg-background/90 backdrop-blur-md border-b border-surface-variant dark:border-on-surface-variant/20 transition-all">
@@ -18,7 +20,7 @@ export default function TopNavBar() {
           <span className="material-symbols-outlined">{isMobileMenuOpen ? 'close' : 'menu'}</span>
         </button>
 
-        <Link href="#" className="font-display-xl text-headline-md uppercase tracking-tighter text-primary dark:text-primary-fixed-dim">
+        <Link href="/" className="font-display-xl text-headline-md uppercase tracking-tighter text-primary dark:text-primary-fixed-dim">
           <img 
             alt="Chill Co. Logo" 
             className="h-12 md:h-20 w-auto object-contain" 
@@ -29,19 +31,25 @@ export default function TopNavBar() {
         <ul className="hidden md:flex items-center gap-gutter">
           <li className="">
             <Link 
-              className="text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary pb-1 font-label-caps text-label-caps" 
+              className={pathname === '/shop' ? "text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary pb-1 font-label-caps text-label-caps" : "text-on-surface hover:text-primary-container transition-colors font-label-caps text-label-caps hover:opacity-80 duration-300"}
               href="/shop"
             >
               Shop
             </Link>
           </li>
           <li>
-            <Link href="/collections" className="text-on-surface hover:text-primary-container transition-colors font-label-caps text-label-caps hover:opacity-80 duration-300">
+            <Link 
+              href="/collections" 
+              className={pathname === '/collections' ? "text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary pb-1 font-label-caps text-label-caps" : "text-on-surface hover:text-primary-container transition-colors font-label-caps text-label-caps hover:opacity-80 duration-300"}
+            >
               Collections
             </Link>
           </li>
           <li>
-            <Link href="/about" className="text-on-surface hover:text-primary-container transition-colors font-label-caps text-label-caps hover:opacity-80 duration-300">
+            <Link 
+              href="/about" 
+              className={pathname === '/about' ? "text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary pb-1 font-label-caps text-label-caps" : "text-on-surface hover:text-primary-container transition-colors font-label-caps text-label-caps hover:opacity-80 duration-300"}
+            >
               About
             </Link>
           </li>

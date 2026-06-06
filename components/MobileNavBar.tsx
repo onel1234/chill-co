@@ -2,9 +2,11 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function MobileNavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <>
@@ -37,10 +39,9 @@ export default function MobileNavBar() {
           <span className="material-symbols-outlined text-primary text-[32px]">close</span>
         </button>
         <ul className="flex flex-col gap-stack-lg">
-          <li><Link className="font-display-xl text-headline-md uppercase text-primary border-b border-primary w-full block pb-2" href="/shop" onClick={() => setIsMenuOpen(false)}>Shop</Link></li>
-          <li><Link className="font-display-xl text-headline-md uppercase text-on-surface-variant hover:text-primary transition-colors" href="/collections" onClick={() => setIsMenuOpen(false)}>Collections</Link></li>
-          <li><Link className="font-display-xl text-headline-md uppercase text-on-surface-variant hover:text-primary transition-colors" href="/about" onClick={() => setIsMenuOpen(false)}>About</Link></li>
-          <li><Link className="font-display-xl text-headline-md uppercase text-on-surface-variant hover:text-primary transition-colors" href="#" onClick={() => setIsMenuOpen(false)}>Contact</Link></li>
+          <li><Link className={pathname === '/shop' ? "font-display-xl text-headline-md uppercase text-primary border-b border-primary w-full block pb-2" : "font-display-xl text-headline-md uppercase text-on-surface-variant hover:text-primary transition-colors block pb-2"} href="/shop" onClick={() => setIsMenuOpen(false)}>Shop</Link></li>
+          <li><Link className={pathname === '/collections' ? "font-display-xl text-headline-md uppercase text-primary border-b border-primary w-full block pb-2" : "font-display-xl text-headline-md uppercase text-on-surface-variant hover:text-primary transition-colors block pb-2"} href="/collections" onClick={() => setIsMenuOpen(false)}>Collections</Link></li>
+          <li><Link className={pathname === '/about' ? "font-display-xl text-headline-md uppercase text-primary border-b border-primary w-full block pb-2" : "font-display-xl text-headline-md uppercase text-on-surface-variant hover:text-primary transition-colors block pb-2"} href="/about" onClick={() => setIsMenuOpen(false)}>About</Link></li>
         </ul>
         <div className="mt-section-gap">
           <p className="font-label-caps text-label-caps text-on-surface-variant mb-4">SOCIALS</p>

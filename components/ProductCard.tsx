@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 
 interface ProductCardProps {
   title: string;
@@ -6,11 +7,12 @@ interface ProductCardProps {
   price: string;
   imageSrc: string;
   badge?: string;
+  href?: string;
 }
 
-export default function ProductCard({ title, subtitle, price, imageSrc, badge }: ProductCardProps) {
+export default function ProductCard({ title, subtitle, price, imageSrc, badge, href = "/product/oversized-signature-tee" }: ProductCardProps) {
   return (
-    <div className="group cursor-pointer">
+    <Link href={href} className="group cursor-pointer block">
       <div className="aspect-[4/5] bg-surface-container-low relative mb-6 torn-edge p-2 bg-white shadow-sm border border-surface-variant">
         <img 
           alt={title} 
@@ -35,6 +37,6 @@ export default function ProductCard({ title, subtitle, price, imageSrc, badge }:
         </div>
         <span className="font-display-xl text-headline-md text-on-background">{price}</span>
       </div>
-    </div>
+    </Link>
   );
 }
