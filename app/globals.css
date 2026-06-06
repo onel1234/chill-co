@@ -1,0 +1,134 @@
+
+@import "tailwindcss";
+
+@theme inline {
+  --color-on-error-container: #93000a;
+  --color-background: #f9f9f9;
+  --color-secondary: #516600;
+  --color-tertiary-fixed: #e5e2e1;
+  --color-surface: #f9f9f9;
+  --color-primary: #994700;
+  --color-surface-container: #eeeeee;
+  --color-on-primary-container: #582500;
+  --color-secondary-container: #d2ee7c;
+  --color-on-tertiary-container: #343434;
+  --color-on-primary-fixed-variant: #753400;
+  --color-tertiary-fixed-dim: #c8c6c5;
+  --color-on-tertiary-fixed: #1c1b1b;
+  --color-on-primary: #ffffff;
+  --color-on-tertiary-fixed-variant: #474646;
+  --color-on-surface: #1a1c1c;
+  --color-surface-container-highest: #e2e2e2;
+  --color-on-secondary-container: #576c00;
+  --color-on-secondary: #ffffff;
+  --color-primary-container: #f37b21;
+  --color-outline-variant: #dec1b1;
+  --color-outline: #8a7265;
+  --color-primary-fixed: #ffdbc8;
+  --color-on-secondary-fixed-variant: #3c4d00;
+  --color-surface-variant: #e2e2e2;
+  --color-tertiary-container: #9e9c9c;
+  --color-tertiary: #5f5e5e;
+  --color-surface-dim: #dadada;
+  --color-surface-bright: #f9f9f9;
+  --color-on-primary-fixed: #321200;
+  --color-inverse-on-surface: #f1f1f1;
+  --color-error-container: #ffdad6;
+  --color-error: #ba1a1a;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-high: #e8e8e8;
+  --color-inverse-surface: #2f3131;
+  --color-surface-container-low: #f3f3f3;
+  --color-primary-fixed-dim: #ffb68b;
+  --color-on-background: #1a1c1c;
+  --color-secondary-fixed-dim: #b7d163;
+  --color-on-tertiary: #ffffff;
+  --color-on-error: #ffffff;
+  --color-secondary-fixed: #d2ee7c;
+  --color-on-secondary-fixed: #161e00;
+  --color-inverse-primary: #ffb68b;
+  --color-surface-tint: #994700;
+  --color-on-surface-variant: #574237;
+
+  --spacing-section-gap: 120px;
+  --spacing-stack-sm: 8px;
+  --spacing-stack-lg: 48px;
+  --spacing-stack-md: 16px;
+  --spacing-margin-mobile: 20px;
+  --spacing-margin-desktop: 64px;
+  --spacing-gutter: 24px;
+
+  --font-body-md: "Inter", sans-serif;
+  --font-headline-lg-mobile: "Space Grotesk", sans-serif;
+  --font-headline-lg: "Space Grotesk", sans-serif;
+  --font-display-xl: "Space Grotesk", sans-serif;
+  --font-button-text: "Space Grotesk", sans-serif;
+  --font-body-lg: "Inter", sans-serif;
+  --font-label-caps: "Space Grotesk", sans-serif;
+  --font-headline-md: "Space Grotesk", sans-serif;
+}
+
+body {
+    background-color: var(--color-surface-container-lowest);
+    color: var(--color-on-background);
+}
+
+.bg-texture {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+}
+
+.grunge-brush {
+    position: absolute;
+    z-index: -1;
+    opacity: 0.15;
+    pointer-events: none;
+    mix-blend-mode: multiply;
+}
+
+.stroke-text {
+    -webkit-text-stroke: 1.5px var(--color-on-background);
+    color: transparent;
+}
+
+.bg-gradient-brand {
+    background: linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(243,123,33,0.1) 100%);
+}
+
+.bg-gradient-orange {
+    background: linear-gradient(135deg, #f37b21 0%, #d86612 100%);
+}
+
+.torn-edge {
+    mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,0 L100,0 L100,98 C95,97 90,100 85,98 C80,96 75,99 70,97 C65,95 60,98 55,96 C50,94 45,99 40,97 C35,95 30,98 25,96 C20,94 15,99 10,97 C5,95 0,98 0,98 Z' fill='black'/%3E%3C/svg%3E");
+    mask-size: 100% 100%;
+}
+
+@utility text-body-md { font-size: 16px; line-height: 24px; font-weight: 400; }
+@utility text-headline-lg-mobile { font-size: 36px; line-height: 42px; font-weight: 600; }
+@utility text-headline-lg { font-size: 48px; line-height: 56px; letter-spacing: -0.02em; font-weight: 600; }
+@utility text-display-xl { font-size: 84px; line-height: 92px; letter-spacing: -0.04em; font-weight: 700; }
+@utility text-button-text { font-size: 14px; line-height: 20px; letter-spacing: 0.02em; font-weight: 600; }
+@utility text-body-lg { font-size: 18px; line-height: 28px; font-weight: 400; }
+@utility text-label-caps { font-size: 12px; line-height: 16px; letter-spacing: 0.1em; font-weight: 700; }
+@utility text-headline-md { font-size: 32px; line-height: 40px; font-weight: 600; }
+
+@keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+    animation: marquee 20s linear infinite;
+    width: max-content;
+}
+
+.grain-texture {
+    background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
+    opacity: 0.15;
+    pointer-events: none;
+}
+
+.kinetic-bg {
+    background: radial-gradient(circle at 10% 20%, rgba(243, 123, 33, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(243, 123, 33, 0.05) 0%, transparent 40%);
+}

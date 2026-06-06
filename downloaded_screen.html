@@ -1,0 +1,341 @@
+<!DOCTYPE html><html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Chill Co. | Premium Streetwear</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&amp;family=Inter:wght@300..600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline": "#8a7265",
+                        "on-secondary-fixed": "#161e00",
+                        "surface-container-highest": "#e2e2e2",
+                        "secondary-fixed-dim": "#b7d163",
+                        "secondary-container": "#d2ee7c",
+                        "tertiary": "#5f5e5e",
+                        "surface-tint": "#994700",
+                        "outline-variant": "#dec1b1",
+                        "surface-variant": "#e2e2e2",
+                        "surface-container-low": "#f3f3f3",
+                        "primary-container": "#f37b21",
+                        "on-surface": "#1a1c1c",
+                        "tertiary-container": "#9e9c9c",
+                        "surface-container-high": "#e8e8e8",
+                        "inverse-primary": "#ffb68b",
+                        "background": "#f9f9f9",
+                        "on-tertiary-fixed-variant": "#474646",
+                        "surface-bright": "#f9f9f9",
+                        "surface-dim": "#dadada",
+                        "secondary-fixed": "#d2ee7c",
+                        "on-error-container": "#93000a",
+                        "primary-fixed": "#ffdbc8",
+                        "inverse-surface": "#2f3131",
+                        "tertiary-fixed-dim": "#c8c6c5",
+                        "on-secondary-container": "#576c00",
+                        "on-primary-fixed-variant": "#753400",
+                        "tertiary-fixed": "#e5e2e1",
+                        "surface": "#f9f9f9",
+                        "primary": "#994700",
+                        "inverse-on-surface": "#f1f1f1",
+                        "on-tertiary-container": "#343434",
+                        "error-container": "#ffdad6",
+                        "on-error": "#ffffff",
+                        "on-surface-variant": "#574237",
+                        "on-primary": "#ffffff",
+                        "on-tertiary-fixed": "#1c1b1b",
+                        "on-secondary": "#ffffff",
+                        "on-background": "#1a1c1c",
+                        "on-primary-fixed": "#321200",
+                        "on-primary-container": "#582500",
+                        "error": "#ba1a1a",
+                        "on-tertiary": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "secondary": "#516600",
+                        "on-secondary-fixed-variant": "#3c4d00",
+                        "surface-container": "#eeeeee",
+                        "primary-fixed-dim": "#ffb68b"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0px",
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "stack-lg": "48px",
+                        "section-gap": "80px",
+                        "stack-md": "16px",
+                        "stack-sm": "8px",
+                        "margin-mobile": "20px",
+                        "margin-desktop": "64px",
+                        "gutter": "24px"
+                    },
+                    "fontFamily": {
+                        "headline-lg": ["Space Grotesk"],
+                        "headline-lg-mobile": ["Space Grotesk"],
+                        "body-lg": ["Inter"],
+                        "label-caps": ["Space Grotesk"],
+                        "display-xl": ["Space Grotesk"],
+                        "headline-md": ["Space Grotesk"],
+                        "button-text": ["Space Grotesk"],
+                        "body-md": ["Inter"]
+                    },
+                    "fontSize": {
+                        "headline-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "headline-lg-mobile": ["42px", {"lineHeight": "48px", "fontWeight": "700"}],
+                        "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "700"}],
+                        "display-xl": ["64px", {"lineHeight": "68px", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                        "headline-md": ["32px", {"lineHeight": "40px", "fontWeight": "600"}],
+                        "button-text": ["14px", {"lineHeight": "20px", "letterSpacing": "0.02em", "fontWeight": "600"}],
+                        "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .grain-texture {
+            background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
+            opacity: 0.15;
+            pointer-events: none;
+        }
+        .kinetic-bg {
+            background: radial-gradient(circle at 10% 20%, rgba(243, 123, 33, 0.1) 0%, transparent 40%),
+                        radial-gradient(circle at 90% 80%, rgba(243, 123, 33, 0.05) 0%, transparent 40%);
+        }
+    </style>
+<style>
+            @keyframes marquee {
+                0% { transform: translateX(0); }
+                100% { transform: translateX(-50%); }
+            }
+            .animate-marquee {
+                animation: marquee 20s linear infinite;
+                width: max-content;
+            }
+        </style></head>
+<body class="bg-background text-on-background font-body-md overflow-x-hidden antialiased">
+<!-- Grain Overlay -->
+<div class="fixed inset-0 z-[60] grain-texture"></div>
+<!-- Navigation Shell -->
+<nav class="fixed top-0 w-full z-50 bg-background/90 backdrop-blur-md border-b border-surface-variant flex justify-between items-center px-margin-mobile py-stack-md">
+<div class="flex items-center gap-2">
+<button class="p-2 -ml-2 transition-all active:scale-90" id="menu-toggle">
+<span class="material-symbols-outlined text-primary text-[28px]">menu</span>
+</button>
+<img alt="Chill Co. Logo" class="h-8 w-auto" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCR2wNMBztwufgW8lGS2JpO70hZORdFxujBhNc39mVggd3KM5Xb_m0iozTj3MImDhr0zzXa3OIpbCjLzCkL6CzmedrhCPm86EPmuAEe9sSBoraXEyT-5wKT3ozZ7sN63-T8PlHiCh0Efxz80uyPX6gHrEo328WXlOxNs1AoA435_bCNKuVfe09q8cH8ObudefTMiJ6CoW4Yy7bk0KhGo8OgyCYny30eAtLbwkwLyY1K24WgrAMBh242JxieUkJB_UucVG4SJMXzFV4">
+</div>
+<div class="flex items-center gap-stack-md">
+<button class="material-symbols-outlined text-primary">search</button>
+<button class="material-symbols-outlined text-primary">shopping_bag</button>
+</div>
+</nav>
+<!-- Mobile Menu Overlay (Hidden by default) -->
+<div class="fixed inset-0 bg-background z-[70] translate-x-full transition-transform duration-500 ease-in-out px-margin-mobile py-24" id="mobile-menu">
+<button class="absolute top-margin-mobile right-margin-mobile" id="menu-close">
+<span class="material-symbols-outlined text-primary text-[32px]">close</span>
+</button>
+<ul class="flex flex-col gap-stack-lg">
+<li class=""><a class="font-display-xl text-headline-md uppercase text-primary border-b border-primary w-full block pb-2" href="#">Shop</a></li>
+<li class=""><a class="font-display-xl text-headline-md uppercase text-on-surface-variant hover:text-primary transition-colors" href="#">Collections</a></li>
+<li class=""><a class="font-display-xl text-headline-md uppercase text-on-surface-variant hover:text-primary transition-colors" href="#">About</a></li>
+<li class=""><a class="font-display-xl text-headline-md uppercase text-on-surface-variant hover:text-primary transition-colors" href="#">Contact</a></li>
+</ul>
+<div class="mt-section-gap">
+<p class="font-label-caps text-label-caps text-on-surface-variant mb-4">SOCIALS</p>
+<div class="flex gap-stack-md">
+<span class="font-label-caps text-label-caps border border-surface-variant px-4 py-2">IG</span>
+<span class="font-label-caps text-label-caps border border-surface-variant px-4 py-2">TW</span>
+<span class="font-label-caps text-label-caps border border-surface-variant px-4 py-2">TK</span>
+</div>
+</div>
+</div>
+<!-- Hero Section -->
+<section class="relative min-h-[90vh] flex flex-col pt-24 pb-margin-mobile overflow-hidden kinetic-bg">
+<div class="px-margin-mobile z-10">
+<span class="font-label-caps text-label-caps text-primary bg-primary-container/10 px-3 py-1 mb-stack-md inline-block">DROP 01: URBAN KINETIC</span>
+<h1 class="font-display-xl uppercase leading-none tracking-tighter text-on-surface relative text-headline-lg-mobile">EFFORTLESS
+                <span class="absolute -top-4 -right-4 material-symbols-outlined text-primary-container text-4xl" style="font-variation-settings: &quot;FILL&quot; 1;">star</span></h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-stack-md max-w-[80%]">Redefining streetwear through precise technicality and unyielding comfort. Designed for the city, built for the soul.</p>
+</div>
+<div class="relative flex-grow mt-stack-lg flex items-center justify-center">
+<!-- Orange Circle Gradient Accent -->
+<div class="absolute w-80 h-80 bg-primary-container/30 rounded-full blur-3xl -z-10 animate-pulse"></div>
+<div class="relative w-full px-margin-mobile">
+<img alt="Hero Product" class="w-full h-auto object-contain scale-110" src="https://lh3.googleusercontent.com/aida-public/AB6AXuADHmmuup460XWCa2mwSo0iAeHSQs5JsiLVKenTdiFlE_Rl7eqj0022HnirD8OvhySzabNKtJkbuxeLNd0-25NGyZJF1U6oxaDChAR4ggK6QTApNFBHI7OzMF27dwQUNdl1SU5tqnugid_hQV7EG_D_aXd11KRsePObPDpbM5xudZ908yte4k8V3k6Rtg_ayN17WfZTSdtV-mtoYP6PYYoPPOsJ9aAXd6ntd9iq9uJIsg8tEFSdhSZNKorbUKFA13oP28F9NuXmdRs">
+<!-- Scribble Element Decoration -->
+<div class="absolute bottom-10 right-10 rotate-12">
+<span class="material-symbols-outlined text-primary text-6xl opacity-40">edit_note</span>
+</div>
+</div>
+</div>
+<div class="px-margin-mobile mt-auto pt-stack-lg">
+<button class="w-full bg-primary text-on-primary font-button-text text-button-text py-5 uppercase tracking-widest active:scale-95 transition-all flex justify-between items-center px-6">
+                EXPLORE COLLECTION
+                <span class="material-symbols-outlined">arrow_right_alt</span>
+</button>
+</div>
+</section>
+<!-- Scrolling Marquee -->
+<div class="bg-primary py-3 overflow-hidden whitespace-nowrap border-y border-on-primary/10">
+<div class="flex animate-marquee">
+<p class="font-label-caps text-label-caps text-on-primary px-4">CHILL CO. EST 2024 — URBAN KINETIC — PREMIUM QUALITY — LIMITED QUANTITIES — </p>
+<p class="font-label-caps text-label-caps text-on-primary px-4">CHILL CO. EST 2024 — URBAN KINETIC — PREMIUM QUALITY — LIMITED QUANTITIES — </p>
+</div>
+</div>
+<!-- Product Grid Section -->
+<section class="py-section-gap px-margin-mobile">
+<div class="flex justify-between items-end mb-stack-lg">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile uppercase tracking-tighter">ESSEN<br>TIALS</h2>
+<div class="text-right">
+<span class="font-label-caps text-label-caps text-on-surface-variant">003 PRODUCTS</span>
+</div>
+</div>
+<div class="grid grid-cols-1 gap-12">
+<!-- Product 1 -->
+<div class="group">
+<div class="bg-surface-container aspect-[3/4] overflow-hidden relative mb-stack-md">
+<img alt="Oversized Signature Tee" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A professional studio photograph of a premium oversized streetwear t-shirt in vibrant Harvest Orange. The garment features a bold Chill Co. graphic on the chest. The lighting is clean and high-end, highlighting the thick cotton texture against a minimalist grey background. The aesthetic is modern and urban, conveying a sense of luxury streetwear." src="https://lh3.googleusercontent.com/aida/AP1WRLslFnLa29ODlNVbFZFsExdoKS-zdT9Dni1AqpgWFiWL_8yVXiylsfsuTXzeYJepncHPWkfiSEQHSXGxNSUBu8F42B527tSCtfyCvzX_oTku-bKWJQLMe5oOkaCggK1MoSz-x0-PONe7Y1iH16TlRHC04C71b9dV1Fwex-KOSrgOyyhiSsBtNro0FUspqRInYDNIIO8odQSn_KA2rQ0ed9aOsb3uz2cITBzPZPFMT3V5DLLJrhlB_yd4NH0">
+<div class="absolute top-4 left-4 bg-background px-3 py-1">
+<span class="font-label-caps text-[10px] text-on-surface">NEW ARRIVAL</span>
+</div>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-md text-[20px] uppercase leading-tight">Oversized<br>Signature Tee</h3>
+<p class="font-label-caps text-on-surface-variant mt-1">HARVEST ORANGE</p>
+</div>
+<span class="font-body-lg text-body-lg text-primary">$85</span>
+</div>
+<button class="mt-4 w-full border border-surface-variant py-3 font-button-text text-button-text uppercase text-on-surface-variant active:bg-on-surface active:text-background transition-colors">Add to Bag</button>
+</div>
+<!-- Product 2 -->
+<div class="group">
+<div class="bg-surface-container aspect-[3/4] overflow-hidden relative mb-stack-md">
+<img alt="Heavyweight Core Tee" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A detailed studio shot of a heavyweight stone grey streetwear t-shirt with a minimalist chill embroidery on the center chest. The shirt is draped on a model, showcasing a relaxed and comfortable fit. The photography is clean with professional studio lighting, emphasizing the premium quality of the fabric. The overall mood is understated and sophisticated fashion." src="https://lh3.googleusercontent.com/aida/AP1WRLtCXfYj4KmciuEKv2u40BWjKIH0QklOCrLTpTNyNdgHWDfY_wJPUYJRygFneHmUd1uZnFJb7Pz53ei7pIxe3kF-0ruBcIUvMuI7CdbnkkDNBpZBEk5P_I63s1f4WEDSWjq978n6FFkqTG7StBmmlE01eKPipYJ6whNXwRfjH1LxRU5tbsO2NKkSNur_4GC5-wpeuq6P05KgrpLTYn9UFU9ln8ldvzGPHSzSxAzG04VszFbsNIJYx1u_iik">
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-md text-[20px] uppercase leading-tight">Heavyweight<br>Core Tee</h3>
+<p class="font-label-caps text-on-surface-variant mt-1">STONE GREY</p>
+</div>
+<span class="font-body-lg text-body-lg text-primary">$75</span>
+</div>
+<button class="mt-4 w-full border border-surface-variant py-3 font-button-text text-button-text uppercase text-on-surface-variant active:bg-on-surface active:text-background transition-colors">Add to Bag</button>
+</div>
+<!-- Product 3 -->
+<div class="group">
+<div class="bg-surface-container aspect-[3/4] overflow-hidden relative mb-stack-md">
+<img alt="Everyday Classic Tee" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" data-alt="A high-fashion studio photograph of a premium oversized midnight black streetwear t-shirt. The shirt features a subtle tonal Chill Co. logo print that creates a sophisticated texture. The lighting is dramatic and moody, casting soft shadows that define the garment's structure. The composition is clean and minimalist, set against a neutral studio background, embodying high-end streetwear design." src="https://lh3.googleusercontent.com/aida/AP1WRLsLL84CRjfjLAIyzkKM_Q2b4K048JHjmZ9HzC1dUBJiv_vYOTbER4H4w39OULx6eVimRAXGTMVAlnjbzShTUrvAMjtngsXCgM8jb_5kwP0ZndFN4KAFGI6HQSmOyicdYbD1TeMVr87zNYOnJuk6fT00x0lbYKopoJPMKg-FcZOLx2Zf6Mb4muFJSr2PGQWfxHyq99Rjz361ydur7-aYrzS5J1DHve9MktyhQ3NTvHJDP-ro80h0s9DaJUk">
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline-md text-[20px] uppercase leading-tight">Everyday<br>Classic Tee</h3>
+<p class="font-label-caps text-on-surface-variant mt-1">MIDNIGHT BLACK</p>
+</div>
+<span class="font-body-lg text-body-lg text-primary">$65</span>
+</div>
+<button class="mt-4 w-full border border-surface-variant py-3 font-button-text text-button-text uppercase text-on-surface-variant active:bg-on-surface active:text-background transition-colors">Add to Bag</button>
+</div>
+</div>
+</section>
+<!-- Editorial Block -->
+<section class="py-section-gap bg-surface-container-low px-margin-mobile relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 border-r border-t border-primary/20 opacity-50"></div>
+<div class="relative z-10">
+<span class="font-label-caps text-label-caps text-on-surface-variant block mb-4">THE MANIFESTO</span>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile uppercase mb-stack-md leading-tight">Comfort is<br>the ultimate<br><span class="text-primary italic">Rebellion.</span></h2>
+<p class="font-body-md text-body-md text-on-surface-variant leading-relaxed mb-stack-lg">
+                We believe streetwear shouldn't just be seen—it should be felt. Our fabrics are sourced from sustainable mills and treated for maximum softness without sacrificing the structural silhouette that defines urban style.
+            </p>
+<a class="font-label-caps text-label-caps text-primary flex items-center gap-2 group" href="#">
+                READ THE STORY 
+                <span class="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</a>
+</div>
+</section>
+<!-- Newsletter -->
+<section class="py-section-gap px-margin-mobile border-b border-surface-variant">
+<h3 class="font-headline-md text-headline-md uppercase mb-2">STAY CHILL</h3>
+<p class="font-body-md text-body-md text-on-surface-variant mb-stack-lg">Be the first to know about secret drops and editorial content.</p>
+<form class="space-y-4">
+<div class="border-b border-on-surface pb-2">
+<input class="w-full bg-transparent border-none p-0 focus:ring-0 font-label-caps text-label-caps placeholder:text-on-surface-variant" placeholder="YOUR EMAIL ADDRESS" type="email">
+</div>
+<button class="w-full bg-on-surface text-background py-4 font-button-text text-button-text uppercase tracking-widest">SUBMIT</button>
+</form>
+</section>
+<!-- Footer (Standardized Mobile) -->
+<footer class="bg-surface-container-lowest py-section-gap px-margin-mobile flex flex-col gap-12">
+<div>
+<img alt="Chill Co. Logo" class="h-10 w-auto mb-6" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCR2wNMBztwufgW8lGS2JpO70hZORdFxujBhNc39mVggd3KM5Xb_m0iozTj3MImDhr0zzXa3OIpbCjLzCkL6CzmedrhCPm86EPmuAEe9sSBoraXEyT-5wKT3ozZ7sN63-T8PlHiCh0Efxz80uyPX6gHrEo328WXlOxNs1AoA435_bCNKuVfe09q8cH8ObudefTMiJ6CoW4Yy7bk0KhGo8OgyCYny30eAtLbwkwLyY1K24WgrAMBh242JxieUkJB_UucVG4SJMXzFV4">
+<p class="font-body-md text-body-md text-on-surface-variant max-w-xs">Premium streetwear designed for comfort and the urban kinetic lifestyle.</p>
+</div>
+<div class="grid grid-cols-2 gap-stack-lg">
+<div class="flex flex-col gap-4">
+<p class="font-label-caps text-label-caps text-primary">SHOP</p>
+<a class="font-body-md text-on-surface-variant" href="#">New Arrivals</a>
+<a class="font-body-md text-on-surface-variant" href="#">Best Sellers</a>
+<a class="font-body-md text-on-surface-variant" href="#">Accessories</a>
+</div>
+<div class="flex flex-col gap-4">
+<p class="font-label-caps text-label-caps text-primary">SUPPORT</p>
+<a class="font-body-md text-on-surface-variant" href="#">Shipping</a>
+<a class="font-body-md text-on-surface-variant" href="#">Returns</a>
+<a class="font-body-md text-on-surface-variant" href="#">Contact</a>
+</div>
+</div>
+<div class="pt-stack-lg border-t border-surface-variant">
+<div class="flex flex-col gap-4 mb-8">
+<a class="font-label-caps text-label-caps text-on-surface-variant" href="#">Privacy Policy</a>
+<a class="font-label-caps text-label-caps text-on-surface-variant" href="#">Terms of Service</a>
+</div>
+<p class="font-label-caps text-[10px] text-on-surface-variant uppercase tracking-widest opacity-60">© 2024 Chill Co. Designed for comfort.</p>
+</div>
+</footer>
+<script>
+        const menuToggle = document.getElementById('menu-toggle');
+        const menuClose = document.getElementById('menu-close');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        menuToggle.addEventListener('click', () => {
+            mobileMenu.classList.remove('translate-x-full');
+        });
+
+        menuClose.addEventListener('click', () => {
+            mobileMenu.classList.add('translate-x-full');
+        });
+
+        // Close menu on link click
+        mobileMenu.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                mobileMenu.classList.add('translate-x-full');
+            });
+        });
+
+        // Animation for marquee
+        const marqueeStyles = document.createElement('style');
+        marqueeStyles.innerHTML = `
+            @keyframes marquee {
+                0% { transform: translateX(0); }
+                100% { transform: translateX(-50%); }
+            }
+            .animate-marquee {
+                animation: marquee 20s linear infinite;
+                width: max-content;
+            }
+        `;
+        document.head.appendChild(marqueeStyles);
+    </script>
+
+
+</body></html>

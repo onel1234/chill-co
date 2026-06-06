@@ -1,0 +1,365 @@
+<!DOCTYPE html><html class="light" lang="en" style=""><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Chill Co. | Effortless Comfort</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "on-error-container": "#93000a",
+                "background": "#f9f9f9",
+                "secondary": "#516600",
+                "tertiary-fixed": "#e5e2e1",
+                "surface": "#f9f9f9",
+                "primary": "#994700",
+                "surface-container": "#eeeeee",
+                "on-primary-container": "#582500",
+                "secondary-container": "#d2ee7c",
+                "on-tertiary-container": "#343434",
+                "on-primary-fixed-variant": "#753400",
+                "tertiary-fixed-dim": "#c8c6c5",
+                "on-tertiary-fixed": "#1c1b1b",
+                "on-primary": "#ffffff",
+                "on-tertiary-fixed-variant": "#474646",
+                "on-surface": "#1a1c1c",
+                "surface-container-highest": "#e2e2e2",
+                "on-secondary-container": "#576c00",
+                "on-secondary": "#ffffff",
+                "primary-container": "#f37b21",
+                "outline-variant": "#dec1b1",
+                "outline": "#8a7265",
+                "primary-fixed": "#ffdbc8",
+                "on-secondary-fixed-variant": "#3c4d00",
+                "surface-variant": "#e2e2e2",
+                "tertiary-container": "#9e9c9c",
+                "tertiary": "#5f5e5e",
+                "surface-dim": "#dadada",
+                "surface-bright": "#f9f9f9",
+                "on-primary-fixed": "#321200",
+                "inverse-on-surface": "#f1f1f1",
+                "error-container": "#ffdad6",
+                "error": "#ba1a1a",
+                "surface-container-lowest": "#ffffff",
+                "surface-container-high": "#e8e8e8",
+                "inverse-surface": "#2f3131",
+                "surface-container-low": "#f3f3f3",
+                "primary-fixed-dim": "#ffb68b",
+                "on-background": "#1a1c1c",
+                "secondary-fixed-dim": "#b7d163",
+                "on-tertiary": "#ffffff",
+                "on-error": "#ffffff",
+                "secondary-fixed": "#d2ee7c",
+                "on-secondary-fixed": "#161e00",
+                "inverse-primary": "#ffb68b",
+                "surface-tint": "#994700",
+                "on-surface-variant": "#574237"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "section-gap": "120px",
+                "stack-sm": "8px",
+                "stack-lg": "48px",
+                "stack-md": "16px",
+                "margin-mobile": "20px",
+                "margin-desktop": "64px",
+                "gutter": "24px"
+        },
+        "fontFamily": {
+                "body-md": [
+                        "Inter"
+                ],
+                "headline-lg-mobile": [
+                        "Space Grotesk"
+                ],
+                "headline-lg": [
+                        "Space Grotesk"
+                ],
+                "display-xl": [
+                        "Space Grotesk"
+                ],
+                "button-text": [
+                        "Space Grotesk"
+                ],
+                "body-lg": [
+                        "Inter"
+                ],
+                "label-caps": [
+                        "Space Grotesk"
+                ],
+                "headline-md": [
+                        "Space Grotesk"
+                ]
+        },
+        "fontSize": {
+                "body-md": [
+                        "16px",
+                        {
+                                "lineHeight": "24px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "headline-lg-mobile": [
+                        "36px",
+                        {
+                                "lineHeight": "42px",
+                                "fontWeight": "600"
+                        }
+                ],
+                "headline-lg": [
+                        "48px",
+                        {
+                                "lineHeight": "56px",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "display-xl": [
+                        "84px",
+                        {
+                                "lineHeight": "92px",
+                                "letterSpacing": "-0.04em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "button-text": [
+                        "14px",
+                        {
+                                "lineHeight": "20px",
+                                "letterSpacing": "0.02em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "body-lg": [
+                        "18px",
+                        {
+                                "lineHeight": "28px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "label-caps": [
+                        "12px",
+                        {
+                                "lineHeight": "16px",
+                                "letterSpacing": "0.1em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "headline-md": [
+                        "32px",
+                        {
+                                "lineHeight": "40px",
+                                "fontWeight": "600"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+        body {
+            background-color: theme('colors.surface-container-lowest');
+            color: theme('colors.on-background');
+        }
+        
+        .bg-texture {
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+        }
+
+        .grunge-brush {
+            position: absolute;
+            z-index: -1;
+            opacity: 0.15;
+            pointer-events: none;
+            mix-blend-mode: multiply;
+        }
+
+        .stroke-text {
+            -webkit-text-stroke: 1.5px theme('colors.on-background');
+            color: transparent;
+        }
+        
+        .bg-gradient-brand {
+            background: linear-gradient(135deg, rgba(255,255,255,1) 0%, rgba(243,123,33,0.1) 100%);
+        }
+        
+        .bg-gradient-orange {
+            background: linear-gradient(135deg, #f37b21 0%, #d86612 100%);
+        }
+        
+        .torn-edge {
+            mask-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' preserveAspectRatio='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0,0 L100,0 L100,98 C95,97 90,100 85,98 C80,96 75,99 70,97 C65,95 60,98 55,96 C50,94 45,99 40,97 C35,95 30,98 25,96 C20,94 15,99 10,97 C5,95 0,98 0,98 Z' fill='black'/%3E%3C/svg%3E");
+            mask-size: 100% 100%;
+        }
+    </style>
+</head>
+<body class="font-body-md text-body-md antialiased overflow-x-hidden selection:bg-primary-container selection:text-white bg-texture">
+<!-- TopNavBar -->
+<nav class="fixed top-0 w-full z-50 bg-white/90 dark:bg-background/90 backdrop-blur-md border-b border-surface-variant dark:border-on-surface-variant/20"><div class="flex justify-between items-center px-margin-desktop py-stack-md max-w-full mx-auto md:px-margin-desktop px-margin-mobile"><a class="font-display-xl text-headline-md uppercase tracking-tighter text-primary dark:text-primary-fixed-dim" href="#"><img alt="Chill Co. Logo" class="h-20 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqB65R-CNaUPWxe_JwjGRHxiS3EUkEaXgG_Ykp-m9DV7dZVVB2qnF0O1xUNp6ioaAH7YSjRh1PAkQrEacFEWd3ju5pOJ4rXlPTBID9lpaGpjs_02jZwIsNjKKKPA5WYRj0rclafY-H2LtxCzFRxb7nyftQ-rr0G6RYnF-CnkK305lo-IqnWrNri_UUhYERexGtllSN_-WafAqC7s1ZWKuvcHAWDKK4NqZyTA-qs7UtMfISab21PmlHbupj6bYL8Rxyrmbo3LtTvSs"></a><ul class="hidden md:flex items-center gap-gutter"><li class=""><a class="text-on-surface hover:text-primary-container transition-colors font-label-caps text-label-caps hover:opacity-80 duration-300" href="#">Shop</a></li><li class=""><a class="text-on-surface hover:text-primary-container transition-colors font-label-caps text-label-caps hover:opacity-80 duration-300" href="#">Collections</a></li><li class=""><a class="text-on-surface hover:text-primary-container transition-colors font-label-caps text-label-caps hover:opacity-80 duration-300" href="#">About</a></li></ul><div class="flex items-center gap-stack-md text-on-background"><button class="scale-100 active:scale-95 transition-all duration-200 hover:text-primary-container"><span class="material-symbols-outlined" data-icon="search">search</span></button><button class="scale-100 active:scale-95 transition-all duration-200 hover:text-primary-container hidden md:block"><span class="material-symbols-outlined" data-icon="person">person</span></button><button class="scale-100 active:scale-95 transition-all duration-200 hover:text-primary-container"><span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span></button></div></div></nav>
+<!-- Hero Section -->
+<header class="relative min-h-screen flex items-center justify-center pt-32 pb-section-gap px-margin-mobile md:px-margin-desktop overflow-hidden bg-gradient-brand">
+<!-- Abstract Grunge Background Elements -->
+<svg class="absolute top-0 right-0 w-full md:w-3/4 h-full grunge-brush text-primary-container" preserveAspectRatio="none" viewBox="0 0 100 100">
+<path d="M0,0 C30,40 70,60 100,100 L100,0 Z" fill="currentColor" opacity="0.15"></path>
+<circle cx="80" cy="20" fill="none" opacity="0.3" r="15" stroke="currentColor" stroke-width="0.5"></circle>
+<path d="M70,10 L90,30 M90,10 L70,30" opacity="0.3" stroke="currentColor" stroke-width="0.5"></path>
+</svg>
+<div class="absolute top-32 left-10 md:left-20 opacity-40">
+<svg class="text-primary-container" fill="none" height="40" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" width="40">
+<path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z"></path>
+</svg>
+</div>
+<div class="absolute bottom-20 right-10 md:right-32 opacity-30 font-display-xl text-headline-md tracking-widest">
+    XXX
+</div>
+<div class="relative z-10 w-full grid grid-cols-1 md:grid-cols-12 gap-gutter items-center">
+<div class="col-span-1 md:col-span-6 flex flex-col items-start space-y-stack-lg">
+<div class="space-y-stack-sm relative">
+<span class="font-label-caps text-label-caps uppercase text-primary-container tracking-widest border-2 border-primary-container px-4 py-1.5 rounded-full font-bold inline-block bg-white/50 backdrop-blur-sm">New Arrivals</span>
+<h1 class="font-display-xl text-display-xl md:text-[120px] leading-none text-on-background uppercase mt-6 relative z-10">
+                        EFFORTLESS
+</h1>
+<h1 class="font-display-xl text-display-xl md:text-[120px] leading-none stroke-text uppercase absolute top-14 left-2 -z-10 opacity-50">
+                        EFFORTLESS
+</h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-md mt-6 font-medium border-l-4 border-primary-container pl-4">
+                        Premium fabrics. Oversized fit. Everyday wear. Effortless style. That's chill.
+                    </p>
+</div>
+<a class="inline-flex items-center justify-center bg-gradient-orange text-white font-button-text text-button-text px-10 py-5 uppercase tracking-widest hover:shadow-lg hover:-translate-y-1 transition-all duration-300 font-bold" href="#">
+                    Shop The Collection
+                </a>
+</div>
+<div class="col-span-1 md:col-span-6 relative mt-12 md:mt-0">
+<div class="aspect-[4/5] relative group overflow-visible">
+<div class="absolute inset-0 bg-primary-container translate-x-4 translate-y-4 -z-10 torn-edge opacity-20"></div>
+<img alt="Chill Co. Signature Oversized Tee" class="w-full h-full torn-edge shadow-xl relative z-10 object-contain" data-alt="A male model wearing an oversized, minimalist white t-shirt and loose dark trousers, standing in an industrial studio with stark white walls and concrete floors. The lighting is high-key and soft, emphasizing the premium drape of the fabric. The overall aesthetic is raw, modern streetwear lookbook style, with subtle grain texture." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbZOtWgOzWmWBxo12pMmBPlQ0riucHU4XuOB4EprrmCoS3G6YkyegCgMWT_zBemqB8i6_vefmbeRCA8P6cx0xYjOelc43-N3YiHSbQiV7UZe_e2KJWbovast_15ufoFKTaR8ikMAGexGABFbwOfE5dzBiMFmzi-rzQdd0QPBTejJJdZkUvk2cXRzyhI31FFPbB7_NSlUy8rzaXTIY2la8NGsYGHGprvBP37l6H5GLGrWnyONKcRiPRiiK66CI-Jent7F1vyZb0row">
+<!-- Decorative Element -->
+<div class="absolute -bottom-6 -left-6 w-32 h-32 border-2 border-on-background rounded-full flex items-center justify-center -rotate-12 bg-white shadow-lg z-20">
+<span class="font-label-caps text-label-caps text-center uppercase leading-tight font-bold text-on-background">Est.<br>2026</span>
+</div>
+<div class="absolute top-10 -right-8 w-24 h-24 border border-primary-container rounded-full flex items-center justify-center opacity-50 z-0">
+<div class="w-16 h-16 border border-primary-container rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</header><section class="py-section-gap px-margin-mobile md:px-margin-desktop bg-surface-container-lowest relative">
+<div class="absolute top-0 left-0 w-full h-full bg-texture opacity-50 pointer-events-none"></div>
+<div class="max-w-full mx-auto relative z-10">
+<div class="flex justify-between items-end mb-16 border-b-2 border-on-background pb-6">
+<div class="space-y-stack-sm">
+<div class="flex items-center gap-2">
+<svg class="text-primary-container" fill="none" height="20" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20">
+<path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z"></path>
+</svg>
+<span class="font-label-caps text-label-caps text-primary-container uppercase tracking-widest font-bold">Curated Selection</span>
+</div>
+<h2 class="font-display-xl text-headline-md md:text-headline-lg text-on-background uppercase">The Latest Drops</h2>
+</div>
+<a class="hidden md:flex items-center gap-2 font-button-text text-button-text uppercase tracking-widest hover:text-primary-container transition-colors font-bold" href="#">
+        View All
+        <span class="material-symbols-outlined" data-icon="arrow_forward">arrow_forward</span>
+</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Product 1 -->
+<div class="group cursor-pointer">
+<div class="aspect-[4/5] bg-surface-container-low relative mb-6 torn-edge p-2 bg-white shadow-sm border border-surface-variant">
+<img alt="Oversized Signature Tee" class="w-full h-full object-cover transition-all duration-700 group-hover:scale-[1.02]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAns1Dr9x3VDLdWSnhgP1rHClkfOXU2QbWkyyKbCAHdPaTP-SpmYCEQxzXOvuV48HE9V-tWy42-JNdLt1OA5_akF5D1iyId9JW1JGee-wDlnNypKycyJMHLIIp7AuKx1qTE0nIzZ3QiVGV3a5hI--5w0C9GONQPvJdn4DbgfMr_lbSeq2PoRP54QIvtcWPDP0Mf2kArHbMI9OqEUPgFV61gn4__HmVv-eNph-ZRbMg1VHF85-FM11cMcJHzPHca-ATLKIdg2RKPsY4">
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10 torn-edge">
+<button class="bg-gradient-orange text-white font-button-text text-button-text px-8 py-4 uppercase tracking-widest transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 font-bold hover:shadow-lg">Add to Bag</button>
+</div>
+<div class="absolute top-4 left-4 bg-white px-3 py-1 font-label-caps text-[10px] font-bold z-10">NEW</div>
+</div>
+<div class="flex justify-between items-start pt-2 border-t border-surface-variant">
+<div>
+<h3 class="font-body-lg text-body-lg text-on-background uppercase font-bold tracking-tight">Oversized Signature Tee</h3>
+<p class="font-body-md text-sm text-on-surface-variant mt-1">Harvest Orange</p>
+</div>
+<span class="font-display-xl text-headline-md text-on-background">$45</span>
+</div>
+</div>
+<!-- Product 2 -->
+<div class="group cursor-pointer">
+<div class="aspect-[4/5] bg-surface-container-low relative mb-6 torn-edge p-2 bg-white shadow-sm border border-surface-variant">
+<img alt="Core Heavyweight Hoodie" class="w-full h-full object-cover transition-all duration-700 group-hover:scale-[1.02]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDiuTzyHWcm2rcGKQgZRAtjxd_uC2u9t9X1MWxqWLrLvs5GwXfbDyYKufssAlitw0HI6n22uKCjBs8bbk5ekmx5OgnL2Kf_Yrd5TF7ZUTVGRfACnO-N86XdJGjAnM2ipeoqJ7jdHbLAqRvMDkyElme8fe8D6N2RCIqGv4IosFYJb2YNSTL9xpwM6aDwICSDTwN536D_8tEmu1YS3-RUlPmpdMTNUYGpcZr2SOc_bq-R-R3isXX2zw3CLU749rL4xIHFt4eH4y33znw">
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10 torn-edge">
+<button class="bg-gradient-orange text-white font-button-text text-button-text px-8 py-4 uppercase tracking-widest transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 font-bold hover:shadow-lg">Add to Bag</button>
+</div>
+</div>
+<div class="flex justify-between items-start pt-2 border-t border-surface-variant">
+<div>
+<h3 class="font-body-lg text-body-lg text-on-background uppercase font-bold tracking-tight">Heavyweight Core Tee</h3>
+<p class="font-body-md text-sm text-on-surface-variant mt-1">Stone Grey</p>
+</div>
+<span class="font-display-xl text-headline-md text-on-background">$85</span>
+</div>
+</div>
+<!-- Product 3 -->
+<div class="group cursor-pointer">
+<div class="aspect-[4/5] bg-surface-container-low relative mb-6 torn-edge p-2 bg-white shadow-sm border border-surface-variant">
+<img alt="Everyday Classic Tee" class="w-full h-full object-cover transition-all duration-700 group-hover:scale-[1.02]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCi4vtTbsk1xfbmKZn6l8GNdK4eUkNtVxkyEvKjfVHPf68-NivmsFx470JJW0NwHWHJKX_6YdIwgJCazlxt3K_8wyNfNDnikZWD8EVjDtsLa-epiPMmY5bIBY2fQ2M6_jz6ffTo8NaNNSXkviQbBsRHuMfUTkpqXqB-a2pKdwz5Q7ZQstI1gxbHkrxBcGVuoYCJedRhtfdpj1xIoW8GmIthFVBIVFelhUaMQ1X9j0yamtyy93Ohb9shbhmu7iZLxPh0ggHOT5Sw9CE">
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10 torn-edge">
+<button class="bg-gradient-orange text-white font-button-text text-button-text px-8 py-4 uppercase tracking-widest transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 font-bold hover:shadow-lg">Add to Bag</button>
+</div>
+</div>
+<div class="flex justify-between items-start pt-2 border-t border-surface-variant">
+<div>
+<h3 class="font-body-lg text-body-lg text-on-background uppercase font-bold tracking-tight">Everyday Classic Tee</h3>
+<p class="font-body-md text-sm text-on-surface-variant mt-1">Midnight Black</p>
+</div>
+<span class="font-display-xl text-headline-md text-on-background">$38</span>
+</div>
+</div>
+</div>
+<div class="mt-12 md:hidden">
+<a class="block text-center font-button-text text-button-text uppercase tracking-widest border-2 border-on-background py-4 hover:bg-on-background hover:text-white transition-colors font-bold" href="#">View All Products</a>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-white border-t border-surface-variant w-full py-section-gap px-margin-mobile md:px-margin-desktop relative overflow-hidden">
+<div class="absolute inset-0 bg-texture opacity-30 pointer-events-none"></div>
+<div class="absolute bottom-0 right-0 w-64 h-64 border-[40px] border-surface-container rounded-full translate-x-1/3 translate-y-1/3 opacity-50 z-0"></div>
+<div class="max-w-full mx-auto grid grid-cols-1 md:grid-cols-4 gap-gutter relative z-10">
+<div class="col-span-1 md:col-span-2 flex flex-col items-start space-y-stack-md">
+<img alt="Chill Co." class="h-20 w-auto object-contain mix-blend-multiply mb-4" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqB65R-CNaUPWxe_JwjGRHxiS3EUkEaXgG_Ykp-m9DV7dZVVB2qnF0O1xUNp6ioaAH7YSjRh1PAkQrEacFEWd3ju5pOJ4rXlPTBID9lpaGpjs_02jZwIsNjKKKPA5WYRj0rclafY-H2LtxCzFRxb7nyftQ-rr0G6RYnF-CnkK305lo-IqnWrNri_UUhYERexGtllSN_-WafAqC7s1ZWKuvcHAWDKK4NqZyTA-qs7UtMfISab21PmlHbupj6bYL8Rxyrmbo3LtTvSs">
+<p class="font-body-md text-body-md text-on-surface-variant max-w-sm font-medium">
+                    Designed for comfort. Built for everyday.
+                </p>
+<p class="font-label-caps text-label-caps text-tertiary mt-auto pt-8 font-bold">
+                    © 2024 Chill Co.
+                </p>
+</div>
+<div class="col-span-1 flex flex-col space-y-stack-sm">
+<span class="font-label-caps text-label-caps text-on-background uppercase mb-4 font-bold tracking-widest">Shop</span>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary-container transition-colors duration-300 font-medium" href="#">New Drops</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary-container transition-colors duration-300 font-medium" href="#">Essentials</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary-container transition-colors duration-300 font-medium" href="#">Accessories</a>
+</div>
+<div class="col-span-1 flex flex-col space-y-stack-sm">
+<span class="font-label-caps text-label-caps text-on-background uppercase mb-4 font-bold tracking-widest">Support</span>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary-container transition-colors duration-300 font-medium" href="#">Privacy Policy</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary-container transition-colors duration-300 font-medium" href="#">Terms of Service</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary-container transition-colors duration-300 font-medium" href="#">Shipping</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary-container transition-colors duration-300 font-medium" href="#">Returns</a>
+<a class="font-body-md text-body-md text-on-surface-variant hover:text-primary-container transition-colors duration-300 font-medium" href="#">Contact</a>
+</div>
+</div>
+</footer>
+
+
+
+
+</body></html>
