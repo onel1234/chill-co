@@ -114,7 +114,7 @@ export default function CuratedSelection() {
             className="flex overflow-x-auto gap-4 md:gap-6 snap-x snap-mandatory scrollbar-hide pb-4"
           >
             {products.map((product) => (
-              <div key={product.id} className="min-w-[calc(50%-0.5rem)] md:min-w-[calc(33.333%-1rem)] snap-start shrink-0">
+              <div key={product.id} className="w-[calc(50%_-_8px)] md:w-[calc(33.333%_-_16px)] snap-start shrink-0">
                 <ProductCard 
                   title={product.title}
                   subtitle={product.subtitle}

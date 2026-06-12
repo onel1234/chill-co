@@ -13,7 +13,7 @@ interface ProductCardProps {
 export default function ProductCard({ title, subtitle, price, imageSrc, badge, href = "#" }: ProductCardProps) {
   return (
     <Link href={href} className="group cursor-pointer block">
-      <div className="aspect-[4/5] bg-white relative mb-4 overflow-hidden">
+      <div className="aspect-[3/4] bg-white relative mb-4 overflow-hidden">
         <img 
           alt={title} 
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
