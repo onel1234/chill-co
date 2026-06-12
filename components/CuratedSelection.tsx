@@ -70,15 +70,27 @@ export default function CuratedSelection() {
   };
 
   return (
-    <section className="py-16 md:py-24 bg-white relative">
-      <div className="max-w-[1600px] mx-auto px-4 md:px-12 relative z-10">
+    <section className="py-section-gap px-margin-mobile md:px-margin-desktop bg-surface-container-lowest relative">
+      <div className="absolute top-0 left-0 w-full h-full bg-texture opacity-50 pointer-events-none"></div>
+      <div className="max-w-full mx-auto relative z-10">
         
-        <div className="flex justify-between items-end mb-12">
-          <div className="flex flex-col">
-            <h2 className="font-body-md text-xl text-black">Shop till you drop!</h2>
+        <div className="flex justify-between items-end mb-16 border-b-2 border-on-background pb-6">
+          <div className="space-y-stack-sm">
+            <div className="flex items-center gap-2">
+              <svg className="text-primary-container" fill="none" height="20" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" width="20">
+                <path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z" />
+              </svg>
+              <span className="font-label-caps text-label-caps text-primary-container uppercase tracking-widest font-bold">
+                Curated Selection
+              </span>
+            </div>
+            <h2 className="font-display-xl text-headline-md md:text-headline-lg text-on-background uppercase">
+              The Latest Drops
+            </h2>
           </div>
-          <Link href="/collections" className="hidden md:block font-body-md text-sm text-black border-b border-black hover:opacity-70 transition-opacity pb-1">
-            Shop New Collection
+          <Link href="#" className="hidden md:flex items-center gap-2 font-button-text text-button-text uppercase tracking-widest hover:text-primary-container transition-colors font-bold">
+            View All
+            <span className="material-symbols-outlined">arrow_forward</span>
           </Link>
         </div>
         
