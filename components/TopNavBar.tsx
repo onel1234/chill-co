@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCart } from '@/lib/context/CartContext';
+import { useAuth } from '@/lib/context/AuthContext';
 import SearchOverlay from './SearchOverlay';
 
 export default function TopNavBar() {
@@ -12,6 +13,7 @@ export default function TopNavBar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
   const { totalItems } = useCart();
+  const { user, profile, isLoading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,6 +26,9 @@ export default function TopNavBar() {
 
   const isHome = pathname === '/';
   const isTransparent = isHome && !isScrolled;
+
+  const avatarUrl = profile?.avatar_url;
+  const displayInitial = (profile?.full_name?.[0] || user?.email?.[0] || '?').toUpperCase();
 
   return (
     <>
@@ -94,7 +99,7 @@ export default function TopNavBar() {
               className={`w-auto object-contain transition-all duration-500 ${
                 !isTransparent ? "h-[46px] md:h-[64px]" : "h-[55px] md:h-[74px] invert brightness-0"
               }`} 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqB65R-CNaUPWxe_JwjGRHxiS3EUkEaXgG_Ykp-m9DV7dZVVB2qnF0O1xUNp6ioaAH7YSjRh1PAkQrEacFEWd3ju5pOJ4rXlPTBID9lpaGpjs_02jZwIsNjKKKPA5WYRj0rclafY-H2LtxCzFRxb7nyftQ-rr0G6RYnF-CnkK305lo-IqnWrNri_UUhYERexGtllSN_-WafAqC7s1ZWKuvcHAWDKK4NqZyTA-qs7UtMfISab21PmlHbupj6bYL8Rxyrmbo3LtTvSs" 
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqB65R-CNaUPWxe_JwjGRHxiS3EUkEaXgG_Ykp-m9DV7dZVVB2qnF0O1xUNp6ioaAH7YSjRh1PAkQrEacFEWd3ju5pOJ4rXlPTBID9lplaGpjs_02jZwIsNjKKKPA5WYRj0rclafY-H2LtxCzFRxb7nyftQ-rr0G6RYnF-CnkK305lo-IqnWrNri_UUhYERexGtllSN_-WafAqC7s1ZWKuvcHAWDKK4NqZyTA-qs7UtMfISab21PmlHbupj6bYL8Rxyrmbo3LtTvSs" 
             />
           </Link>
         </div>
@@ -106,9 +111,30 @@ export default function TopNavBar() {
           <button onClick={() => setIsSearchOpen(true)} className="scale-100 active:scale-95 transition-all duration-200 hover:opacity-80 hidden sm:block">
             <span className="material-symbols-outlined">search</span>
           </button>
-          <button className="scale-100 active:scale-95 transition-all duration-200 hover:opacity-80 hidden md:block">
-            <span className="material-symbols-outlined">person</span>
-          </button>
+
+          {/* Account Icon / Avatar */}
+          {!isLoading && (
+            <Link
+              href={user ? "/account" : "/account/login"}
+              className="scale-100 active:scale-95 transition-all duration-200 hover:opacity-80 hidden md:flex items-center"
+              title={user ? "My Account" : "Sign In"}
+            >
+              {user && avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt="Account"
+                  className="w-7 h-7 rounded-full object-cover border-2 border-primary/30"
+                />
+              ) : user ? (
+                <div className="w-7 h-7 rounded-full bg-primary text-on-primary flex items-center justify-center text-[11px] font-bold">
+                  {displayInitial}
+                </div>
+              ) : (
+                <span className="material-symbols-outlined">person</span>
+              )}
+            </Link>
+          )}
+
           <Link href="/checkout" className="relative scale-100 active:scale-95 transition-all duration-200 hover:opacity-80 flex items-center">
             <span className="material-symbols-outlined">shopping_bag</span>
             {totalItems > 0 && (
@@ -136,9 +162,14 @@ export default function TopNavBar() {
              <button onClick={() => { setIsMobileMenuOpen(false); setIsSearchOpen(true); }} className="flex items-center gap-2 hover:text-primary-container font-label-caps text-label-caps uppercase tracking-widest">
                <span className="material-symbols-outlined text-sm">search</span> Search
              </button>
-             <button className="flex items-center gap-2 hover:text-primary-container font-label-caps text-label-caps uppercase tracking-widest">
-               <span className="material-symbols-outlined text-sm">person</span> Account
-             </button>
+             <Link
+               href={user ? "/account" : "/account/login"}
+               onClick={() => setIsMobileMenuOpen(false)}
+               className="flex items-center gap-2 hover:text-primary-container font-label-caps text-label-caps uppercase tracking-widest"
+             >
+               <span className="material-symbols-outlined text-sm">person</span>
+               {user ? "Account" : "Sign In"}
+             </Link>
           </div>
         </div>
       )}

@@ -3,10 +3,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useAuth } from '@/lib/context/AuthContext';
 
 export default function MobileNavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { user } = useAuth();
 
   return (
     <>
@@ -24,7 +26,7 @@ export default function MobileNavBar() {
         </div>
         <div className="flex items-center gap-stack-md">
           <button className="material-symbols-outlined text-primary">search</button>
-          <button className="material-symbols-outlined text-primary">shopping_bag</button>
+          <Link href="/checkout" className="material-symbols-outlined text-primary">shopping_bag</Link>
         </div>
       </nav>
 
@@ -42,6 +44,15 @@ export default function MobileNavBar() {
           <li><Link className={pathname === '/shop' ? "font-display-xl text-headline-md uppercase text-primary border-b border-primary w-full block pb-2" : "font-display-xl text-headline-md uppercase text-on-surface-variant hover:text-primary transition-colors block pb-2"} href="/shop" onClick={() => setIsMenuOpen(false)}>Shop</Link></li>
           <li><Link className={pathname === '/collections' ? "font-display-xl text-headline-md uppercase text-primary border-b border-primary w-full block pb-2" : "font-display-xl text-headline-md uppercase text-on-surface-variant hover:text-primary transition-colors block pb-2"} href="/collections" onClick={() => setIsMenuOpen(false)}>Collections</Link></li>
           <li><Link className={pathname === '/about' ? "font-display-xl text-headline-md uppercase text-primary border-b border-primary w-full block pb-2" : "font-display-xl text-headline-md uppercase text-on-surface-variant hover:text-primary transition-colors block pb-2"} href="/about" onClick={() => setIsMenuOpen(false)}>About</Link></li>
+          <li>
+            <Link
+              className={pathname === '/account' || pathname === '/account/login' ? "font-display-xl text-headline-md uppercase text-primary border-b border-primary w-full block pb-2" : "font-display-xl text-headline-md uppercase text-on-surface-variant hover:text-primary transition-colors block pb-2"}
+              href={user ? "/account" : "/account/login"}
+              onClick={() => setIsMenuOpen(false)}
+            >
+              {user ? "Account" : "Sign In"}
+            </Link>
+          </li>
         </ul>
         <div className="mt-section-gap">
           <p className="font-label-caps text-label-caps text-on-surface-variant mb-4">SOCIALS</p>

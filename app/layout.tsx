@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import LoadingScreen from "@/components/LoadingScreen";
 import { CartProvider } from "@/lib/context/CartContext";
+import { AuthProvider } from "@/lib/context/AuthContext";
 
 export const metadata: Metadata = {
   title: "Chill Co. | Effortless Comfort",
@@ -23,9 +24,11 @@ export default function RootLayout({
       </head>
       <body className="min-h-full flex flex-col font-body-md text-body-md antialiased overflow-x-hidden selection:bg-primary-container selection:text-white bg-texture">
         <LoadingScreen />
-        <CartProvider>
-          {children}
-        </CartProvider>
+        <AuthProvider>
+          <CartProvider>
+            {children}
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );
