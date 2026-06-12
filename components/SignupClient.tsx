@@ -15,7 +15,6 @@ export default function SignupClient() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [success, setSuccess] = useState(false);
   const router = useRouter();
   const { user } = useAuth();
   const supabase = createClient();
@@ -56,18 +55,21 @@ export default function SignupClient() {
       setError(error.message);
       setIsLoading(false);
     } else {
-      setSuccess(true);
-      setIsLoading(false);
+      // Email confirmation is disabled — user is signed in immediately
+      router.push("/account");
+      router.refresh();
     }
   };
+
 
   const handleGoogleSignup = async () => {
     setIsGoogleLoading(true);
     setError(null);
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${siteUrl}/auth/callback`,
       },
     });
     if (error) {
@@ -76,30 +78,7 @@ export default function SignupClient() {
     }
   };
 
-  if (success) {
-    return (
-      <main className="min-h-screen flex items-center justify-center px-margin-mobile py-24 bg-texture kinetic-bg">
-        <div className="w-full max-w-md text-center">
-          <div className="w-20 h-20 bg-primary/10 text-primary rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="material-symbols-outlined text-4xl">mark_email_read</span>
-          </div>
-          <h1 className="font-headline-lg text-headline-lg-mobile uppercase tracking-tighter text-on-surface mb-4">
-            Check Your Email
-          </h1>
-          <p className="font-body-md text-body-md text-on-surface-variant max-w-sm mx-auto mb-8">
-            We&apos;ve sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.
-          </p>
-          <Link
-            href="/account/login"
-            className="inline-flex items-center gap-2 bg-primary text-on-primary font-button-text text-button-text uppercase py-4 px-8 hover:bg-primary-container transition-colors"
-          >
-            Back to Sign In
-            <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-          </Link>
-        </div>
-      </main>
-    );
-  }
+
 
   return (
     <main className="min-h-screen flex items-center justify-center px-margin-mobile py-24 bg-texture kinetic-bg">

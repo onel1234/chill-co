@@ -42,10 +42,11 @@ export default function LoginClient() {
   const handleGoogleLogin = async () => {
     setIsGoogleLoading(true);
     setError(null);
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${siteUrl}/auth/callback`,
       },
     });
     if (error) {
