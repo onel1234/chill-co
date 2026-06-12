@@ -19,16 +19,16 @@ export default function TopNavBar() {
   }, []);
 
   return (
-    <nav className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+    <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ease-in-out ${
       isScrolled 
-        ? "bg-white/95 dark:bg-background/95 backdrop-blur-md border-b border-surface-variant dark:border-on-surface-variant/20 shadow-sm" 
-        : "bg-transparent backdrop-blur-sm border-b border-transparent"
+        ? "bg-white/95 dark:bg-background/95 backdrop-blur-md border-b border-surface-variant dark:border-on-surface-variant/20 shadow-sm py-2" 
+        : "bg-transparent border-b border-white/20 py-4"
     }`}>
       <div className="flex justify-between items-center px-margin-mobile py-stack-md max-w-full mx-auto md:px-margin-desktop">
         
         {/* Mobile Hamburger Button */}
         <button 
-          className={`md:hidden scale-100 active:scale-95 transition-all duration-200 ${
+          className={`md:hidden scale-100 active:scale-95 transition-all duration-300 ${
             isScrolled ? "text-on-surface hover:text-primary-container" : "text-white hover:text-white/80"
           }`}
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -39,8 +39,8 @@ export default function TopNavBar() {
         <Link href="/" className="font-display-xl text-headline-md uppercase tracking-tighter">
           <img 
             alt="Chill Co. Logo" 
-            className={`h-12 md:h-20 w-auto object-contain transition-all duration-300 ${
-              !isScrolled && "invert brightness-0"
+            className={`w-auto object-contain transition-all duration-500 ${
+              isScrolled ? "h-10 md:h-14" : "h-12 md:h-16 invert brightness-0"
             }`} 
             src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqB65R-CNaUPWxe_JwjGRHxiS3EUkEaXgG_Ykp-m9DV7dZVVB2qnF0O1xUNp6ioaAH7YSjRh1PAkQrEacFEWd3ju5pOJ4rXlPTBID9lpaGpjs_02jZwIsNjKKKPA5WYRj0rclafY-H2LtxCzFRxb7nyftQ-rr0G6RYnF-CnkK305lo-IqnWrNri_UUhYERexGtllSN_-WafAqC7s1ZWKuvcHAWDKK4NqZyTA-qs7UtMfISab21PmlHbupj6bYL8Rxyrmbo3LtTvSs" 
           />
