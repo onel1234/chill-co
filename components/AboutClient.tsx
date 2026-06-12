@@ -10,7 +10,7 @@ export default function AboutClient() {
         <div className="col-span-1 md:col-span-5 flex flex-col gap-stack-lg z-10">
           <div className="flex flex-col gap-stack-sm">
             <span className="font-label-caps text-label-caps tracking-[0.2em] text-on-surface-variant">Welcome To</span>
-            <h1 className="font-display-xl text-display-xl text-primary lowercase tracking-tighter leading-none mb-stack-md">chill<br />co.™</h1>
+            <h1 className="font-display-xl text-7xl md:text-display-xl text-primary lowercase tracking-tighter leading-none mb-stack-md">chill<br />co.™</h1>
             <p className="font-body-lg text-body-lg text-on-surface-variant max-w-md">
               OVERSIZED FIT.<br />
               <span className="font-bold">UNDENIABLE DIFFERENCE.</span>
@@ -25,7 +25,7 @@ export default function AboutClient() {
           </div>
         </div>
         {/* Hero Image / Texture Area */}
-        <div className="col-span-1 md:col-span-7 relative h-full min-h-[500px]">
+        <div className="col-span-1 md:col-span-7 relative h-full min-h-[350px] md:min-h-[500px] mt-8 md:mt-0">
           {/* Large Orange Brush Stroke Background element (simulated with CSS for performance/size) */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-primary-container rounded-full blur-[100px] opacity-20 -z-10"></div>
           <div className="relative w-full h-full border-hairline bg-surface-container-low overflow-hidden group">
@@ -41,7 +41,7 @@ export default function AboutClient() {
       {/* Our Philosophy: Bento Grid */}
       <section className="bg-surface-container px-margin-mobile md:px-margin-desktop py-section-gap">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-stack-lg flex flex-col md:flex-row justify-between items-end gap-stack-md">
+          <div className="mb-stack-lg flex flex-col md:flex-row justify-between items-start md:items-end gap-stack-md">
             <div>
               <h2 className="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-background uppercase">Made To<br /><span className="text-primary-container">Stand Out.</span></h2>
             </div>
@@ -79,7 +79,7 @@ export default function AboutClient() {
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-stack-lg items-center relative z-10 max-w-7xl mx-auto">
           <div>
-            <h2 className="font-display-xl text-display-xl uppercase tracking-tighter leading-none mb-stack-md">This is<br />just the<br />beginning.</h2>
+            <h2 className="font-display-xl text-6xl md:text-display-xl uppercase tracking-tighter leading-none mb-stack-md">This is<br />just the<br />beginning.</h2>
             <p className="font-body-lg text-body-lg text-on-primary-fixed mb-stack-lg max-w-md">
               thank you for being part of the chill co. community. let&apos;s build something different. together.
             </p>

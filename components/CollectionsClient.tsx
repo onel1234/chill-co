@@ -13,7 +13,7 @@ export default function CollectionsClient() {
 
         <div className="relative z-20 max-w-4xl md:col-span-1 flex flex-col justify-center p-margin-mobile md:p-margin-desktop">
           <p className="font-label-caps text-label-caps mb-stack-sm tracking-widest">EST. 2024 / DESIGNED DIFFERENT</p>
-          <h1 className="font-display-xl text-display-xl font-black uppercase leading-none tracking-tighter mix-blend-multiply">
+          <h1 className="font-display-xl text-5xl sm:text-6xl md:text-display-xl font-black uppercase leading-none tracking-tighter mix-blend-multiply break-words">
             THE<br />
             <span className="text-surface-container-lowest">COLLECTIONS</span>
           </h1>
@@ -23,7 +23,7 @@ export default function CollectionsClient() {
         </div>
         {/* Brush stroke graphic placeholder (using css shapes) */}
         <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-surface-container-lowest opacity-20 transform rotate-12 translate-y-1/4 translate-x-1/4 rounded-full blur-3xl"></div>
-        <div className="relative h-full min-h-[400px] md:min-h-0 overflow-hidden">
+        <div className="relative h-full min-h-[300px] md:min-h-0 overflow-hidden mt-8 md:mt-0">
           <img src="/images/hero_collection.png" alt="Urban Kinetic Streetwear Collection" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-primary/20 mix-blend-overlay"></div>
           <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-primary-container to-transparent md:block hidden"></div>
@@ -38,7 +38,7 @@ export default function CollectionsClient() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-surface-container-high bg-surface-container-lowest transition-transform duration-500 hover:scale-[1.01]">
               <div className="p-gutter md:p-stack-lg flex flex-col justify-center bg-surface-container-low">
                 <span className="font-label-caps text-label-caps text-primary mb-stack-sm">01 / STAPLES</span>
-                <h2 className="font-headline-lg text-headline-lg md:text-display-xl md:font-display-xl font-black uppercase mb-stack-md">Essentials</h2>
+                <h2 className="font-headline-lg text-5xl sm:text-6xl md:text-display-xl font-black uppercase mb-stack-md break-words">Essentials</h2>
                 <p className="font-body-lg text-body-lg text-on-surface-variant mb-stack-lg max-w-md">Premium fabrics. Oversized fit. Everyday wear. Effortless style. That&apos;s chill.</p>
                 <a className="inline-flex items-center font-button-text text-button-text bg-primary text-on-primary px-8 py-4 w-max hover:bg-on-surface transition-colors" href="#">
                   EXPLORE ESSENTIALS <span className="material-symbols-outlined ml-2 text-sm">arrow_forward</span>
@@ -86,7 +86,7 @@ export default function CollectionsClient() {
               {/* Text Overlay */}
               <div className="relative z-10 w-full flex flex-col items-center text-center p-gutter">
                 <span className="font-label-caps text-label-caps mb-stack-md bg-surface-container-lowest px-4 py-2 border border-on-surface">04 / EXCLUSIVE</span>
-                <h2 className="font-display-xl text-display-xl font-black uppercase stroke-text text-surface-container-lowest mb-stack-lg mix-blend-difference">The Signature<br />Series</h2>
+                <h2 className="font-display-xl text-5xl md:text-display-xl font-black uppercase stroke-text text-surface-container-lowest mb-stack-lg mix-blend-difference">The Signature<br />Series</h2>
                 <a className="inline-flex items-center font-button-text text-button-text bg-transparent border-2 border-on-surface text-on-surface px-8 py-4 hover:bg-on-surface hover:text-surface-container-lowest transition-colors backdrop-blur-sm bg-surface-container-lowest/30" href="#">
                   SHOP SIGNATURE <span className="material-symbols-outlined ml-2 text-sm">arrow_forward</span>
                 </a>

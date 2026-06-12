@@ -6,7 +6,7 @@ export default function Newsletter() {
         <p className="font-body-md text-body-md text-on-surface-variant mb-stack-lg">Be the first to know about secret drops and editorial content.</p>
         <form className="space-y-4">
           <div className="border-b border-on-surface pb-2">
-            <input className="w-full bg-transparent border-none p-0 focus:ring-0 font-label-caps text-label-caps placeholder:text-on-surface-variant md:text-center" placeholder="YOUR EMAIL ADDRESS" type="email" />
+            <input className="w-full bg-transparent border-none p-0 focus:outline-none focus:ring-0 font-label-caps text-label-caps placeholder:text-on-surface-variant md:text-center" placeholder="YOUR EMAIL ADDRESS" type="email" />
           </div>
           <button className="w-full bg-on-surface text-background py-4 font-button-text text-button-text uppercase tracking-widest hover:opacity-90 transition-opacity">SUBMIT</button>
         </form>
