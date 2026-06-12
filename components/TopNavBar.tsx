@@ -18,9 +18,12 @@ export default function TopNavBar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const isHome = pathname === '/';
+  const isTransparent = isHome && !isScrolled;
+
   return (
     <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ease-in-out ${
-      isScrolled 
+      !isTransparent 
         ? "bg-white/95 dark:bg-background/95 backdrop-blur-md border-b border-surface-variant dark:border-on-surface-variant/20 shadow-sm py-2" 
         : "bg-transparent border-b border-white/20 py-4"
     }`}>
@@ -31,7 +34,7 @@ export default function TopNavBar() {
           {/* Mobile Hamburger Button */}
           <button 
             className={`md:hidden scale-100 active:scale-95 transition-all duration-300 ${
-              isScrolled ? "text-on-surface hover:text-primary-container" : "text-white hover:text-white/80"
+              !isTransparent ? "text-on-surface hover:text-primary-container" : "text-white hover:text-white/80"
             }`}
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
@@ -43,8 +46,8 @@ export default function TopNavBar() {
               <Link 
                 className={`font-label-caps text-label-caps transition-colors duration-300 ${
                   pathname === '/shop' 
-                    ? (isScrolled ? "text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary pb-1" : "text-white font-bold border-b-2 border-white pb-1") 
-                    : (isScrolled ? "text-on-surface hover:text-primary-container" : "text-white/80 hover:text-white")
+                    ? (!isTransparent ? "text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary pb-1" : "text-white font-bold border-b-2 border-white pb-1") 
+                    : (!isTransparent ? "text-on-surface hover:text-primary-container" : "text-white/80 hover:text-white")
                 }`}
                 href="/shop"
               >
@@ -56,8 +59,8 @@ export default function TopNavBar() {
                 href="/collections" 
                 className={`font-label-caps text-label-caps transition-colors duration-300 ${
                   pathname === '/collections' 
-                    ? (isScrolled ? "text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary pb-1" : "text-white font-bold border-b-2 border-white pb-1") 
-                    : (isScrolled ? "text-on-surface hover:text-primary-container" : "text-white/80 hover:text-white")
+                    ? (!isTransparent ? "text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary pb-1" : "text-white font-bold border-b-2 border-white pb-1") 
+                    : (!isTransparent ? "text-on-surface hover:text-primary-container" : "text-white/80 hover:text-white")
                 }`}
               >
                 Collections
@@ -68,8 +71,8 @@ export default function TopNavBar() {
                 href="/about" 
                 className={`font-label-caps text-label-caps transition-colors duration-300 ${
                   pathname === '/about' 
-                    ? (isScrolled ? "text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary pb-1" : "text-white font-bold border-b-2 border-white pb-1") 
-                    : (isScrolled ? "text-on-surface hover:text-primary-container" : "text-white/80 hover:text-white")
+                    ? (!isTransparent ? "text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary pb-1" : "text-white font-bold border-b-2 border-white pb-1") 
+                    : (!isTransparent ? "text-on-surface hover:text-primary-container" : "text-white/80 hover:text-white")
                 }`}
               >
                 About
@@ -84,7 +87,7 @@ export default function TopNavBar() {
             <img 
               alt="Chill Co. Logo" 
               className={`w-auto object-contain transition-all duration-500 ${
-                isScrolled ? "h-[46px] md:h-[64px]" : "h-[55px] md:h-[74px] invert brightness-0"
+                !isTransparent ? "h-[46px] md:h-[64px]" : "h-[55px] md:h-[74px] invert brightness-0"
               }`} 
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqB65R-CNaUPWxe_JwjGRHxiS3EUkEaXgG_Ykp-m9DV7dZVVB2qnF0O1xUNp6ioaAH7YSjRh1PAkQrEacFEWd3ju5pOJ4rXlPTBID9lpaGpjs_02jZwIsNjKKKPA5WYRj0rclafY-H2LtxCzFRxb7nyftQ-rr0G6RYnF-CnkK305lo-IqnWrNri_UUhYERexGtllSN_-WafAqC7s1ZWKuvcHAWDKK4NqZyTA-qs7UtMfISab21PmlHbupj6bYL8Rxyrmbo3LtTvSs" 
             />
@@ -93,7 +96,7 @@ export default function TopNavBar() {
 
         {/* Right Side: Icons */}
         <div className={`flex-1 flex items-center justify-end gap-stack-md transition-colors duration-300 ${
-          isScrolled ? "text-on-background" : "text-white"
+          !isTransparent ? "text-on-background" : "text-white"
         }`}>
           <button className="scale-100 active:scale-95 transition-all duration-200 hover:opacity-80 hidden sm:block">
             <span className="material-symbols-outlined">search</span>
