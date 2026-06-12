@@ -3,11 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useCart } from '@/lib/context/CartContext';
+import SearchOverlay from './SearchOverlay';
 
 export default function TopNavBar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
+  const { totalItems } = useCart();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -22,6 +26,7 @@ export default function TopNavBar() {
   const isTransparent = isHome && !isScrolled;
 
   return (
+    <>
     <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ease-in-out ${
       !isTransparent 
         ? "bg-white/95 dark:bg-background/95 backdrop-blur-md border-b border-surface-variant dark:border-on-surface-variant/20 shadow-sm py-2" 
@@ -98,32 +103,37 @@ export default function TopNavBar() {
         <div className={`flex-1 flex items-center justify-end gap-stack-md transition-colors duration-300 ${
           !isTransparent ? "text-on-background" : "text-white"
         }`}>
-          <button className="scale-100 active:scale-95 transition-all duration-200 hover:opacity-80 hidden sm:block">
+          <button onClick={() => setIsSearchOpen(true)} className="scale-100 active:scale-95 transition-all duration-200 hover:opacity-80 hidden sm:block">
             <span className="material-symbols-outlined">search</span>
           </button>
           <button className="scale-100 active:scale-95 transition-all duration-200 hover:opacity-80 hidden md:block">
             <span className="material-symbols-outlined">person</span>
           </button>
-          <button className="scale-100 active:scale-95 transition-all duration-200 hover:opacity-80">
+          <Link href="/checkout" className="relative scale-100 active:scale-95 transition-all duration-200 hover:opacity-80 flex items-center">
             <span className="material-symbols-outlined">shopping_bag</span>
-          </button>
+            {totalItems > 0 && (
+              <span className="absolute -top-1 -right-2 bg-primary text-on-primary text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                {totalItems}
+              </span>
+            )}
+          </Link>
         </div>
       </div>
 
       {/* Mobile Menu Dropdown */}
       {isMobileMenuOpen && (
         <div className="md:hidden border-t border-surface-variant bg-white/95 dark:bg-background/95 backdrop-blur-lg px-margin-mobile py-4 space-y-4 shadow-lg absolute w-full text-on-surface">
-          <Link href="/shop" className="block hover:text-primary-container transition-colors font-label-caps text-label-caps uppercase tracking-widest py-2">
+          <Link href="/shop" onClick={() => setIsMobileMenuOpen(false)} className="block hover:text-primary-container transition-colors font-label-caps text-label-caps uppercase tracking-widest py-2">
             Shop
           </Link>
-          <Link href="/collections" className="block hover:text-primary-container transition-colors font-label-caps text-label-caps uppercase tracking-widest py-2">
+          <Link href="/collections" onClick={() => setIsMobileMenuOpen(false)} className="block hover:text-primary-container transition-colors font-label-caps text-label-caps uppercase tracking-widest py-2">
             Collections
           </Link>
-          <Link href="/about" className="block hover:text-primary-container transition-colors font-label-caps text-label-caps uppercase tracking-widest py-2">
+          <Link href="/about" onClick={() => setIsMobileMenuOpen(false)} className="block hover:text-primary-container transition-colors font-label-caps text-label-caps uppercase tracking-widest py-2">
             About
           </Link>
           <div className="pt-4 border-t border-surface-variant/50 flex gap-4 text-on-surface">
-             <button className="flex items-center gap-2 hover:text-primary-container font-label-caps text-label-caps uppercase tracking-widest">
+             <button onClick={() => { setIsMobileMenuOpen(false); setIsSearchOpen(true); }} className="flex items-center gap-2 hover:text-primary-container font-label-caps text-label-caps uppercase tracking-widest">
                <span className="material-symbols-outlined text-sm">search</span> Search
              </button>
              <button className="flex items-center gap-2 hover:text-primary-container font-label-caps text-label-caps uppercase tracking-widest">
@@ -133,5 +143,9 @@ export default function TopNavBar() {
         </div>
       )}
     </nav>
+
+      {/* Full Screen Search Overlay */}
+      <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+    </>
   );
 }

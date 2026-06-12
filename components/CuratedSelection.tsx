@@ -88,7 +88,7 @@ export default function CuratedSelection() {
               The Latest Drops
             </h2>
           </div>
-          <Link href="#" className="hidden md:flex items-center gap-2 font-button-text text-button-text uppercase tracking-widest hover:text-primary-container transition-colors font-bold">
+          <Link href="/shop" className="hidden md:flex items-center gap-2 font-button-text text-button-text uppercase tracking-widest hover:text-primary-container transition-colors font-bold">
             View All
             <span className="material-symbols-outlined">arrow_forward</span>
           </Link>
