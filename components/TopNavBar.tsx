@@ -24,68 +24,75 @@ export default function TopNavBar() {
         ? "bg-white/95 dark:bg-background/95 backdrop-blur-md border-b border-surface-variant dark:border-on-surface-variant/20 shadow-sm py-2" 
         : "bg-transparent border-b border-white/20 py-4"
     }`}>
-      <div className="flex justify-between items-center px-margin-mobile py-stack-md max-w-full mx-auto md:px-margin-desktop">
+      <div className="relative flex justify-between items-center px-margin-mobile py-stack-md max-w-full mx-auto md:px-margin-desktop">
         
-        {/* Mobile Hamburger Button */}
-        <button 
-          className={`md:hidden scale-100 active:scale-95 transition-all duration-300 ${
-            isScrolled ? "text-on-surface hover:text-primary-container" : "text-white hover:text-white/80"
-          }`}
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          <span className="material-symbols-outlined">{isMobileMenuOpen ? 'close' : 'menu'}</span>
-        </button>
+        {/* Left Side: Navigation & Hamburger */}
+        <div className="flex-1 flex items-center justify-start">
+          {/* Mobile Hamburger Button */}
+          <button 
+            className={`md:hidden scale-100 active:scale-95 transition-all duration-300 ${
+              isScrolled ? "text-on-surface hover:text-primary-container" : "text-white hover:text-white/80"
+            }`}
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            <span className="material-symbols-outlined">{isMobileMenuOpen ? 'close' : 'menu'}</span>
+          </button>
 
-        <Link href="/" className="font-display-xl text-headline-md uppercase tracking-tighter">
-          <img 
-            alt="Chill Co. Logo" 
-            className={`w-auto object-contain transition-all duration-500 ${
-              isScrolled ? "h-10 md:h-14" : "h-12 md:h-16 invert brightness-0"
-            }`} 
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqB65R-CNaUPWxe_JwjGRHxiS3EUkEaXgG_Ykp-m9DV7dZVVB2qnF0O1xUNp6ioaAH7YSjRh1PAkQrEacFEWd3ju5pOJ4rXlPTBID9lpaGpjs_02jZwIsNjKKKPA5WYRj0rclafY-H2LtxCzFRxb7nyftQ-rr0G6RYnF-CnkK305lo-IqnWrNri_UUhYERexGtllSN_-WafAqC7s1ZWKuvcHAWDKK4NqZyTA-qs7UtMfISab21PmlHbupj6bYL8Rxyrmbo3LtTvSs" 
-          />
-        </Link>
-        
-        <ul className="hidden md:flex items-center gap-gutter">
-          <li>
-            <Link 
-              className={`font-label-caps text-label-caps transition-colors duration-300 ${
-                pathname === '/shop' 
-                  ? (isScrolled ? "text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary pb-1" : "text-white font-bold border-b-2 border-white pb-1") 
-                  : (isScrolled ? "text-on-surface hover:text-primary-container" : "text-white/80 hover:text-white")
-              }`}
-              href="/shop"
-            >
-              Shop
-            </Link>
-          </li>
-          <li>
-            <Link 
-              href="/collections" 
-              className={`font-label-caps text-label-caps transition-colors duration-300 ${
-                pathname === '/collections' 
-                  ? (isScrolled ? "text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary pb-1" : "text-white font-bold border-b-2 border-white pb-1") 
-                  : (isScrolled ? "text-on-surface hover:text-primary-container" : "text-white/80 hover:text-white")
-              }`}
-            >
-              Collections
-            </Link>
-          </li>
-          <li>
-            <Link 
-              href="/about" 
-              className={`font-label-caps text-label-caps transition-colors duration-300 ${
-                pathname === '/about' 
-                  ? (isScrolled ? "text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary pb-1" : "text-white font-bold border-b-2 border-white pb-1") 
-                  : (isScrolled ? "text-on-surface hover:text-primary-container" : "text-white/80 hover:text-white")
-              }`}
-            >
-              About
-            </Link>
-          </li>
-        </ul>
+          <ul className="hidden md:flex items-center gap-gutter">
+            <li>
+              <Link 
+                className={`font-label-caps text-label-caps transition-colors duration-300 ${
+                  pathname === '/shop' 
+                    ? (isScrolled ? "text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary pb-1" : "text-white font-bold border-b-2 border-white pb-1") 
+                    : (isScrolled ? "text-on-surface hover:text-primary-container" : "text-white/80 hover:text-white")
+                }`}
+                href="/shop"
+              >
+                Shop
+              </Link>
+            </li>
+            <li>
+              <Link 
+                href="/collections" 
+                className={`font-label-caps text-label-caps transition-colors duration-300 ${
+                  pathname === '/collections' 
+                    ? (isScrolled ? "text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary pb-1" : "text-white font-bold border-b-2 border-white pb-1") 
+                    : (isScrolled ? "text-on-surface hover:text-primary-container" : "text-white/80 hover:text-white")
+                }`}
+              >
+                Collections
+              </Link>
+            </li>
+            <li>
+              <Link 
+                href="/about" 
+                className={`font-label-caps text-label-caps transition-colors duration-300 ${
+                  pathname === '/about' 
+                    ? (isScrolled ? "text-primary dark:text-primary-fixed-dim font-bold border-b-2 border-primary pb-1" : "text-white font-bold border-b-2 border-white pb-1") 
+                    : (isScrolled ? "text-on-surface hover:text-primary-container" : "text-white/80 hover:text-white")
+                }`}
+              >
+                About
+              </Link>
+            </li>
+          </ul>
+        </div>
 
-        <div className={`flex items-center gap-stack-md transition-colors duration-300 ${
+        {/* Center Side: Logo */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center">
+          <Link href="/" className="font-display-xl text-headline-md uppercase tracking-tighter">
+            <img 
+              alt="Chill Co. Logo" 
+              className={`w-auto object-contain transition-all duration-500 ${
+                isScrolled ? "h-[46px] md:h-[64px]" : "h-[55px] md:h-[74px] invert brightness-0"
+              }`} 
+              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqB65R-CNaUPWxe_JwjGRHxiS3EUkEaXgG_Ykp-m9DV7dZVVB2qnF0O1xUNp6ioaAH7YSjRh1PAkQrEacFEWd3ju5pOJ4rXlPTBID9lpaGpjs_02jZwIsNjKKKPA5WYRj0rclafY-H2LtxCzFRxb7nyftQ-rr0G6RYnF-CnkK305lo-IqnWrNri_UUhYERexGtllSN_-WafAqC7s1ZWKuvcHAWDKK4NqZyTA-qs7UtMfISab21PmlHbupj6bYL8Rxyrmbo3LtTvSs" 
+            />
+          </Link>
+        </div>
+
+        {/* Right Side: Icons */}
+        <div className={`flex-1 flex items-center justify-end gap-stack-md transition-colors duration-300 ${
           isScrolled ? "text-on-background" : "text-white"
         }`}>
           <button className="scale-100 active:scale-95 transition-all duration-200 hover:opacity-80 hidden sm:block">

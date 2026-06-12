@@ -58,14 +58,14 @@
   --spacing-margin-desktop: 64px;
   --spacing-gutter: 24px;
 
-  --font-body-md: "Inter", sans-serif;
-  --font-headline-lg-mobile: "Space Grotesk", sans-serif;
-  --font-headline-lg: "Space Grotesk", sans-serif;
-  --font-display-xl: "Space Grotesk", sans-serif;
-  --font-button-text: "Space Grotesk", sans-serif;
-  --font-body-lg: "Inter", sans-serif;
-  --font-label-caps: "Space Grotesk", sans-serif;
-  --font-headline-md: "Space Grotesk", sans-serif;
+  --font-body-md: "Poppins", sans-serif;
+  --font-headline-lg-mobile: "Poppins", sans-serif;
+  --font-headline-lg: "Poppins", sans-serif;
+  --font-display-xl: "Poppins", sans-serif;
+  --font-button-text: "Poppins", sans-serif;
+  --font-body-lg: "Poppins", sans-serif;
+  --font-label-caps: "Poppins", sans-serif;
+  --font-headline-md: "Poppins", sans-serif;
 }
 
 body {
