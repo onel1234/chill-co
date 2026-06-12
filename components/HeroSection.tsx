@@ -6,17 +6,17 @@ import Link from 'next/link';
 const slides = [
   {
     image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=2520&auto=format&fit=crop",
-    title: "Effortless",
+    title: "Latest Drops",
     subtitle: "Premium fabrics. Oversized fit. Everyday wear."
   },
   {
     image: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2370&auto=format&fit=crop",
-    title: "Elevated",
+    title: "Exclusive",
     subtitle: "Streetwear essentials designed for comfort."
   },
   {
     image: "https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=2671&auto=format&fit=crop",
-    title: "Timeless",
+    title: "Heritage",
     subtitle: "Building your perfect capsule wardrobe."
   }
 ];
@@ -87,41 +87,41 @@ export default function HeroSection() {
             Shop Now
           </Link>
         </div>
-        
-        {/* Slideshow Indicators */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center space-x-3 z-30">
-          {slides.map((_, index) => {
-            const isActive = index === currentSlide;
-            return (
-              <button
-                key={`indicator-${index}`}
-                onClick={() => setCurrentSlide(index)}
-                className="relative flex items-center justify-center w-6 h-6"
-                aria-label={`Go to slide ${index + 1}`}
-              >
-                {/* Center dot */}
-                <div className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${isActive ? 'bg-white' : 'bg-white/50 hover:bg-white'}`} />
-                
-                {/* Progress ring for active slide */}
-                {isActive && (
-                  <svg key={`ring-${currentSlide}`} className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 24 24">
-                    <circle
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="white"
-                      strokeWidth="1.25"
-                      fill="none"
-                      strokeDasharray="63"
-                      strokeDashoffset="63"
-                      style={{ animation: 'progress 6s linear forwards' }}
-                    />
-                  </svg>
-                )}
-              </button>
-            );
-          })}
-        </div>
+      </div>
+      
+      {/* Slideshow Indicators - Positioned absolutely to the header */}
+      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center space-x-4 z-30">
+        {slides.map((_, index) => {
+          const isActive = index === currentSlide;
+          return (
+            <button
+              key={`indicator-${index}`}
+              onClick={() => setCurrentSlide(index)}
+              className="relative flex items-center justify-center w-8 h-8 group"
+              aria-label={`Go to slide ${index + 1}`}
+            >
+              {/* Center dot */}
+              <div className={`w-2 h-2 rounded-full transition-all duration-300 ${isActive ? 'bg-white' : 'bg-white/50 group-hover:bg-white/80'}`} />
+              
+              {/* Progress ring for active slide */}
+              {isActive && (
+                <svg key={`ring-${currentSlide}`} className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 24 24">
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="white"
+                    strokeWidth="1.25"
+                    fill="none"
+                    strokeDasharray="63"
+                    strokeDashoffset="63"
+                    style={{ animation: 'progress 6s linear forwards' }}
+                  />
+                </svg>
+              )}
+            </button>
+          );
+        })}
       </div>
     </header>
   );
