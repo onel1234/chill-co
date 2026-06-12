@@ -10,32 +10,35 @@ interface ProductCardProps {
   href?: string;
 }
 
-export default function ProductCard({ title, subtitle, price, imageSrc, badge, href = "/product/oversized-signature-tee" }: ProductCardProps) {
+export default function ProductCard({ title, subtitle, price, imageSrc, badge, href = "#" }: ProductCardProps) {
   return (
     <Link href={href} className="group cursor-pointer block">
-      <div className="aspect-[4/5] bg-surface-container-low relative mb-6 torn-edge p-2 bg-white shadow-sm border border-surface-variant">
+      <div className="aspect-[4/5] bg-white relative mb-4 overflow-hidden">
         <img 
           alt={title} 
-          className="w-full h-full object-cover transition-all duration-700 group-hover:scale-[1.02]" 
+          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
           src={imageSrc} 
         />
-        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10 torn-edge">
-          <button className="bg-gradient-orange text-white font-button-text text-button-text px-8 py-4 uppercase tracking-widest transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 font-bold hover:shadow-lg">
-            Add to Bag
+        
+        {/* Quick View Button - slides up on hover */}
+        <div className="absolute bottom-0 left-0 w-full translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+          <button className="w-full bg-[#2a2a2a] text-white font-body-md text-[10px] md:text-xs py-3 uppercase tracking-widest hover:bg-black transition-colors">
+            Quick View
           </button>
         </div>
+
         {badge && (
-          <div className="absolute top-4 left-4 bg-white px-3 py-1 font-label-caps text-[10px] font-bold z-10">
+          <div className="absolute top-4 right-4 bg-white px-3 py-1 font-label-caps text-[10px] font-bold z-10">
             {badge}
           </div>
         )}
       </div>
-      <div className="flex justify-between items-start pt-2 border-t border-surface-variant">
-        <div>
-          <h3 className="font-body-lg text-body-lg text-on-background uppercase font-bold tracking-tight">{title}</h3>
-          <p className="font-body-md text-sm text-on-surface-variant mt-1">{subtitle}</p>
-        </div>
-        <span className="font-display-xl text-headline-md text-on-background">{price}</span>
+      
+      {/* Product Info */}
+      <div className="flex flex-col items-start pt-2">
+        <h3 className="font-body-md text-sm md:text-base text-on-background uppercase font-medium tracking-wide leading-tight">{title}</h3>
+        <p className="font-body-md text-xs text-on-surface-variant mt-1 mb-2 hidden md:block">{subtitle}</p>
+        <span className="font-body-md text-sm md:text-base text-on-background font-medium mt-1">{price}</span>
       </div>
     </Link>
   );

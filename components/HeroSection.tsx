@@ -56,12 +56,12 @@ export default function HeroSection() {
       {/* Content - Clean text over image */}
       <div className="relative z-20 w-full max-w-5xl px-6 md:px-12 flex flex-col items-center justify-center text-center mt-16">
         
-        <div className="h-24 md:h-32 flex items-center justify-center relative w-full overflow-hidden">
+        <div className="h-28 md:h-32 flex items-center justify-center relative w-full overflow-visible">
           {slides.map((slide, index) => (
              <h1 
                key={`title-${index}`}
-               className={`absolute font-body-md text-6xl md:text-[84px] font-bold tracking-tight text-white transition-all duration-1000 transform ${
-                 index === currentSlide ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+               className={`absolute font-body-md text-5xl md:text-[84px] font-bold tracking-tight text-white transition-all duration-1000 transform leading-[1.1] md:leading-none w-full ${
+                 index === currentSlide ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8 pointer-events-none"
                }`}
              >
                {slide.title}
@@ -69,12 +69,12 @@ export default function HeroSection() {
           ))}
         </div>
         
-        <div className="h-10 flex items-center justify-center relative w-full mb-8">
+        <div className="h-16 md:h-10 flex items-center justify-center relative w-full mb-8">
            {slides.map((slide, index) => (
               <p 
                 key={`subtitle-${index}`}
-                className={`absolute font-body-lg text-lg md:text-xl text-white/90 max-w-md mx-auto transition-all duration-1000 ${
-                  index === currentSlide ? "opacity-100 delay-300" : "opacity-0"
+                className={`absolute font-body-lg text-base md:text-xl text-white/90 max-w-md mx-auto transition-all duration-1000 w-full ${
+                  index === currentSlide ? "opacity-100 delay-300" : "opacity-0 pointer-events-none"
                 }`}
               >
                 {slide.subtitle}
