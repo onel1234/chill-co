@@ -82,24 +82,45 @@ export default function HeroSection() {
            ))}
         </div>
 
-        <div className="pt-2 z-30">
-          <Link href="/collections" className="inline-flex items-center justify-center text-white font-label-caps text-xs md:text-sm px-8 py-3 uppercase tracking-widest hover:bg-white hover:text-black transition-colors duration-300 font-bold border border-white rounded-full backdrop-blur-sm bg-white/5">
+        <div className="pt-4 z-30">
+          <Link href="/collections" className="inline-flex items-center justify-center text-white font-body-md text-xs md:text-sm px-10 py-3 uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-colors duration-300 border border-white rounded-full">
             Shop Now
           </Link>
         </div>
         
         {/* Slideshow Indicators */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex space-x-3 z-30">
-          {slides.map((_, index) => (
-            <button
-              key={`indicator-${index}`}
-              onClick={() => setCurrentSlide(index)}
-              className={`h-1.5 rounded-full transition-all duration-500 ${
-                index === currentSlide ? "w-8 bg-white" : "w-2 bg-white/50 hover:bg-white/80"
-              }`}
-              aria-label={`Go to slide ${index + 1}`}
-            />
-          ))}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center space-x-3 z-30">
+          {slides.map((_, index) => {
+            const isActive = index === currentSlide;
+            return (
+              <button
+                key={`indicator-${index}`}
+                onClick={() => setCurrentSlide(index)}
+                className="relative flex items-center justify-center w-6 h-6"
+                aria-label={`Go to slide ${index + 1}`}
+              >
+                {/* Center dot */}
+                <div className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${isActive ? 'bg-white' : 'bg-white/50 hover:bg-white'}`} />
+                
+                {/* Progress ring for active slide */}
+                {isActive && (
+                  <svg key={`ring-${currentSlide}`} className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 24 24">
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="white"
+                      strokeWidth="1.25"
+                      fill="none"
+                      strokeDasharray="63"
+                      strokeDashoffset="63"
+                      style={{ animation: 'progress 6s linear forwards' }}
+                    />
+                  </svg>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
     </header>
