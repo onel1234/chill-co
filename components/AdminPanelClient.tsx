@@ -52,7 +52,7 @@ export default function AdminPanelClient({ initialOrders }: AdminPanelClientProp
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-stack-lg border-b border-surface-variant pb-stack-md">
         <div className="flex items-center gap-3">
-          <span className="material-symbols-outlined text-4xl text-primary">shield_person</span>
+          <span className="material-symbols-outlined text-4xl text-primary">admin_panel_settings</span>
           <h1 className="font-display-xl text-headline-lg-mobile md:text-headline-lg text-primary uppercase tracking-tighter">
             Admin Dashboard
           </h1>

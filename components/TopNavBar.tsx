@@ -119,7 +119,7 @@ export default function TopNavBar() {
               className="scale-100 active:scale-95 transition-all duration-200 hover:opacity-80 hidden md:flex items-center"
               title="Admin Panel"
             >
-              <span className="material-symbols-outlined">shield_person</span>
+              <span className="material-symbols-outlined">admin_panel_settings</span>
             </Link>
           )}
 
@@ -187,7 +187,7 @@ export default function TopNavBar() {
                  onClick={() => setIsMobileMenuOpen(false)}
                  className="flex items-center gap-2 hover:text-primary-container font-label-caps text-label-caps uppercase tracking-widest"
                >
-                 <span className="material-symbols-outlined text-sm">shield_person</span>
+                 <span className="material-symbols-outlined text-sm">admin_panel_settings</span>
                  Admin
                </Link>
              )}

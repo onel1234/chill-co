@@ -43,12 +43,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (data) {
         setProfile(data as UserProfile);
-        // Check admin status via API route (keeps ADMIN_EMAILS server-side)
+        // Check admin status via API route
         try {
-          const res = await fetch("/api/admin");
+          const res = await fetch("/api/admin", {
+            cache: "no-store",
+            credentials: "include",
+          });
           if (res.ok) {
             const { isAdmin: adminStatus } = await res.json();
             setIsAdmin(adminStatus);
+          } else {
+            setIsAdmin(false);
           }
         } catch {
           setIsAdmin(false);
