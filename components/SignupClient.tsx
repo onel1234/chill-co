@@ -16,14 +16,15 @@ export default function SignupClient() {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isLoading: authLoading } = useAuth();
   const supabase = createClient();
 
   useEffect(() => {
-    if (user) {
+    // Only redirect once we know auth state is resolved
+    if (!authLoading && user) {
       router.push("/account");
     }
-  }, [user, router]);
+  }, [user, authLoading, router]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +42,7 @@ export default function SignupClient() {
 
     setIsLoading(true);
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -54,8 +55,13 @@ export default function SignupClient() {
     if (error) {
       setError(error.message);
       setIsLoading(false);
+    } else if (data.user && !data.session) {
+      // Email confirmation is enabled on Supabase — tell the user to check their email
+      setError(null);
+      setIsLoading(false);
+      router.push("/account/login?message=check_email");
     } else {
-      // Email confirmation is disabled — user is signed in immediately
+      // Session created immediately (email confirmation disabled)
       router.push("/account");
       router.refresh();
     }

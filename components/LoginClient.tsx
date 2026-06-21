@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/context/AuthContext";
 
-export default function LoginClient() {
+function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -14,14 +14,18 @@ export default function LoginClient() {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
-  const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const { user, isLoading: authLoading } = useAuth();
   const supabase = createClient();
 
+  const message = searchParams.get("message");
+
   useEffect(() => {
-    if (user) {
+    // Only redirect once auth state is fully resolved
+    if (!authLoading && user) {
       router.push("/account");
     }
-  }, [user, router]);
+  }, [user, authLoading, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,6 +81,14 @@ export default function LoginClient() {
 
         {/* Card */}
         <div className="bg-surface-container-lowest border border-surface-variant p-8 shadow-sm">
+          {/* Email Confirmation Banner */}
+          {message === "check_email" && (
+            <div className="mb-6 p-4 bg-secondary-container border border-secondary/20 flex items-start gap-3">
+              <span className="material-symbols-outlined text-on-secondary-container text-sm mt-0.5">mark_email_unread</span>
+              <p className="font-body-md text-sm text-on-secondary-container">Account created! Please check your email to confirm your address, then sign in.</p>
+            </div>
+          )}
+
           {/* Error Message */}
           {error && (
             <div className="mb-6 p-4 bg-error-container border border-error/20 flex items-start gap-3">
@@ -190,5 +202,13 @@ export default function LoginClient() {
         </p>
       </div>
     </main>
+  );
+}
+
+export default function LoginClient() {
+  return (
+    <Suspense fallback={null}>
+      <LoginForm />
+    </Suspense>
   );
 }
