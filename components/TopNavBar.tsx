@@ -13,7 +13,7 @@ export default function TopNavBar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
   const { totalItems } = useCart();
-  const { user, profile, isLoading } = useAuth();
+  const { user, profile, isAdmin, isLoading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -112,6 +112,17 @@ export default function TopNavBar() {
             <span className="material-symbols-outlined">search</span>
           </button>
 
+          {/* Admin Panel Icon */}
+          {isAdmin && !isLoading && (
+            <Link
+              href="/admin"
+              className="scale-100 active:scale-95 transition-all duration-200 hover:opacity-80 hidden md:flex items-center"
+              title="Admin Panel"
+            >
+              <span className="material-symbols-outlined">shield_person</span>
+            </Link>
+          )}
+
           {/* Account Icon / Avatar */}
           {!isLoading && (
             <Link
@@ -170,6 +181,16 @@ export default function TopNavBar() {
                <span className="material-symbols-outlined text-sm">person</span>
                {user ? "Account" : "Sign In"}
              </Link>
+             {isAdmin && (
+               <Link
+                 href="/admin"
+                 onClick={() => setIsMobileMenuOpen(false)}
+                 className="flex items-center gap-2 hover:text-primary-container font-label-caps text-label-caps uppercase tracking-widest"
+               >
+                 <span className="material-symbols-outlined text-sm">shield_person</span>
+                 Admin
+               </Link>
+             )}
           </div>
         </div>
       )}

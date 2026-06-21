@@ -9,12 +9,13 @@ export async function GET() {
     return NextResponse.json({ isAdmin: false });
   }
 
-  const adminEmails = (process.env.ADMIN_EMAILS ?? '')
-    .split(',')
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('is_admin')
+    .eq('id', user.id)
+    .single();
 
-  const isAdmin = adminEmails.includes(user.email.toLowerCase());
+  const isAdmin = !!profile?.is_admin;
 
   return NextResponse.json({ isAdmin });
 }
