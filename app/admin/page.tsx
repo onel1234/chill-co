@@ -24,7 +24,14 @@ export default async function AdminPage() {
     .eq('id', user.id)
     .single();
 
-  if (!profile?.is_admin) {
+  const adminEmails = (process.env.ADMIN_EMAILS ?? '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+
+  const isAdmin = !!profile?.is_admin || adminEmails.includes(user.email?.toLowerCase() ?? '');
+
+  if (!isAdmin) {
     redirect('/');
   }
 

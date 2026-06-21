@@ -15,7 +15,12 @@ export async function GET() {
     .eq('id', user.id)
     .single();
 
-  const isAdmin = !!profile?.is_admin;
+  const adminEmails = (process.env.ADMIN_EMAILS ?? '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+
+  const isAdmin = !!profile?.is_admin || adminEmails.includes(user.email.toLowerCase());
 
   return NextResponse.json({ isAdmin });
 }
