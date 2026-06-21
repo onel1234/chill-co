@@ -24,5 +24,13 @@ export async function GET() {
 
   const isAdmin = !!profile?.is_admin || adminEmails.includes(user.email.toLowerCase());
 
+  // Sync is_admin to the database so RLS policies work
+  if (isAdmin && !profile?.is_admin) {
+    await supabase
+      .from('profiles')
+      .update({ is_admin: true })
+      .eq('id', user.id);
+  }
+
   return NextResponse.json({ isAdmin });
 }
