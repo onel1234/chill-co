@@ -1,10 +1,17 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/lib/context/CartContext';
 import { useAuth } from '@/lib/context/AuthContext';
 import { createClient } from '@/lib/supabase/client';
+
+interface LoyaltyTier {
+  id: string;
+  name: string;
+  required_points: number;
+  discount_percentage: number;
+}
 
 export default function CheckoutClient() {
   const { items, removeFromCart, updateQuantity, totalPrice, clearCart } = useCart();
@@ -13,10 +20,39 @@ export default function CheckoutClient() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [email, setEmail] = useState(profile?.email || user?.email || '');
+  
+  // Loyalty State
+  const [tiers, setTiers] = useState<LoyaltyTier[]>([]);
+  const [isRedeemingPoints, setIsRedeemingPoints] = useState(false);
+
   const supabase = createClient();
 
+  useEffect(() => {
+    if (profile?.is_loyalty_member) {
+      fetch('/api/loyalty/tiers')
+        .then(res => res.json())
+        .then(data => {
+          if (!data.error) setTiers(data);
+        });
+    }
+  }, [profile]);
+
+  // Find best eligible tier
+  const bestTier = tiers
+    .filter(t => (profile?.loyalty_points || 0) >= t.required_points)
+    .sort((a, b) => b.discount_percentage - a.discount_percentage)[0];
+
   const shippingCost = totalPrice >= 100 || items.length === 0 ? 0 : 10;
-  const orderTotal = totalPrice + shippingCost;
+  
+  // Apply discount if redeeming
+  const discountAmount = isRedeemingPoints && bestTier 
+    ? totalPrice * (bestTier.discount_percentage / 100) 
+    : 0;
+
+  const orderTotal = totalPrice - discountAmount + shippingCost;
+
+  // Calculate points earned for this order
+  const pointsEarned = items.reduce((sum, item) => sum + (item.loyaltyPoints || 0) * item.quantity, 0);
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +65,7 @@ export default function CheckoutClient() {
         .insert({
           user_id: user.id,
           status: 'confirmed',
-          subtotal: totalPrice,
+          subtotal: totalPrice - discountAmount,
           shipping: shippingCost,
           total: orderTotal,
         })
@@ -62,6 +98,18 @@ export default function CheckoutClient() {
         console.error('Failed to insert order items:', itemsError);
       }
 
+      // Update Loyalty Points
+      if (profile) {
+        const newTotalPoints = isRedeemingPoints 
+          ? pointsEarned 
+          : (profile.loyalty_points || 0) + pointsEarned;
+          
+        await supabase
+          .from('profiles')
+          .update({ loyalty_points: newTotalPoints })
+          .eq('id', user.id);
+      }
+
       setOrderId(order.id);
       await clearCart();
     } else {
@@ -83,12 +131,19 @@ export default function CheckoutClient() {
         <p className="font-body-lg text-body-lg text-on-surface-variant max-w-md mb-2">
           Thank you for your purchase. Your chill is on the way.
         </p>
+        
+        {user && profile?.is_loyalty_member && pointsEarned > 0 && (
+          <div className="bg-primary/5 text-primary border border-primary/20 px-6 py-4 rounded-full inline-block mt-4 mb-6">
+            <span className="font-label-caps text-sm uppercase tracking-widest">+ {pointsEarned} Loyalty Points Earned!</span>
+          </div>
+        )}
+
         {orderId && (
-          <p className="font-label-caps text-label-caps text-on-surface-variant mb-8">
+          <p className="font-label-caps text-label-caps text-on-surface-variant mb-8 mt-2">
             Order #{orderId.slice(0, 8).toUpperCase()}
           </p>
         )}
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
           {user && orderId && (
             <Link
               href={`/account/orders/${orderId}`}
@@ -120,7 +175,7 @@ export default function CheckoutClient() {
           <span className="material-symbols-outlined text-primary">person</span>
           <p className="font-body-md text-sm text-on-surface flex-1">
             <Link href="/account/login" className="text-primary font-semibold hover:underline">Sign in</Link>
-            {" "}to save your order history and sync your bag across devices.
+            {" "}to save your order history and earn loyalty points.
           </p>
         </div>
       )}
@@ -245,12 +300,69 @@ export default function CheckoutClient() {
                   ))}
                 </div>
 
+                {/* Loyalty Banner */}
+                {profile?.is_loyalty_member && (
+                  <div className="border border-surface-variant p-4 bg-surface-container-lowest">
+                    {bestTier ? (
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="font-headline-sm text-sm text-primary uppercase flex items-center gap-1">
+                              <span className="material-symbols-outlined text-[16px]">loyalty</span>
+                              Loyalty Discount Available!
+                            </p>
+                            <p className="font-body-md text-xs text-on-surface-variant mt-1">
+                              You have <span className="font-bold">{profile.loyalty_points}</span> points.
+                            </p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setIsRedeemingPoints(!isRedeemingPoints)}
+                            className={`font-label-caps text-xs uppercase px-3 py-1.5 transition-colors border ${
+                              isRedeemingPoints 
+                                ? 'bg-primary text-on-primary border-primary' 
+                                : 'text-primary border-primary hover:bg-primary/10'
+                            }`}
+                          >
+                            {isRedeemingPoints ? 'Remove' : 'Redeem'}
+                          </button>
+                        </div>
+                        {isRedeemingPoints && (
+                          <div className="bg-primary/10 p-2 text-xs text-primary font-mono text-center">
+                            {bestTier.name} applied! Points will reset to zero.
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-start gap-2">
+                        <span className="material-symbols-outlined text-on-surface-variant">loyalty</span>
+                        <div>
+                          <p className="font-body-md text-sm text-on-surface-variant">
+                            You have <span className="font-bold">{profile.loyalty_points || 0}</span> points.
+                          </p>
+                          {tiers.length > 0 && (
+                            <p className="font-body-md text-xs text-on-surface-variant mt-1">
+                              {tiers[0].required_points - (profile.loyalty_points || 0)} more points to unlock a discount.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Totals */}
                 <div className="border-t border-surface-variant pt-6 space-y-4">
                   <div className="flex justify-between font-body-md text-on-surface-variant">
                     <span>Subtotal</span>
                     <span>${totalPrice.toFixed(2)}</span>
                   </div>
+                  {isRedeemingPoints && discountAmount > 0 && (
+                    <div className="flex justify-between font-body-md text-secondary">
+                      <span>Loyalty Discount (-{bestTier?.discount_percentage}%)</span>
+                      <span>-${discountAmount.toFixed(2)}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between font-body-md text-on-surface-variant">
                     <span>Shipping</span>
                     <span>{shippingCost === 0 ? 'Free' : `$${shippingCost.toFixed(2)}`}</span>
@@ -260,6 +372,16 @@ export default function CheckoutClient() {
                     <span>${orderTotal.toFixed(2)}</span>
                   </div>
                 </div>
+
+                {/* Points Earned Predictor */}
+                {profile?.is_loyalty_member && pointsEarned > 0 && (
+                  <div className="text-center border-t border-surface-variant pt-4">
+                    <p className="font-label-caps text-xs text-on-surface-variant uppercase tracking-widest">
+                      You will earn <span className="text-primary font-bold">{pointsEarned}</span> points
+                    </p>
+                  </div>
+                )}
+
               </div>
             )}
           </div>

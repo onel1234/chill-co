@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { CartItem } from '../types';
 import { createClient } from '@/lib/supabase/client';
 import { User } from '@supabase/supabase-js';
+import { getProductBySlug } from '@/lib/data/products';
 
 interface CartContextType {
   items: CartItem[];
@@ -35,6 +36,7 @@ function toDbRow(item: CartItem, userId: string) {
 
 // Map DB row to CartItem (app)
 function fromDbRow(row: Record<string, unknown>): CartItem {
+  const product = getProductBySlug(row.product_id as string);
   return {
     id: `${row.product_id}-${row.color}-${row.size}`,
     productId: row.product_id as string,
@@ -44,6 +46,7 @@ function fromDbRow(row: Record<string, unknown>): CartItem {
     color: row.color as string,
     size: row.size as string,
     quantity: row.quantity as number,
+    loyaltyPoints: product?.loyaltyPoints,
   };
 }
 

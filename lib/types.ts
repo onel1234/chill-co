@@ -7,9 +7,10 @@ export interface Product {
   images: string[];
   colors: { name: string; hex: string }[];
   sizes: string[];
-  category: string;
-  collection?: string;
-  isNewArrival?: boolean;
+  category: 'Tees' | 'Hoodies' | 'Accessories';
+  collection: string;
+  isNewArrival: boolean;
+  loyaltyPoints?: number;
 }
 
 export interface CartItem {
@@ -21,14 +22,17 @@ export interface CartItem {
   color: string;
   size: string;
   quantity: number;
+  loyaltyPoints?: number;
 }
 
 export interface UserProfile {
   id: string;
   email: string;
   full_name: string | null;
-  avatar_url: string | null;
+  avatar_url?: string;
   is_admin: boolean;
+  loyalty_points: number;
+  is_loyalty_member: boolean;
   created_at: string;
 }
 

@@ -13,6 +13,8 @@ create table if not exists public.profiles (
   full_name text,
   avatar_url text,
   is_admin boolean default false,
+  loyalty_points integer default 0,
+  is_loyalty_member boolean default false,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -28,6 +30,24 @@ create policy "Users can view their own profile"
 create policy "Users can update their own profile"
   on public.profiles for update
   using (auth.uid() = id);
+
+create policy "Admins can view all profiles"
+  on public.profiles for select
+  using (
+    exists (
+      select 1 from public.profiles
+      where id = auth.uid() and is_admin = true
+    )
+  );
+
+create policy "Admins can update all profiles"
+  on public.profiles for update
+  using (
+    exists (
+      select 1 from public.profiles
+      where id = auth.uid() and is_admin = true
+    )
+  );
 
 -- ============================================================
 -- 2. CART ITEMS TABLE
@@ -180,3 +200,26 @@ $$;
 create or replace trigger on_auth_user_updated
   after update on auth.users
   for each row execute procedure public.handle_user_update();
+
+-- ============================================================
+-- 7. LOYALTY TIERS TABLE
+-- ============================================================
+create table if not exists public.loyalty_tiers (
+  id uuid default gen_random_uuid() primary key,
+  name text not null,
+  required_points integer not null,
+  discount_percentage numeric not null,
+  created_at timestamptz default now()
+);
+
+-- Enable RLS
+alter table public.loyalty_tiers enable row level security;
+
+-- Policies
+-- Anyone can view tiers (needed for checkout/account logic)
+create policy "Anyone can view loyalty tiers"
+  on public.loyalty_tiers for select
+  using (true);
+
+-- Only admins can insert/update/delete tiers (handled via service role in API, or we can add RLS if needed, but for now service role overrides RLS so it's fine).
+

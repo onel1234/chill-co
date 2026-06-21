@@ -26,6 +26,7 @@ export default function ProductClient({ product }: ProductClientProps) {
       color: selectedColor.name,
       size: selectedSize,
       quantity: 1,
+      loyaltyPoints: product.loyaltyPoints,
     });
     
     // Simulate short loading state

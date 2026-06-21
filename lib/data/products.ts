@@ -19,7 +19,8 @@ export const products: Product[] = [
     sizes: ['S', 'M', 'L', 'XL'],
     category: 'Tees',
     collection: 'Urban Kinetic',
-    isNewArrival: true
+    isNewArrival: true,
+    loyaltyPoints: 50
   },
   {
     id: 'different-oversized-tee',
@@ -37,7 +38,8 @@ export const products: Product[] = [
     sizes: ['S', 'M', 'L', 'XL'],
     category: 'Tees',
     collection: 'The Signature Series',
-    isNewArrival: true
+    isNewArrival: true,
+    loyaltyPoints: 45
   },
   {
     id: 'core-heavyweight-hoodie',
@@ -54,7 +56,8 @@ export const products: Product[] = [
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
     category: 'Hoodies',
     collection: 'Essentials',
-    isNewArrival: false
+    isNewArrival: false,
+    loyaltyPoints: 100
   },
   {
     id: 'everyday-classic-tee',
@@ -71,7 +74,8 @@ export const products: Product[] = [
     sizes: ['S', 'M', 'L', 'XL'],
     category: 'Tees',
     collection: 'Essentials',
-    isNewArrival: false
+    isNewArrival: false,
+    loyaltyPoints: 30
   }
 ];
 

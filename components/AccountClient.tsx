@@ -7,10 +7,18 @@ import { useAuth } from "@/lib/context/AuthContext";
 import { createClient } from "@/lib/supabase/client";
 import { Order } from "@/lib/types";
 
+interface LoyaltyTier {
+  id: string;
+  name: string;
+  required_points: number;
+  discount_percentage: number;
+}
+
 export default function AccountClient() {
   const { user, profile, isAdmin, isLoading, signOut } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
+  const [tiers, setTiers] = useState<LoyaltyTier[]>([]);
   const router = useRouter();
   const supabase = createClient();
 
@@ -26,6 +34,16 @@ export default function AccountClient() {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
+
+  useEffect(() => {
+    if (profile?.is_loyalty_member) {
+      fetch('/api/loyalty/tiers')
+        .then(res => res.json())
+        .then(data => {
+          if (!data.error) setTiers(data);
+        });
+    }
+  }, [profile?.is_loyalty_member]);
 
   const fetchOrders = async () => {
     setOrdersLoading(true);
@@ -56,9 +74,9 @@ export default function AccountClient() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "confirmed": return "text-secondary bg-secondary-container/30";
-      case "shipped": return "text-primary bg-primary/10";
-      case "delivered": return "text-primary bg-primary/20";
+      case "confirmed": return "text-secondary bg-secondary-container/30 border border-secondary/20";
+      case "shipped": return "text-primary bg-primary/10 border border-primary/20";
+      case "delivered": return "text-primary bg-primary/20 border border-primary/30";
       default: return "text-on-surface-variant bg-surface-container";
     }
   };
@@ -97,46 +115,95 @@ export default function AccountClient() {
         </button>
       </div>
 
-      {/* Profile Card */}
-      <div className="bg-surface-container-low border border-surface-variant p-6 mb-stack-lg flex flex-col sm:flex-row items-start sm:items-center gap-5">
-        {/* Avatar */}
-        <div className="relative flex-shrink-0">
-          {profile?.avatar_url ? (
-            <img
-              src={profile.avatar_url}
-              alt={displayName}
-              className="w-16 h-16 rounded-full object-cover border-2 border-surface-variant"
-            />
-          ) : (
-            <div className="w-16 h-16 rounded-full bg-gradient-orange flex items-center justify-center text-white font-headline-md text-headline-md">
-              {initials}
-            </div>
-          )}
-          {isAdmin && (
-            <span className="absolute -bottom-1 -right-1 bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
-              ADMIN
-            </span>
-          )}
-        </div>
-
-        {/* Info */}
-        <div className="flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h2 className="font-headline-md text-headline-sm uppercase tracking-tight">
-              {displayName}
-            </h2>
+      <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter mb-stack-lg">
+        {/* Profile Card */}
+        <div className={`col-span-1 ${profile?.is_loyalty_member ? 'md:col-span-8' : 'md:col-span-12'} bg-surface-container-low border border-surface-variant p-6 flex flex-col sm:flex-row items-start sm:items-center gap-5 h-full`}>
+          {/* Avatar */}
+          <div className="relative flex-shrink-0">
+            {profile?.avatar_url ? (
+              <img
+                src={profile.avatar_url}
+                alt={displayName}
+                className="w-16 h-16 rounded-full object-cover border-2 border-surface-variant"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-gradient-orange flex items-center justify-center text-white font-headline-md text-headline-md">
+                {initials}
+              </div>
+            )}
             {isAdmin && (
-              <span className="font-label-caps text-label-caps bg-primary/10 text-primary border border-primary/20 px-2 py-0.5">
-                Admin
+              <span className="absolute -bottom-1 -right-1 bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
+                ADMIN
               </span>
             )}
           </div>
-          <p className="font-body-md text-sm text-on-surface-variant mt-1">{user.email}</p>
-          <p className="font-label-caps text-label-caps text-on-surface-variant/60 mt-1">
-            Member since {profile?.created_at ? formatDate(profile.created_at) : "—"}
-          </p>
+
+          {/* Info */}
+          <div className="flex-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h2 className="font-headline-md text-headline-sm uppercase tracking-tight">
+                {displayName}
+              </h2>
+              {isAdmin && (
+                <span className="font-label-caps text-label-caps bg-primary/10 text-primary border border-primary/20 px-2 py-0.5">
+                  Admin
+                </span>
+              )}
+            </div>
+            <p className="font-body-md text-sm text-on-surface-variant mt-1">{user.email}</p>
+            <p className="font-label-caps text-label-caps text-on-surface-variant/60 mt-1">
+              Member since {profile?.created_at ? formatDate(profile.created_at) : "—"}
+            </p>
+          </div>
         </div>
+
+        {/* Loyalty Points Summary (if member) */}
+        {profile?.is_loyalty_member && (
+          <div className="col-span-1 md:col-span-4 bg-primary/5 border border-primary/20 p-6 flex flex-col justify-center text-center relative overflow-hidden group">
+            <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+            <span className="material-symbols-outlined text-primary mb-2 relative z-10">loyalty</span>
+            <p className="font-display-xl text-headline-lg text-primary relative z-10">{profile.loyalty_points || 0}</p>
+            <p className="font-label-caps text-label-caps text-primary/80 mt-1 relative z-10 uppercase tracking-widest">Loyalty Points</p>
+          </div>
+        )}
       </div>
+
+      {/* Loyalty Tiers (if member) */}
+      {profile?.is_loyalty_member && tiers.length > 0 && (
+        <div className="mb-stack-lg border-t border-surface-variant pt-stack-lg">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+            <h2 className="font-headline-md text-headline-sm uppercase tracking-tight">Available Rewards</h2>
+            <p className="text-sm text-on-surface-variant max-w-md">
+              Earn points with every purchase. Redeem points at checkout for discounts. Your points reset to zero after redemption.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-gutter">
+            {tiers.map((tier) => {
+              const canAfford = (profile.loyalty_points || 0) >= tier.required_points;
+              return (
+                <div key={tier.id} className={`border p-5 transition-colors ${canAfford ? 'border-primary bg-primary/5' : 'border-surface-variant bg-surface-container-lowest opacity-70'}`}>
+                  <h3 className="font-headline-sm text-on-surface mb-2">{tier.name}</h3>
+                  <div className="flex items-end justify-between">
+                    <div>
+                      <p className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider mb-1">Cost</p>
+                      <p className={`font-mono text-lg font-bold ${canAfford ? 'text-primary' : 'text-on-surface-variant'}`}>{tier.required_points} pts</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider mb-1">Discount</p>
+                      <p className="font-headline-sm text-secondary">{tier.discount_percentage}% OFF</p>
+                    </div>
+                  </div>
+                  {canAfford && (
+                    <div className="mt-4 pt-4 border-t border-primary/20">
+                      <p className="text-xs text-primary font-bold uppercase tracking-wider text-center">Unlocked for next checkout</p>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Quick Stats */}
       <div className="grid grid-cols-2 md:grid-cols-3 gap-gutter mb-stack-lg">
