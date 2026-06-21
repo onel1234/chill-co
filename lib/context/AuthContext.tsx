@@ -52,6 +52,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (res.ok) {
             const { isAdmin: adminStatus } = await res.json();
             setIsAdmin(adminStatus);
+            
+            // Sync is_admin to the database so RLS policies work for this user
+            if (adminStatus && !(data as UserProfile).is_admin) {
+              const { error: syncError } = await supabase
+                .from("profiles")
+                .update({ is_admin: true })
+                .eq("id", userId);
+              
+              if (!syncError) {
+                setProfile(prev => prev ? { ...prev, is_admin: true } : null);
+              }
+            }
           } else {
             setIsAdmin(false);
           }
