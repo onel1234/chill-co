@@ -38,26 +38,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (error) {
         console.error("Error fetching profile:", error);
-        return;
+      } else if (data) {
+        setProfile(data as UserProfile);
       }
 
-      if (data) {
-        setProfile(data as UserProfile);
-        // Check admin status via API route
-        try {
-          const res = await fetch("/api/admin", {
-            cache: "no-store",
-            credentials: "include",
-          });
-          if (res.ok) {
-            const { isAdmin: adminStatus } = await res.json();
-            setIsAdmin(adminStatus);
-          } else {
-            setIsAdmin(false);
-          }
-        } catch {
+      // Check admin status via API route
+      try {
+        const res = await fetch("/api/admin", {
+          cache: "no-store",
+          credentials: "include",
+        });
+        if (res.ok) {
+          const { isAdmin: adminStatus } = await res.json();
+          setIsAdmin(adminStatus);
+        } else {
           setIsAdmin(false);
         }
+      } catch {
+        setIsAdmin(false);
       }
     },
     [supabase]
