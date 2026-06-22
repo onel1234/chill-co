@@ -6,13 +6,6 @@ import { useCart } from '@/lib/context/CartContext';
 import { useAuth } from '@/lib/context/AuthContext';
 import { createClient } from '@/lib/supabase/client';
 
-interface LoyaltyTier {
-  id: string;
-  name: string;
-  required_points: number;
-  discount_percentage: number;
-}
-
 export default function CheckoutClient() {
   const { items, updateQuantity, removeFromCart, totalPrice, clearCart } = useCart();
   const { user, profile } = useAuth();
@@ -36,9 +29,15 @@ export default function CheckoutClient() {
     zip: ''
   });
   
-  // Loyalty State
-  const [tiers, setTiers] = useState<LoyaltyTier[]>([]);
-  const [isRedeemingPoints, setIsRedeemingPoints] = useState(false);
+  // Coupon State
+  const [couponCode, setCouponCode] = useState('');
+  const [couponStatus, setCouponStatus] = useState<'idle' | 'loading' | 'valid' | 'invalid'>('idle');
+  const [couponError, setCouponError] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    coupon_id: string;
+    discount_percentage: number;
+    tier_name: string;
+  } | null>(null);
 
   const supabase = createClient();
 
@@ -47,32 +46,54 @@ export default function CheckoutClient() {
     else if (user?.email) setEmail(user.email);
   }, [profile, user]);
 
-  useEffect(() => {
-    if (profile?.is_loyalty_member) {
-      fetch('/api/loyalty/tiers')
-        .then(res => res.json())
-        .then(data => {
-          if (!data.error) setTiers(data);
-        });
-    }
-  }, [profile]);
-
-  // Find best eligible tier
-  const bestTier = tiers
-    .filter(t => (profile?.loyalty_points || 0) >= t.required_points)
-    .sort((a, b) => b.discount_percentage - a.discount_percentage)[0];
 
   const shippingCost = totalPrice >= 100 || items.length === 0 ? 0 : 10;
-  
-  // Apply discount if redeeming
-  const discountAmount = isRedeemingPoints && bestTier 
-    ? totalPrice * (bestTier.discount_percentage / 100) 
+
+  // Apply discount from coupon code
+  const discountAmount = appliedCoupon
+    ? totalPrice * (appliedCoupon.discount_percentage / 100)
     : 0;
 
   const orderTotal = totalPrice - discountAmount + shippingCost;
 
   // Calculate points earned for this order
   const pointsEarned = items.reduce((sum, item) => sum + (item.loyaltyPoints || 0) * item.quantity, 0);
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) return;
+    setCouponStatus('loading');
+    setCouponError('');
+    try {
+      const res = await fetch('/api/loyalty/validate-coupon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: couponCode.trim() }),
+      });
+      const data = await res.json();
+      if (data.valid) {
+        setAppliedCoupon({
+          coupon_id: data.coupon_id,
+          discount_percentage: data.discount_percentage,
+          tier_name: data.tier_name,
+        });
+        setCouponStatus('valid');
+      } else {
+        setAppliedCoupon(null);
+        setCouponStatus('invalid');
+        setCouponError(data.error || 'Invalid or expired coupon code.');
+      }
+    } catch {
+      setCouponStatus('invalid');
+      setCouponError('Could not validate code. Try again.');
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    setCouponStatus('idle');
+    setCouponError('');
+  };
 
   const handleProceedToCheckout = (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,14 +148,20 @@ export default function CheckoutClient() {
 
     // Update Loyalty Points for logged in members
     if (user && profile) {
-      const newTotalPoints = isRedeemingPoints 
-        ? pointsEarned 
-        : (profile.loyalty_points || 0) + pointsEarned;
-        
+      const newTotalPoints = (profile.loyalty_points || 0) + pointsEarned;
       await supabase
         .from('profiles')
         .update({ loyalty_points: newTotalPoints })
         .eq('id', user.id);
+    }
+
+    // Mark coupon as used if one was applied
+    if (appliedCoupon) {
+      fetch('/api/loyalty/redeem-coupon', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ coupon_id: appliedCoupon.coupon_id }),
+      }).catch(err => console.error('Failed to redeem coupon:', err));
     }
 
     // Send order confirmation email asynchronously
@@ -462,53 +489,58 @@ export default function CheckoutClient() {
                   ))}
                 </div>
 
-                {/* Loyalty Banner */}
-                {profile?.is_loyalty_member && step === 1 && (
+                {/* Coupon Code Section */}
+                {step === 1 && (
                   <div className="border border-surface-variant p-4 bg-surface-container-lowest">
-                    {bestTier ? (
-                      <div className="flex flex-col gap-3">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <p className="font-headline-sm text-sm text-primary uppercase flex items-center gap-1">
-                              <span className="material-symbols-outlined text-[16px]">loyalty</span>
-                              Loyalty Discount Available!
-                            </p>
-                            <p className="font-body-md text-xs text-on-surface-variant mt-1">
-                              You have <span className="font-bold">{profile.loyalty_points}</span> points.
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setIsRedeemingPoints(!isRedeemingPoints)}
-                            className={`font-label-caps text-xs uppercase px-3 py-1.5 transition-colors border ${
-                              isRedeemingPoints 
-                                ? 'bg-primary text-on-primary border-primary' 
-                                : 'text-primary border-primary hover:bg-primary/10'
-                            }`}
-                          >
-                            {isRedeemingPoints ? 'Remove' : 'Redeem'}
-                          </button>
+                    <p className="font-headline-sm text-xs uppercase tracking-wider text-on-surface mb-3 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm text-primary">confirmation_number</span>
+                      Discount Code
+                    </p>
+                    {appliedCoupon ? (
+                      <div className="flex items-center justify-between bg-primary/5 border border-primary/30 px-3 py-2">
+                        <div>
+                          <p className="font-mono text-sm font-bold text-primary tracking-wider">{couponCode.toUpperCase()}</p>
+                          <p className="font-label-caps text-[10px] text-secondary uppercase tracking-wider mt-0.5">
+                            {appliedCoupon.tier_name} &mdash; {appliedCoupon.discount_percentage}% OFF applied!
+                          </p>
                         </div>
-                        {isRedeemingPoints && (
-                          <div className="bg-primary/10 p-2 text-xs text-primary font-mono text-center">
-                            {bestTier.name} applied! Points will reset to zero.
-                          </div>
-                        )}
+                        <button
+                          type="button"
+                          onClick={handleRemoveCoupon}
+                          className="text-on-surface-variant hover:text-error transition-colors"
+                        >
+                          <span className="material-symbols-outlined text-sm">close</span>
+                        </button>
                       </div>
                     ) : (
-                      <div className="flex items-start gap-2">
-                        <span className="material-symbols-outlined text-on-surface-variant">loyalty</span>
-                        <div>
-                          <p className="font-body-md text-sm text-on-surface-variant">
-                            You have <span className="font-bold">{profile.loyalty_points || 0}</span> points.
-                          </p>
-                          {tiers.length > 0 && (
-                            <p className="font-body-md text-xs text-on-surface-variant mt-1">
-                              {tiers[0].required_points - (profile.loyalty_points || 0)} more points to unlock a discount.
-                            </p>
-                          )}
-                        </div>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={couponCode}
+                          onChange={e => { setCouponCode(e.target.value); setCouponStatus('idle'); setCouponError(''); }}
+                          onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleApplyCoupon())}
+                          placeholder="Enter coupon code (e.g. CHLL-XXXX-XXXX)"
+                          className={`flex-1 bg-surface-container-lowest border p-3 font-mono text-sm outline-none transition-colors uppercase ${
+                            couponStatus === 'invalid' ? 'border-error focus:border-error' : 'border-surface-variant focus:border-primary'
+                          }`}
+                        />
+                        <button
+                          type="button"
+                          onClick={handleApplyCoupon}
+                          disabled={couponStatus === 'loading' || !couponCode.trim()}
+                          className="bg-primary text-on-primary font-label-caps text-xs uppercase px-4 hover:opacity-90 transition-opacity disabled:opacity-50 flex-shrink-0"
+                        >
+                          {couponStatus === 'loading' ? (
+                            <div className="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin" />
+                          ) : 'Apply'}
+                        </button>
                       </div>
+                    )}
+                    {couponStatus === 'invalid' && couponError && (
+                      <p className="text-xs text-error mt-2 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-sm">error</span>
+                        {couponError}
+                      </p>
                     )}
                   </div>
                 )}
@@ -519,9 +551,9 @@ export default function CheckoutClient() {
                     <span>Subtotal</span>
                     <span>${totalPrice.toFixed(2)}</span>
                   </div>
-                  {isRedeemingPoints && discountAmount > 0 && (
+                  {appliedCoupon && discountAmount > 0 && (
                     <div className="flex justify-between font-body-md text-secondary">
-                      <span>Loyalty Discount (-{bestTier?.discount_percentage}%)</span>
+                      <span>Coupon Discount (-{appliedCoupon.discount_percentage}%)</span>
                       <span>-${discountAmount.toFixed(2)}</span>
                     </div>
                   )}

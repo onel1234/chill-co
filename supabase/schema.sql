@@ -223,3 +223,41 @@ create policy "Anyone can view loyalty tiers"
 
 -- Only admins can insert/update/delete tiers (handled via service role in API, or we can add RLS if needed, but for now service role overrides RLS so it's fine).
 
+-- ============================================================
+-- 8. DISCOUNT COUPONS TABLE
+-- Stores generated coupon codes when users redeem loyalty points
+-- ============================================================
+create table if not exists public.discount_coupons (
+  id uuid default gen_random_uuid() primary key,
+  code text unique not null,
+  user_id uuid references public.profiles on delete cascade not null,
+  discount_percentage numeric not null,
+  tier_name text not null,
+  is_used boolean default false,
+  created_at timestamptz default now(),
+  expires_at timestamptz
+);
+
+-- Enable RLS
+alter table public.discount_coupons enable row level security;
+
+-- Users can view their own coupons
+create policy "Users can view their own coupons"
+  on public.discount_coupons for select
+  using (auth.uid() = user_id);
+
+-- Users can insert their own coupons (via API)
+create policy "Users can insert their own coupons"
+  on public.discount_coupons for insert
+  with check (auth.uid() = user_id);
+
+-- Users can update their own coupons (to mark as used)
+create policy "Users can update their own coupons"
+  on public.discount_coupons for update
+  using (auth.uid() = user_id);
+
+-- Anyone can select coupons for validation at checkout (needed for guest validation)
+-- Restricted to only checking code+is_used, not exposing user_id etc.
+-- We handle this securely in the API route instead with service role.
+
+
