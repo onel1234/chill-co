@@ -206,7 +206,7 @@ export default function AccountClient() {
       )}
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-gutter mb-stack-lg">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-gutter mb-stack-lg">
         <div className="bg-surface-container-low border border-surface-variant p-5 text-center">
           <p className="font-display-xl text-headline-lg text-primary">{orders.length}</p>
           <p className="font-label-caps text-label-caps text-on-surface-variant mt-1">Orders</p>
@@ -217,11 +217,17 @@ export default function AccountClient() {
           </p>
           <p className="font-label-caps text-label-caps text-on-surface-variant mt-1">Total Spent</p>
         </div>
-        <div className="bg-surface-container-low border border-surface-variant p-5 text-center col-span-2 md:col-span-1">
+        <div className="bg-surface-container-low border border-surface-variant p-5 text-center">
           <p className="font-display-xl text-headline-lg text-primary">
             {orders.reduce((sum, o) => sum + (o.order_items?.length ?? 0), 0)}
           </p>
           <p className="font-label-caps text-label-caps text-on-surface-variant mt-1">Items Purchased</p>
+        </div>
+        <div className="bg-surface-container-low border border-surface-variant p-5 text-center">
+          <p className="font-display-xl text-headline-lg text-primary">
+            {profile?.loyalty_points || 0}
+          </p>
+          <p className="font-label-caps text-label-caps text-on-surface-variant mt-1">Loyalty Points</p>
         </div>
       </div>
 
