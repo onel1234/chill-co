@@ -31,6 +31,21 @@ export default function AdminPanelClient({ initialOrders }: AdminPanelClientProp
 
   const displayedOrders = activeTab === "pending" ? pendingOrders : initialOrders;
 
+  // Pagination states
+  const itemsPerPage = 10;
+  
+  const [orderPage, setOrderPage] = useState(1);
+  useEffect(() => {
+    setOrderPage(1);
+  }, [activeTab]);
+
+  const totalOrderPages = Math.max(1, Math.ceil(displayedOrders.length / itemsPerPage));
+  const paginatedOrders = displayedOrders.slice((orderPage - 1) * itemsPerPage, orderPage * itemsPerPage);
+
+  const [customerPage, setCustomerPage] = useState(1);
+  const totalCustomerPages = Math.max(1, Math.ceil(customers.length / itemsPerPage));
+  const paginatedCustomers = customers.slice((customerPage - 1) * itemsPerPage, customerPage * itemsPerPage);
+
   // Fetch Customers
   useEffect(() => {
     if (currentView === "customers") {
@@ -139,7 +154,7 @@ export default function AdminPanelClient({ initialOrders }: AdminPanelClientProp
   ] as const;
 
   return (
-    <main className="pt-[120px] pb-section-gap px-margin-mobile md:px-margin-desktop max-w-full mx-auto min-h-screen relative overflow-hidden">
+    <main className="pt-[120px] pb-section-gap px-margin-mobile md:px-margin-desktop w-full flex-1 min-h-screen relative overflow-hidden">
       {/* Decorative Background Elements */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-[-1]">
         <div className="kinetic-bg w-full h-full absolute opacity-50"></div>
@@ -241,7 +256,7 @@ export default function AdminPanelClient({ initialOrders }: AdminPanelClientProp
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {displayedOrders.map((order) => (
+                    {paginatedOrders.map((order) => (
                       <div
                         key={order.id}
                         className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-surface-variant hover:border-primary/50 transition-colors bg-surface-container-lowest gap-4"
@@ -280,6 +295,30 @@ export default function AdminPanelClient({ initialOrders }: AdminPanelClientProp
                         </div>
                       </div>
                     ))}
+
+                    {totalOrderPages > 1 && (
+                      <div className="flex justify-between items-center mt-4 pt-4 border-t border-surface-variant">
+                        <span className="text-sm text-on-surface-variant">
+                          Showing {(orderPage - 1) * itemsPerPage + 1} to {Math.min(orderPage * itemsPerPage, displayedOrders.length)} of {displayedOrders.length}
+                        </span>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => setOrderPage(p => Math.max(1, p - 1))}
+                            disabled={orderPage === 1}
+                            className="px-3 py-1 bg-surface-container border border-surface-variant disabled:opacity-50 text-sm hover:bg-surface-variant transition-colors"
+                          >
+                            Previous
+                          </button>
+                          <button
+                            onClick={() => setOrderPage(p => Math.min(totalOrderPages, p + 1))}
+                            disabled={orderPage === totalOrderPages}
+                            className="px-3 py-1 bg-surface-container border border-surface-variant disabled:opacity-50 text-sm hover:bg-surface-variant transition-colors"
+                          >
+                            Next
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -306,7 +345,7 @@ export default function AdminPanelClient({ initialOrders }: AdminPanelClientProp
                       </tr>
                     </thead>
                     <tbody>
-                      {customers.map(customer => (
+                      {paginatedCustomers.map(customer => (
                         <tr key={customer.id} className="border-b border-surface-variant hover:bg-surface-container-low transition-colors">
                           <td className="py-4 px-4">
                             <p className="font-body-md text-sm font-medium">{customer.full_name || 'Anonymous'}</p>
@@ -330,6 +369,30 @@ export default function AdminPanelClient({ initialOrders }: AdminPanelClientProp
                       )}
                     </tbody>
                   </table>
+
+                  {totalCustomerPages > 1 && (
+                    <div className="flex justify-between items-center mt-4 pt-4 border-t border-surface-variant px-4">
+                      <span className="text-sm text-on-surface-variant">
+                        Showing {(customerPage - 1) * itemsPerPage + 1} to {Math.min(customerPage * itemsPerPage, customers.length)} of {customers.length}
+                      </span>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setCustomerPage(p => Math.max(1, p - 1))}
+                          disabled={customerPage === 1}
+                          className="px-3 py-1 bg-surface-container border border-surface-variant disabled:opacity-50 text-sm hover:bg-surface-variant transition-colors"
+                        >
+                          Previous
+                        </button>
+                        <button
+                          onClick={() => setCustomerPage(p => Math.min(totalCustomerPages, p + 1))}
+                          disabled={customerPage === totalCustomerPages}
+                          className="px-3 py-1 bg-surface-container border border-surface-variant disabled:opacity-50 text-sm hover:bg-surface-variant transition-colors"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
