@@ -139,7 +139,7 @@ export default function AdminPanelClient({ initialOrders }: AdminPanelClientProp
   ] as const;
 
   return (
-    <main className="pt-[120px] pb-section-gap px-margin-mobile md:px-margin-desktop max-w-7xl mx-auto min-h-screen relative overflow-hidden">
+    <main className="pt-[120px] pb-section-gap px-margin-mobile md:px-margin-desktop max-w-full mx-auto min-h-screen relative overflow-hidden">
       {/* Decorative Background Elements */}
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none z-[-1]">
         <div className="kinetic-bg w-full h-full absolute opacity-50"></div>
