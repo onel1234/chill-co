@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/context/AuthContext";
@@ -25,14 +25,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
     }
   }, [user, isLoading, router]);
 
-  useEffect(() => {
-    if (user && orderId) {
-      fetchOrder();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user, orderId]);
-
-  const fetchOrder = async () => {
+  const fetchOrder = useCallback(async () => {
     setOrderLoading(true);
     const { data, error } = await supabase
       .from("orders")
@@ -46,7 +39,13 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
       setOrder(data as Order);
     }
     setOrderLoading(false);
-  };
+  }, [supabase, orderId]);
+
+  useEffect(() => {
+    if (user && orderId) {
+      fetchOrder();
+    }
+  }, [user, orderId, fetchOrder]);
 
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("en-US", {

@@ -100,6 +100,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     await loadCartFromSupabase(userId);
   }, [supabase, loadCartFromSupabase]);
 
+  // ─── Helpers ──────────────────────────────────────────────────────────
+  function getLocalCart(): CartItem[] {
+    try {
+      const stored = localStorage.getItem(LOCAL_KEY);
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
+    }
+  }
+
   // ─── Auth state tracking ───────────────────────────────────────────────
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -159,15 +169,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
   }, [items, isInitialized, currentUser]);
 
-  // ─── Helpers ──────────────────────────────────────────────────────────
-  function getLocalCart(): CartItem[] {
-    try {
-      const stored = localStorage.getItem(LOCAL_KEY);
-      return stored ? JSON.parse(stored) : [];
-    } catch {
-      return [];
-    }
-  }
 
   // ─── Actions ──────────────────────────────────────────────────────────
   const addToCart = async (newItem: CartItem) => {

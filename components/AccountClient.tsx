@@ -38,6 +38,19 @@ export default function AccountClient() {
     }
   }, [user, isLoading, router]);
 
+  const fetchOrders = async () => {
+    setOrdersLoading(true);
+    const { data, error } = await supabase
+      .from("orders")
+      .select("*, order_items(*)")
+      .order("created_at", { ascending: false });
+
+    if (!error && data) {
+      setOrders(data as Order[]);
+    }
+    setOrdersLoading(false);
+  };
+
   useEffect(() => {
     if (user) {
       fetchOrders();
@@ -55,7 +68,7 @@ export default function AccountClient() {
     }
   }, [profile?.is_loyalty_member]);
 
-  const claimDiscount = useCallback(async (tierId: string) => {
+  const claimDiscount = useCallback(async () => {
     setClaimingDiscount(true);
     try {
       const res = await fetch('/api/loyalty/claim-discount', { method: 'POST' });
@@ -72,26 +85,12 @@ export default function AccountClient() {
     } finally {
       setClaimingDiscount(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshProfile]);
 
   const copyCode = async (code: string) => {
     await navigator.clipboard.writeText(code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  };
-
-  const fetchOrders = async () => {
-    setOrdersLoading(true);
-    const { data, error } = await supabase
-      .from("orders")
-      .select("*, order_items(*)")
-      .order("created_at", { ascending: false });
-
-    if (!error && data) {
-      setOrders(data as Order[]);
-    }
-    setOrdersLoading(false);
   };
 
   const handleSignOut = async () => {
@@ -265,7 +264,7 @@ export default function AccountClient() {
                     <div className="mt-4 pt-4 border-t border-primary/20">
                       {isTopEligible && !claimedCoupon ? (
                         <button
-                          onClick={() => claimDiscount(tier.id)}
+                          onClick={() => claimDiscount()}
                           disabled={claimingDiscount}
                           className="w-full bg-primary text-on-primary font-button-text text-xs uppercase tracking-widest py-2 hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
                         >
