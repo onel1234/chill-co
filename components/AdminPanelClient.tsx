@@ -156,9 +156,9 @@ export default function AdminPanelClient({ initialOrders }: AdminPanelClientProp
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-gutter items-start">
+      <div className="flex flex-col md:grid md:grid-cols-[256px_1fr] gap-gutter items-start">
         {/* Sidebar Navigation */}
-        <div className="w-full md:w-64 flex-shrink-0 sticky top-24">
+        <div className="w-full md:w-auto sticky top-24">
           <div className="bg-surface-container-lowest border border-surface-variant p-4 flex flex-col gap-2">
             {navItems.map(item => (
               <button
@@ -178,9 +178,13 @@ export default function AdminPanelClient({ initialOrders }: AdminPanelClientProp
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 w-full flex flex-col gap-stack-md">
+        <div className="w-full flex flex-col gap-stack-md min-w-0">
           {currentView === "dashboard" && (
-            <>
+            <div className="bg-surface-container-lowest border border-surface-variant p-6 min-h-[400px] flex flex-col gap-stack-md w-full">
+              <h2 className="font-headline-md text-headline-sm uppercase tracking-tight flex items-center gap-2">
+                <span className="material-symbols-outlined text-primary">dashboard</span>
+                Dashboard Overview
+              </h2>
               {/* Quick Stats Row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-gutter mb-stack-sm">
                 <div className="bg-surface-container-lowest border border-surface-variant p-6 relative overflow-hidden group hover:border-primary transition-colors">
@@ -196,7 +200,7 @@ export default function AdminPanelClient({ initialOrders }: AdminPanelClientProp
               </div>
 
               {/* Orders Section */}
-              <div className="bg-surface-container-lowest border border-surface-variant p-6">
+              <div className="border border-surface-variant p-6 bg-surface-container/10">
                 <div className="flex items-center justify-between mb-6">
                   <h2 className="font-headline-md text-headline-sm uppercase tracking-tight">Orders</h2>
                   
@@ -279,11 +283,11 @@ export default function AdminPanelClient({ initialOrders }: AdminPanelClientProp
                   </div>
                 )}
               </div>
-            </>
+            </div>
           )}
 
           {currentView === "customers" && (
-            <div className="bg-surface-container-lowest border border-surface-variant p-6 min-h-[400px]">
+            <div className="bg-surface-container-lowest border border-surface-variant p-6 min-h-[400px] w-full">
               <h2 className="font-headline-md text-headline-sm uppercase tracking-tight mb-6 flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">group</span>
                 Customers & Loyalty
@@ -332,7 +336,7 @@ export default function AdminPanelClient({ initialOrders }: AdminPanelClientProp
           )}
 
           {currentView === "discounts" && (
-            <div className="bg-surface-container-lowest border border-surface-variant p-6 min-h-[400px]">
+            <div className="bg-surface-container-lowest border border-surface-variant p-6 min-h-[400px] w-full">
               <h2 className="font-headline-md text-headline-sm uppercase tracking-tight mb-6 flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">loyalty</span>
                 Loyalty Discount Tiers
@@ -421,7 +425,7 @@ export default function AdminPanelClient({ initialOrders }: AdminPanelClientProp
           )}
 
           {currentView === "settings" && (
-            <div className="bg-surface-container-lowest border border-surface-variant p-6 h-full min-h-[400px]">
+            <div className="bg-surface-container-lowest border border-surface-variant p-6 h-full min-h-[400px] w-full">
               <h2 className="font-headline-md text-headline-sm uppercase tracking-tight mb-6 flex items-center gap-2">
                 <span className="material-symbols-outlined text-primary">settings</span>
                 Account Settings

@@ -14,18 +14,38 @@ interface LoyaltyTier {
 }
 
 export default function CheckoutClient() {
-  const { items, removeFromCart, updateQuantity, totalPrice, clearCart } = useCart();
+  const { items, updateQuantity, removeFromCart, totalPrice, clearCart } = useCart();
   const { user, profile } = useAuth();
+  
+  const [step, setStep] = useState<1 | 2>(1);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
-  const [email, setEmail] = useState(profile?.email || user?.email || '');
+  
+  // Form State
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [shippingAddress, setShippingAddress] = useState({
+    country: 'United States',
+    firstName: '',
+    lastName: '',
+    address: '',
+    apartment: '',
+    city: '',
+    state: '',
+    zip: ''
+  });
   
   // Loyalty State
   const [tiers, setTiers] = useState<LoyaltyTier[]>([]);
   const [isRedeemingPoints, setIsRedeemingPoints] = useState(false);
 
   const supabase = createClient();
+
+  useEffect(() => {
+    if (profile?.email) setEmail(profile.email);
+    else if (user?.email) setEmail(user.email);
+  }, [profile, user]);
 
   useEffect(() => {
     if (profile?.is_loyalty_member) {
@@ -54,71 +74,101 @@ export default function CheckoutClient() {
   // Calculate points earned for this order
   const pointsEarned = items.reduce((sum, item) => sum + (item.loyaltyPoints || 0) * item.quantity, 0);
 
-  const handleCheckout = async (e: React.FormEvent) => {
+  const handleProceedToCheckout = (e: React.FormEvent) => {
     e.preventDefault();
+    setStep(2);
+  };
+
+  const handleCashOnDelivery = async () => {
     setIsProcessing(true);
 
-    if (user) {
-      // Create order in Supabase
-      const { data: order, error: orderError } = await supabase
-        .from('orders')
-        .insert({
-          user_id: user.id,
-          status: 'confirmed',
-          subtotal: totalPrice - discountAmount,
-          shipping: shippingCost,
-          total: orderTotal,
-        })
-        .select()
-        .single();
+    const generatedOrderId = crypto.randomUUID();
 
-      if (orderError || !order) {
-        console.error('Failed to create order:', orderError);
-        setIsProcessing(false);
-        return;
-      }
+    const orderData = {
+      id: generatedOrderId,
+      user_id: user?.id || null, // null for guest checkout
+      status: 'pending',
+      subtotal: totalPrice - discountAmount,
+      shipping: shippingCost,
+      total: orderTotal,
+      customer_email: email,
+      customer_phone: phone,
+      shipping_address: shippingAddress
+    };
 
-      // Insert order items
-      const orderItems = items.map((item) => ({
-        order_id: order.id,
-        product_id: item.productId,
-        name: item.name,
-        price: item.price,
-        image: item.image,
-        color: item.color,
-        size: item.size,
-        quantity: item.quantity,
-      }));
+    const { error: orderError } = await supabase
+      .from('orders')
+      .insert(orderData);
 
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
-
-      if (itemsError) {
-        console.error('Failed to insert order items:', itemsError);
-      }
-
-      // Update Loyalty Points
-      if (profile) {
-        const newTotalPoints = isRedeemingPoints 
-          ? pointsEarned 
-          : (profile.loyalty_points || 0) + pointsEarned;
-          
-        await supabase
-          .from('profiles')
-          .update({ loyalty_points: newTotalPoints })
-          .eq('id', user.id);
-      }
-
-      setOrderId(order.id);
-      await clearCart();
-    } else {
-      // Guest checkout — just simulate
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+    if (orderError) {
+      console.error('Failed to create order:', JSON.stringify(orderError, null, 2));
+      setIsProcessing(false);
+      return;
     }
 
+    const orderItems = items.map((item) => ({
+      order_id: generatedOrderId,
+      product_id: item.productId,
+      name: item.name,
+      price: item.price,
+      image: item.image,
+      color: item.color,
+      size: item.size,
+      quantity: item.quantity,
+    }));
+
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .insert(orderItems);
+
+    if (itemsError) {
+      console.error('Failed to insert order items:', itemsError);
+    }
+
+    // Update Loyalty Points for logged in members
+    if (user && profile) {
+      const newTotalPoints = isRedeemingPoints 
+        ? pointsEarned 
+        : (profile.loyalty_points || 0) + pointsEarned;
+        
+      await supabase
+        .from('profiles')
+        .update({ loyalty_points: newTotalPoints })
+        .eq('id', user.id);
+    }
+
+    setOrderId(generatedOrderId);
+    await clearCart();
     setIsProcessing(false);
     setIsSuccess(true);
+  };
+
+  const handleWhatsAppInquiry = () => {
+    const waNumber = "94758441413";
+    
+    let message = `*NEW ORDER INQUIRY*\n\n`;
+    message += `*Customer Details*\n`;
+    message += `Name: ${shippingAddress.firstName} ${shippingAddress.lastName}\n`;
+    message += `Email: ${email}\n`;
+    message += `Phone: ${phone}\n\n`;
+    
+    message += `*Shipping Address*\n`;
+    message += `${shippingAddress.address} ${shippingAddress.apartment ? shippingAddress.apartment + ' ' : ''}\n`;
+    message += `${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.zip}\n`;
+    message += `${shippingAddress.country}\n\n`;
+    
+    message += `*Order Items*\n`;
+    items.forEach(item => {
+      message += `- ${item.quantity}x ${item.name} (${item.color}, ${item.size}) - $${(item.price * item.quantity).toFixed(2)}\n`;
+    });
+    
+    message += `\n*Totals*\n`;
+    message += `Subtotal: $${(totalPrice - discountAmount).toFixed(2)}\n`;
+    message += `Shipping: ${shippingCost === 0 ? 'Free' : `$${shippingCost.toFixed(2)}`}\n`;
+    message += `*Total: $${orderTotal.toFixed(2)}*`;
+
+    const encodedMessage = encodeURIComponent(message);
+    window.open(`https://wa.me/${waNumber}?text=${encodedMessage}`, '_blank');
   };
 
   if (isSuccess) {
@@ -170,7 +220,7 @@ export default function CheckoutClient() {
       </h1>
 
       {/* Guest prompt */}
-      {!user && (
+      {!user && step === 1 && (
         <div className="mb-stack-lg p-4 bg-primary/5 border border-primary/20 flex items-center gap-4">
           <span className="material-symbols-outlined text-primary">person</span>
           <p className="font-body-md text-sm text-on-surface flex-1">
@@ -181,82 +231,178 @@ export default function CheckoutClient() {
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
-        {/* Left Column: Form */}
+        {/* Left Column: Form / Payment Options */}
         <div className="lg:col-span-7 flex flex-col gap-stack-lg">
-          <form onSubmit={handleCheckout} className="space-y-stack-lg">
-            
-            {/* Contact Information */}
-            <section>
-              <h2 className="font-headline-sm text-headline-sm uppercase mb-4">Contact Information</h2>
-              <div className="space-y-4">
-                <div>
-                  <input
-                    required
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Email"
-                    className="w-full bg-surface-container-low border border-surface-variant p-4 font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
-                  />
+          {step === 1 ? (
+            <form onSubmit={handleProceedToCheckout} className="space-y-stack-lg">
+              {/* Contact Information */}
+              <section>
+                <h2 className="font-headline-sm text-headline-sm uppercase mb-4">Contact Information</h2>
+                <div className="space-y-4">
+                  <div>
+                    <input
+                      required
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="Email"
+                      className="w-full bg-surface-container-low border border-surface-variant p-4 font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                    />
+                  </div>
+                  <div>
+                    <input
+                      required
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      placeholder="Phone Number"
+                      className="w-full bg-surface-container-low border border-surface-variant p-4 font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" id="newsletter" className="w-4 h-4 accent-primary" />
+                    <label htmlFor="newsletter" className="font-body-md text-sm text-on-surface-variant">Email me with news and offers</label>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <input type="checkbox" id="newsletter" className="w-4 h-4 accent-primary" />
-                  <label htmlFor="newsletter" className="font-body-md text-sm text-on-surface-variant">Email me with news and offers</label>
-                </div>
-              </div>
-            </section>
+              </section>
 
-            {/* Shipping Address */}
-            <section>
-              <h2 className="font-headline-sm text-headline-sm uppercase mb-4">Shipping Address</h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="col-span-2">
-                  <select className="w-full bg-surface-container-low border border-surface-variant p-4 font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all appearance-none">
-                    <option>United States</option>
-                    <option>Canada</option>
-                    <option>United Kingdom</option>
-                  </select>
-                </div>
-                <div>
-                  <input required type="text" placeholder="First name" className="w-full bg-surface-container-low border border-surface-variant p-4 font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
-                </div>
-                <div>
-                  <input required type="text" placeholder="Last name" className="w-full bg-surface-container-low border border-surface-variant p-4 font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
-                </div>
-                <div className="col-span-2">
-                  <input required type="text" placeholder="Address" className="w-full bg-surface-container-low border border-surface-variant p-4 font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
-                </div>
-                <div className="col-span-2">
-                  <input type="text" placeholder="Apartment, suite, etc. (optional)" className="w-full bg-surface-container-low border border-surface-variant p-4 font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
-                </div>
-                <div>
-                  <input required type="text" placeholder="City" className="w-full bg-surface-container-low border border-surface-variant p-4 font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
-                </div>
+              {/* Shipping Address */}
+              <section>
+                <h2 className="font-headline-sm text-headline-sm uppercase mb-4">Shipping Address</h2>
                 <div className="grid grid-cols-2 gap-4">
-                  <input required type="text" placeholder="State" className="w-full bg-surface-container-low border border-surface-variant p-4 font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
-                  <input required type="text" placeholder="ZIP code" className="w-full bg-surface-container-low border border-surface-variant p-4 font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" />
+                  <div className="col-span-2">
+                    <select
+                      value={shippingAddress.country}
+                      onChange={(e) => setShippingAddress({...shippingAddress, country: e.target.value})}
+                      className="w-full bg-surface-container-low border border-surface-variant p-4 font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all appearance-none"
+                    >
+                      <option>United States</option>
+                      <option>Canada</option>
+                      <option>United Kingdom</option>
+                      <option>Sri Lanka</option>
+                      <option>Australia</option>
+                    </select>
+                  </div>
+                  <div>
+                    <input 
+                      required 
+                      type="text" 
+                      value={shippingAddress.firstName}
+                      onChange={(e) => setShippingAddress({...shippingAddress, firstName: e.target.value})}
+                      placeholder="First name" 
+                      className="w-full bg-surface-container-low border border-surface-variant p-4 font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" 
+                    />
+                  </div>
+                  <div>
+                    <input 
+                      required 
+                      type="text" 
+                      value={shippingAddress.lastName}
+                      onChange={(e) => setShippingAddress({...shippingAddress, lastName: e.target.value})}
+                      placeholder="Last name" 
+                      className="w-full bg-surface-container-low border border-surface-variant p-4 font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" 
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <input 
+                      required 
+                      type="text" 
+                      value={shippingAddress.address}
+                      onChange={(e) => setShippingAddress({...shippingAddress, address: e.target.value})}
+                      placeholder="Address" 
+                      className="w-full bg-surface-container-low border border-surface-variant p-4 font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" 
+                    />
+                  </div>
+                  <div className="col-span-2">
+                    <input 
+                      type="text" 
+                      value={shippingAddress.apartment}
+                      onChange={(e) => setShippingAddress({...shippingAddress, apartment: e.target.value})}
+                      placeholder="Apartment, suite, etc. (optional)" 
+                      className="w-full bg-surface-container-low border border-surface-variant p-4 font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" 
+                    />
+                  </div>
+                  <div>
+                    <input 
+                      required 
+                      type="text" 
+                      value={shippingAddress.city}
+                      onChange={(e) => setShippingAddress({...shippingAddress, city: e.target.value})}
+                      placeholder="City" 
+                      className="w-full bg-surface-container-low border border-surface-variant p-4 font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" 
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <input 
+                      required 
+                      type="text" 
+                      value={shippingAddress.state}
+                      onChange={(e) => setShippingAddress({...shippingAddress, state: e.target.value})}
+                      placeholder="State" 
+                      className="w-full bg-surface-container-low border border-surface-variant p-4 font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" 
+                    />
+                    <input 
+                      required 
+                      type="text" 
+                      value={shippingAddress.zip}
+                      onChange={(e) => setShippingAddress({...shippingAddress, zip: e.target.value})}
+                      placeholder="ZIP code" 
+                      className="w-full bg-surface-container-low border border-surface-variant p-4 font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all" 
+                    />
+                  </div>
                 </div>
-              </div>
-            </section>
+              </section>
 
-            <button
-              type="submit"
-              disabled={items.length === 0 || isProcessing}
-              className="w-full bg-primary text-on-primary font-button-text text-button-text uppercase py-5 hover:bg-primary-container transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
-            >
-              {isProcessing ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  Complete Order
-                  <span className="material-symbols-outlined">arrow_forward</span>
-                </>
-              )}
-            </button>
-          </form>
+              <button
+                type="submit"
+                disabled={items.length === 0}
+                className="w-full bg-primary text-on-primary font-button-text text-button-text uppercase py-5 hover:bg-primary-container transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+              >
+                Proceed to Checkout
+                <span className="material-symbols-outlined">arrow_forward</span>
+              </button>
+            </form>
+          ) : (
+            <div className="space-y-stack-lg">
+              <section className="bg-surface-container-lowest border border-surface-variant p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="font-headline-sm text-headline-sm uppercase">Review Details</h2>
+                  <button onClick={() => setStep(1)} className="text-primary underline text-sm uppercase font-label-caps">Edit</button>
+                </div>
+                <div className="space-y-2 font-body-md text-sm text-on-surface-variant">
+                  <p><strong>Contact:</strong> {email} | {phone}</p>
+                  <p><strong>Ship to:</strong> {shippingAddress.firstName} {shippingAddress.lastName}</p>
+                  <p>{shippingAddress.address} {shippingAddress.apartment}</p>
+                  <p>{shippingAddress.city}, {shippingAddress.state} {shippingAddress.zip}, {shippingAddress.country}</p>
+                </div>
+              </section>
+
+              <section>
+                <h2 className="font-headline-sm text-headline-sm uppercase mb-4">Payment Method</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <button
+                    onClick={handleCashOnDelivery}
+                    disabled={isProcessing}
+                    className="flex flex-col items-center justify-center p-6 border-2 border-primary bg-primary/5 hover:bg-primary/10 transition-colors disabled:opacity-50 gap-2"
+                  >
+                    <span className="material-symbols-outlined text-4xl text-primary">local_shipping</span>
+                    <span className="font-button-text text-button-text uppercase text-primary">Cash on Delivery</span>
+                    {isProcessing && <span className="text-xs">Processing...</span>}
+                  </button>
+
+                  <button
+                    onClick={handleWhatsAppInquiry}
+                    className="flex flex-col items-center justify-center p-6 border-2 border-[#25D366] bg-[#25D366]/5 hover:bg-[#25D366]/10 transition-colors gap-2"
+                  >
+                    <svg className="w-10 h-10 text-[#25D366]" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M12.031 0C5.385 0 0 5.386 0 12.03c0 2.128.552 4.195 1.6 6.012L.156 23.366l5.46-1.433a11.96 11.96 0 006.415 1.84h.005c6.645 0 12.031-5.387 12.031-12.034C24.067 5.385 18.675 0 12.031 0zm0 21.782h-.005a9.92 9.92 0 01-5.068-1.385l-.364-.216-3.77.99.998-3.682-.236-.375A9.962 9.962 0 012.062 12.03c0-5.508 4.484-9.992 9.97-9.992s9.968 4.484 9.968 9.992-4.485 9.99-9.969 9.99zm5.474-7.483c-.3-.15-1.776-.877-2.052-.977-.275-.1-.475-.15-.675.15-.2.3-.775.977-.95 1.176-.175.2-.35.226-.65.076-.3-.15-1.268-.467-2.417-1.49-.893-.794-1.496-1.776-1.67-2.076-.176-.3-.018-.462.132-.612.135-.135.3-.35.45-.525.15-.175.2-.3.3-.5.1-.2.05-.375-.025-.525-.075-.15-.675-1.626-.925-2.226-.24-.585-.487-.506-.675-.515-.175-.01-.375-.01-.575-.01s-.525.075-.8.375c-.275.3-1.05 1.026-1.05 2.502s1.075 2.898 1.225 3.098c.15.2 2.115 3.226 5.115 4.526.714.31 1.272.495 1.706.635.717.228 1.368.196 1.884.119.58-.087 1.776-.726 2.026-1.426.25-.7.25-1.302.175-1.426-.075-.125-.275-.2-.575-.35z"/>
+                    </svg>
+                    <span className="font-button-text text-button-text uppercase text-[#25D366]">Inquire on WhatsApp</span>
+                  </button>
+                </div>
+              </section>
+            </div>
+          )}
         </div>
 
         {/* Right Column: Order Summary */}
@@ -284,14 +430,16 @@ export default function CheckoutClient() {
                       <div className="flex-1 flex flex-col">
                         <h3 className="font-body-md text-sm font-medium uppercase leading-tight">{item.name}</h3>
                         <p className="font-body-md text-xs text-on-surface-variant mt-1">{item.color} / {item.size}</p>
-                        <div className="mt-auto flex justify-between items-center">
-                          <div className="flex border border-surface-variant items-center">
-                            <button type="button" onClick={() => updateQuantity(item.id, item.quantity - 1)} className="px-2 py-1 text-on-surface-variant hover:text-primary">-</button>
-                            <span className="px-2 text-xs">{item.quantity}</span>
-                            <button type="button" onClick={() => updateQuantity(item.id, item.quantity + 1)} className="px-2 py-1 text-on-surface-variant hover:text-primary">+</button>
+                        {step === 1 && (
+                          <div className="mt-auto flex justify-between items-center">
+                            <div className="flex border border-surface-variant items-center">
+                              <button type="button" onClick={() => updateQuantity(item.id, item.quantity - 1)} className="px-2 py-1 text-on-surface-variant hover:text-primary">-</button>
+                              <span className="px-2 text-xs">{item.quantity}</span>
+                              <button type="button" onClick={() => updateQuantity(item.id, item.quantity + 1)} className="px-2 py-1 text-on-surface-variant hover:text-primary">+</button>
+                            </div>
+                            <button type="button" onClick={() => removeFromCart(item.id)} className="text-xs text-tertiary underline">Remove</button>
                           </div>
-                          <button type="button" onClick={() => removeFromCart(item.id)} className="text-xs text-tertiary underline">Remove</button>
-                        </div>
+                        )}
                       </div>
                       <div className="text-sm font-medium">
                         ${(item.price * item.quantity).toFixed(2)}
@@ -301,7 +449,7 @@ export default function CheckoutClient() {
                 </div>
 
                 {/* Loyalty Banner */}
-                {profile?.is_loyalty_member && (
+                {profile?.is_loyalty_member && step === 1 && (
                   <div className="border border-surface-variant p-4 bg-surface-container-lowest">
                     {bestTier ? (
                       <div className="flex flex-col gap-3">
