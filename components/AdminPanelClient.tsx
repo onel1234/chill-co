@@ -264,7 +264,7 @@ export default function AdminPanelClient({ initialOrders }: AdminPanelClientProp
                             {formatDate(order.created_at)}
                           </p>
                           <p className="font-body-md text-sm text-on-surface-variant mt-1">
-                            Customer ID: <span className="font-mono text-xs">{order.user_id.slice(0, 8)}...</span>
+                            Customer ID: <span className="font-mono text-xs">{order.user_id ? `${order.user_id.slice(0, 8)}...` : 'Guest'}</span>
                           </p>
                         </div>
 
