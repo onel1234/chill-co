@@ -137,6 +137,20 @@ export default function CheckoutClient() {
         .eq('id', user.id);
     }
 
+    // Send order confirmation email asynchronously
+    fetch('/api/mail/order-confirmation', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        email: email,
+        orderId: generatedOrderId,
+        items: items,
+        total: orderTotal,
+      }),
+    }).catch(err => console.error('Failed to trigger order confirmation email:', err));
+
     setOrderId(generatedOrderId);
     await clearCart();
     setIsProcessing(false);
