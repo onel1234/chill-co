@@ -24,6 +24,7 @@ export default function AdminPanelClient({ initialOrders }: AdminPanelClientProp
   const [tiers, setTiers] = useState<LoyaltyTier[]>([]);
   const [loadingTiers, setLoadingTiers] = useState(false);
   const [newTier, setNewTier] = useState({ name: '', required_points: '', discount_percentage: '' });
+  const [sendingEmails, setSendingEmails] = useState(false);
 
   const pendingOrders = initialOrders.filter(
     (o) => o.status === "pending" || o.status === "confirmed"
@@ -119,6 +120,28 @@ export default function AdminPanelClient({ initialOrders }: AdminPanelClientProp
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const notifyEligibleCustomers = async () => {
+    if (!window.confirm("Are you sure you want to notify all eligible customers? This will send emails immediately.")) return;
+    
+    setSendingEmails(true);
+    try {
+      const res = await fetch('/api/admin/mail-discount', {
+        method: 'POST'
+      });
+      const data = await res.json();
+      if (res.ok) {
+        alert(`Successfully sent ${data.count} emails to eligible customers.`);
+      } else {
+        alert(`Failed to send emails: ${data.error}`);
+      }
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred while sending emails.');
+    } finally {
+      setSendingEmails(false);
     }
   };
 
@@ -453,6 +476,20 @@ export default function AdminPanelClient({ initialOrders }: AdminPanelClientProp
 
                 {/* Tiers List */}
                 <div className="md:col-span-2 space-y-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="font-headline-sm text-sm uppercase tracking-wider text-on-surface">Existing Tiers</h3>
+                    <button 
+                      onClick={notifyEligibleCustomers}
+                      disabled={sendingEmails || tiers.length === 0}
+                      className="flex items-center gap-2 bg-secondary text-on-secondary px-4 py-2 font-button-text text-sm uppercase tracking-widest hover:opacity-90 transition-opacity disabled:opacity-50"
+                    >
+                      {sendingEmails ? (
+                        <><div className="w-4 h-4 border-2 border-on-secondary border-t-transparent rounded-full animate-spin"></div> Sending...</>
+                      ) : (
+                        <><span className="material-symbols-outlined text-sm">mail</span> Notify Eligible Customers</>
+                      )}
+                    </button>
+                  </div>
                   {loadingTiers ? (
                     <div className="py-12 flex justify-center"><div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin"></div></div>
                   ) : (

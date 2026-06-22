@@ -93,3 +93,55 @@ export const sendOrderConfirmationEmail = async (
     console.error('Error sending order confirmation email:', error);
   }
 };
+
+export const sendDiscountEligibilityEmail = async (
+  email: string,
+  name: string | null,
+  tierName: string,
+  discountPercentage: number,
+  points: number
+) => {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.error('Missing GMAIL_USER or GMAIL_APP_PASSWORD in environment variables');
+    return;
+  }
+
+  const displayName = name || 'there';
+
+  const mailOptions = {
+    from: `"Chill Co" <${process.env.GMAIL_USER}>`,
+    to: email,
+    subject: `You've unlocked a new discount tier! (${discountPercentage}% OFF)`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; border: 1px solid #ddd; border-radius: 8px; padding: 20px;">
+        <h1 style="color: #FF5A00; text-align: center; text-transform: uppercase; letter-spacing: -1px; margin-bottom: 5px;">Chill Co</h1>
+        <h2 style="text-align: center; margin-top: 0; color: #555;">Loyalty Rewards</h2>
+        
+        <p>Hi ${displayName},</p>
+        <p>Great news! With <strong>${points} points</strong>, you have reached the <strong>${tierName}</strong>.</p>
+        <p>This means you are now eligible for a <strong>${discountPercentage}% discount</strong> on your future purchases!</p>
+        
+        <div style="text-align: center; margin: 30px 0; padding: 20px; background-color: #f9f9f9; border-radius: 8px;">
+          <h3 style="margin: 0 0 10px 0; color: #333;">Your Current Tier</h3>
+          <p style="font-size: 24px; font-weight: bold; color: #FF5A00; margin: 0;">${tierName}</p>
+          <p style="font-size: 16px; margin: 10px 0 0 0;">${discountPercentage}% OFF</p>
+        </div>
+        
+        <p style="text-align: center;">
+          <a href="https://chill-co.vercel.app/" style="display: inline-block; background-color: #FF5A00; color: white; padding: 12px 24px; text-decoration: none; font-weight: bold; border-radius: 4px; text-transform: uppercase;">Shop Now</a>
+        </p>
+        
+        <p style="margin-top: 30px; text-align: center; color: #999; font-size: 12px;">
+          Thank you for being a loyal customer of Chill Co!
+        </p>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Discount eligibility email sent to ${email} for tier ${tierName}`);
+  } catch (error) {
+    console.error('Error sending discount eligibility email:', error);
+  }
+};
