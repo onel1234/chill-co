@@ -314,13 +314,13 @@ export default function AccountClient() {
             {/* Current Points */}
             <div className="bg-primary/5 border border-primary/20 p-4 flex items-center justify-between mb-5">
               <span className="font-label-caps text-xs uppercase text-on-surface-variant tracking-wider">Your Current Points</span>
-              <span className="font-mono text-2xl font-bold text-primary">{profile.loyalty_points || 0}</span>
+              <span className="font-mono text-2xl font-bold text-primary">{profile?.loyalty_points || 0}</span>
             </div>
 
             {/* Tier Progression */}
             <div className="space-y-3">
               {tiers.map((tier, idx) => {
-                const achieved = (profile.loyalty_points || 0) >= tier.required_points;
+                const achieved = (profile?.loyalty_points || 0) >= tier.required_points;
                 return (
                   <div key={tier.id} className={`relative flex items-center gap-4 p-3 border transition-colors ${
                     achieved ? 'border-primary bg-primary/5' : 'border-surface-variant'
