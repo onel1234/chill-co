@@ -21,14 +21,11 @@ interface ClaimedCoupon {
 }
 
 export default function AccountClient() {
-  const { user, profile, isAdmin, isLoading, signOut, refreshProfile } = useAuth();
+  const { user, profile, isAdmin, isLoading, signOut } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [tiers, setTiers] = useState<LoyaltyTier[]>([]);
   const [showTierChart, setShowTierChart] = useState(false);
-  const [claimingDiscount, setClaimingDiscount] = useState(false);
-  const [claimedCoupon, setClaimedCoupon] = useState<ClaimedCoupon | null>(null);
-  const [copied, setCopied] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
@@ -67,31 +64,6 @@ export default function AccountClient() {
         });
     }
   }, [profile?.is_loyalty_member]);
-
-  const claimDiscount = useCallback(async () => {
-    setClaimingDiscount(true);
-    try {
-      const res = await fetch('/api/loyalty/claim-discount', { method: 'POST' });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        setClaimedCoupon({ code: data.code, tier_name: data.tier_name, discount_percentage: data.discount_percentage });
-        // Refresh the profile so points update in the UI
-        if (refreshProfile) await refreshProfile();
-      } else {
-        alert(data.error || 'Failed to claim discount.');
-      }
-    } catch {
-      alert('An error occurred. Please try again.');
-    } finally {
-      setClaimingDiscount(false);
-    }
-  }, [refreshProfile]);
-
-  const copyCode = async (code: string) => {
-    await navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -218,35 +190,13 @@ export default function AccountClient() {
               </button>
             </div>
             <p className="text-sm text-on-surface-variant max-w-md">
-              Claim a discount code below — your points will reset to 0 and you&apos;ll receive the code via email.
+              As a loyalty member, you earn points on every purchase. Reach higher tiers to unlock exclusive discounts available directly at checkout.
             </p>
           </div>
-
-          {/* Claimed Coupon Banner */}
-          {claimedCoupon && (
-            <div className="mb-6 p-5 bg-primary/5 border-2 border-dashed border-primary flex flex-col sm:flex-row items-center gap-4 animate-pulse-once">
-              <span className="material-symbols-outlined text-primary text-3xl flex-shrink-0">confirmation_number</span>
-              <div className="flex-1 text-center sm:text-left">
-                <p className="font-label-caps text-xs text-on-surface-variant uppercase tracking-widest mb-1">{claimedCoupon.tier_name} — {claimedCoupon.discount_percentage}% OFF</p>
-                <p className="font-mono text-2xl font-bold text-primary tracking-widest">{claimedCoupon.code}</p>
-                <p className="text-xs text-on-surface-variant mt-1">Enter this code at checkout. Also sent to your email.</p>
-              </div>
-              <button
-                onClick={() => copyCode(claimedCoupon.code)}
-                className="flex items-center gap-1 px-4 py-2 border border-primary text-primary font-label-caps text-xs uppercase hover:bg-primary hover:text-on-primary transition-colors"
-              >
-                <span className="material-symbols-outlined text-sm">{copied ? 'check' : 'content_copy'}</span>
-                {copied ? 'Copied!' : 'Copy'}
-              </button>
-            </div>
-          )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-gutter">
             {tiers.map((tier) => {
               const canAfford = (profile.loyalty_points || 0) >= tier.required_points;
-              const isTopEligible = canAfford && tiers
-                .filter(t => (profile.loyalty_points || 0) >= t.required_points)
-                .sort((a, b) => b.discount_percentage - a.discount_percentage)[0]?.id === tier.id;
               return (
                 <div key={tier.id} className={`border p-5 transition-colors ${canAfford ? 'border-primary bg-primary/5' : 'border-surface-variant bg-surface-container-lowest opacity-70'}`}>
                   <h3 className="font-headline-sm text-on-surface mb-2">{tier.name}</h3>
@@ -261,24 +211,8 @@ export default function AccountClient() {
                     </div>
                   </div>
                   {canAfford && (
-                    <div className="mt-4 pt-4 border-t border-primary/20">
-                      {isTopEligible && !claimedCoupon ? (
-                        <button
-                          onClick={() => claimDiscount()}
-                          disabled={claimingDiscount}
-                          className="w-full bg-primary text-on-primary font-button-text text-xs uppercase tracking-widest py-2 hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center justify-center gap-2"
-                        >
-                          {claimingDiscount ? (
-                            <><div className="w-3 h-3 border-2 border-on-primary border-t-transparent rounded-full animate-spin" /> Claiming...</>
-                          ) : (
-                            <>Claim {tier.discount_percentage}% Discount</>
-                          )}
-                        </button>
-                      ) : claimedCoupon ? (
-                        <p className="text-xs text-primary font-bold uppercase tracking-wider text-center">Code issued above ↑</p>
-                      ) : (
-                        <p className="text-xs text-primary font-bold uppercase tracking-wider text-center">Unlocked</p>
-                      )}
+                    <div className="mt-4 pt-4 border-t border-primary/20 text-center">
+                      <p className="text-xs text-primary font-bold uppercase tracking-wider">Available at Checkout</p>
                     </div>
                   )}
                 </div>
@@ -308,7 +242,7 @@ export default function AccountClient() {
               </button>
             </div>
             <p className="text-sm text-on-surface-variant mb-5">
-              Earn points with every purchase. Once you accumulate enough points for a tier, you can claim a one-time discount code. Your points reset to 0 after claiming.
+              As a loyalty member, you earn points on every purchase. Reach higher tiers to unlock exclusive discounts available directly at checkout.
             </p>
 
             {/* Current Points */}

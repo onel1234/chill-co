@@ -29,14 +29,13 @@ export default function CheckoutClient() {
     zip: ''
   });
   
-  // Coupon State
-  const [couponCode, setCouponCode] = useState('');
-  const [couponStatus, setCouponStatus] = useState<'idle' | 'loading' | 'valid' | 'invalid'>('idle');
-  const [couponError, setCouponError] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState<{
-    coupon_id: string;
+  // Loyalty States
+  const [availableTiers, setAvailableTiers] = useState<any[]>([]);
+  const [appliedTier, setAppliedTier] = useState<{
+    id: string;
+    name: string;
     discount_percentage: number;
-    tier_name: string;
+    required_points: number;
   } | null>(null);
 
   const supabase = createClient();
@@ -46,82 +45,25 @@ export default function CheckoutClient() {
     else if (user?.email) setEmail(user.email);
   }, [profile, user]);
 
-
-  // Fetch unused coupon automatically on load
   useEffect(() => {
-    const fetchUnusedCoupon = async () => {
-      if (!user || !profile?.is_loyalty_member || appliedCoupon) return;
-
-      const { data, error } = await supabase
-        .from('discount_coupons')
-        .select('id, code, discount_percentage, tier_name')
-        .eq('user_id', user.id)
-        .eq('is_used', false)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (data && !error) {
-        setAppliedCoupon({
-          coupon_id: data.id,
-          discount_percentage: data.discount_percentage,
-          tier_name: data.tier_name,
-        });
-        setCouponCode(data.code);
-        setCouponStatus('valid');
-      }
+    const fetchTiers = async () => {
+      const { data } = await supabase.from('loyalty_tiers').select('*').order('required_points', { ascending: false });
+      if (data) setAvailableTiers(data);
     };
-
-    fetchUnusedCoupon();
-  }, [user, profile, appliedCoupon, supabase]);
+    fetchTiers();
+  }, [supabase]);
 
   const shippingCost = totalPrice >= 100 || items.length === 0 ? 0 : 10;
 
-  // Apply discount from coupon code
-  const discountAmount = appliedCoupon
-    ? totalPrice * (appliedCoupon.discount_percentage / 100)
+  // Apply discount from selected loyalty tier
+  const discountAmount = appliedTier
+    ? totalPrice * (appliedTier.discount_percentage / 100)
     : 0;
 
   const orderTotal = totalPrice - discountAmount + shippingCost;
 
   // Calculate points earned for this order
   const pointsEarned = items.reduce((sum, item) => sum + (item.loyaltyPoints || 0) * item.quantity, 0);
-
-  const handleApplyCoupon = async () => {
-    if (!couponCode.trim()) return;
-    setCouponStatus('loading');
-    setCouponError('');
-    try {
-      const res = await fetch('/api/loyalty/validate-coupon', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: couponCode.trim() }),
-      });
-      const data = await res.json();
-      if (data.valid) {
-        setAppliedCoupon({
-          coupon_id: data.coupon_id,
-          discount_percentage: data.discount_percentage,
-          tier_name: data.tier_name,
-        });
-        setCouponStatus('valid');
-      } else {
-        setAppliedCoupon(null);
-        setCouponStatus('invalid');
-        setCouponError(data.error || 'Invalid or expired coupon code.');
-      }
-    } catch {
-      setCouponStatus('invalid');
-      setCouponError('Could not validate code. Try again.');
-    }
-  };
-
-  const handleRemoveCoupon = () => {
-    setAppliedCoupon(null);
-    setCouponCode('');
-    setCouponStatus('idle');
-    setCouponError('');
-  };
 
   const handleProceedToCheckout = (e: React.FormEvent) => {
     e.preventDefault();
@@ -176,20 +118,16 @@ export default function CheckoutClient() {
 
     // Update Loyalty Points for logged in members
     if (user && profile) {
-      const newTotalPoints = (profile.loyalty_points || 0) + pointsEarned;
+      let newTotalPoints = (profile.loyalty_points || 0) + pointsEarned;
+      if (appliedTier) {
+        // revert their points to 0 since they claimed the discount
+        // but add back the points they earned from this new order
+        newTotalPoints = pointsEarned;
+      }
       await supabase
         .from('profiles')
         .update({ loyalty_points: newTotalPoints })
         .eq('id', user.id);
-    }
-
-    // Mark coupon as used if one was applied
-    if (appliedCoupon) {
-      fetch('/api/loyalty/redeem-coupon', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ coupon_id: appliedCoupon.coupon_id }),
-      }).catch(err => console.error('Failed to redeem coupon:', err));
     }
 
     // Send order confirmation email asynchronously
@@ -517,58 +455,54 @@ export default function CheckoutClient() {
                   ))}
                 </div>
 
-                {/* Coupon Code Section */}
-                {step === 1 && (
+                {/* Loyalty Discount Section */}
+                {step === 1 && profile?.is_loyalty_member && availableTiers.length > 0 && (
                   <div className="border border-surface-variant p-4 bg-surface-container-lowest">
                     <p className="font-headline-sm text-xs uppercase tracking-wider text-on-surface mb-3 flex items-center gap-1">
-                      <span className="material-symbols-outlined text-sm text-primary">confirmation_number</span>
-                      Discount Code
+                      <span className="material-symbols-outlined text-sm text-primary">loyalty</span>
+                      Loyalty Rewards
                     </p>
-                    {appliedCoupon ? (
+                    {appliedTier ? (
                       <div className="flex items-center justify-between bg-primary/5 border border-primary/30 px-3 py-2">
                         <div>
-                          <p className="font-mono text-sm font-bold text-primary tracking-wider">{couponCode.toUpperCase()}</p>
+                          <p className="font-mono text-sm font-bold text-primary tracking-wider">{appliedTier.name} Applied</p>
                           <p className="font-label-caps text-[10px] text-secondary uppercase tracking-wider mt-0.5">
-                            {appliedCoupon.tier_name} &mdash; {appliedCoupon.discount_percentage}% OFF applied!
+                            {appliedTier.discount_percentage}% OFF (uses {appliedTier.required_points} points)
                           </p>
                         </div>
                         <button
                           type="button"
-                          onClick={handleRemoveCoupon}
+                          onClick={() => setAppliedTier(null)}
                           className="text-on-surface-variant hover:text-error transition-colors"
                         >
                           <span className="material-symbols-outlined text-sm">close</span>
                         </button>
                       </div>
                     ) : (
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={couponCode}
-                          onChange={e => { setCouponCode(e.target.value); setCouponStatus('idle'); setCouponError(''); }}
-                          onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleApplyCoupon())}
-                          placeholder="Enter coupon code (e.g. CHLL-XXXX-XXXX)"
-                          className={`flex-1 bg-surface-container-lowest border p-3 font-mono text-sm outline-none transition-colors uppercase ${
-                            couponStatus === 'invalid' ? 'border-error focus:border-error' : 'border-surface-variant focus:border-primary'
-                          }`}
-                        />
-                        <button
-                          type="button"
-                          onClick={handleApplyCoupon}
-                          disabled={couponStatus === 'loading' || !couponCode.trim()}
-                          className="bg-primary text-on-primary font-label-caps text-xs uppercase px-4 hover:opacity-90 transition-opacity disabled:opacity-50 flex-shrink-0"
-                        >
-                          {couponStatus === 'loading' ? (
-                            <div className="w-4 h-4 border-2 border-on-primary border-t-transparent rounded-full animate-spin" />
-                          ) : 'Apply'}
-                        </button>
+                      <div className="flex flex-col gap-2">
+                        <p className="text-xs text-on-surface-variant">You have <span className="font-bold text-primary">{profile.loyalty_points || 0}</span> points.</p>
+                        {(() => {
+                          const eligibleTiers = availableTiers.filter(t => (profile.loyalty_points || 0) >= t.required_points);
+                          if (eligibleTiers.length > 0) {
+                            const bestTier = eligibleTiers[0];
+                            return (
+                              <button
+                                type="button"
+                                onClick={() => setAppliedTier(bestTier)}
+                                className="bg-primary text-on-primary font-button-text text-xs uppercase tracking-widest py-2 px-4 hover:opacity-90 transition-opacity flex justify-center w-full"
+                              >
+                                Claim {bestTier.name} (-{bestTier.discount_percentage}%)
+                              </button>
+                            );
+                          } else {
+                            const nextTier = [...availableTiers].reverse().find(t => (profile.loyalty_points || 0) < t.required_points);
+                            if (nextTier) {
+                              return <p className="text-xs text-on-surface-variant">Earn <span className="font-bold text-primary">{nextTier.required_points - (profile.loyalty_points || 0)}</span> more points to unlock the {nextTier.name} discount.</p>;
+                            }
+                            return null;
+                          }
+                        })()}
                       </div>
-                    )}
-                    {couponStatus === 'invalid' && couponError && (
-                      <p className="text-xs text-error mt-2 flex items-center gap-1">
-                        <span className="material-symbols-outlined text-sm">error</span>
-                        {couponError}
-                      </p>
                     )}
                   </div>
                 )}
@@ -579,9 +513,9 @@ export default function CheckoutClient() {
                     <span>Subtotal</span>
                     <span>${totalPrice.toFixed(2)}</span>
                   </div>
-                  {appliedCoupon && discountAmount > 0 && (
+                  {appliedTier && discountAmount > 0 && (
                     <div className="flex justify-between font-body-md text-secondary">
-                      <span>Coupon Discount (-{appliedCoupon.discount_percentage}%)</span>
+                      <span>Loyalty Discount (-{appliedTier.discount_percentage}%)</span>
                       <span>-${discountAmount.toFixed(2)}</span>
                     </div>
                   )}
