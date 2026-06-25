@@ -47,6 +47,34 @@ export default function CheckoutClient() {
   }, [profile, user]);
 
 
+  // Fetch unused coupon automatically on load
+  useEffect(() => {
+    const fetchUnusedCoupon = async () => {
+      if (!user || !profile?.is_loyalty_member || appliedCoupon) return;
+
+      const { data, error } = await supabase
+        .from('discount_coupons')
+        .select('id, code, discount_percentage, tier_name')
+        .eq('user_id', user.id)
+        .eq('is_used', false)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (data && !error) {
+        setAppliedCoupon({
+          coupon_id: data.id,
+          discount_percentage: data.discount_percentage,
+          tier_name: data.tier_name,
+        });
+        setCouponCode(data.code);
+        setCouponStatus('valid');
+      }
+    };
+
+    fetchUnusedCoupon();
+  }, [user, profile, appliedCoupon, supabase]);
+
   const shippingCost = totalPrice >= 100 || items.length === 0 ? 0 : 10;
 
   // Apply discount from coupon code
