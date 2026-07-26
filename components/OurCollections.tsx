@@ -1,78 +1,74 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
+import OrnamentalDivider from './OrnamentalDivider';
+
+const collections = [
+  { label: 'Latest Drops', img: '/images/ChatGPT_Image_Jul_23__2026__10_00_30_PM.png', alt: 'Latest drops — cultural hero image' },
+  { label: 'Exclusive', img: '/images/WhatsApp_Image_2026-07-10_at_09.12.29.jpeg', alt: 'Exclusive — traditional parrot art' },
+  { label: 'Heritage', img: '/images/WhatsApp_Image_2026-07-10_at_09.12.30.jpeg', alt: 'Heritage — peacock motif art' },
+];
 
 export default function OurCollections() {
-  const collections = [
-    {
-      title: 'Latest drops',
-      href: '/collections',
-      image: '/images/staples_tshirt.png'
-    },
-    {
-      title: 'Exclusive',
-      href: '/collections',
-      image: '/images/kinetic_tshirt.png'
-    },
-    {
-      title: 'Heritage',
-      href: '/collections',
-      image: '/images/signature_series.png'
-    }
-  ];
-
   return (
-    <section className="py-section-gap relative">
-      {/* Heading Section with padding */}
-      <div className="max-w-full mx-auto px-margin-mobile md:px-margin-desktop mb-16 relative z-10">
-        <div className="flex justify-between items-end border-b-2 border-on-background pb-6">
-          <div className="space-y-stack-sm">
-            <div className="flex items-center gap-2">
-              <svg className="text-primary-container" fill="none" height="20" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" width="20">
-                <path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z" />
-              </svg>
-              <span className="font-label-caps text-label-caps text-primary-container uppercase tracking-widest font-bold">
-                Shop By Category
-              </span>
-            </div>
-            <h2 className="font-display-xl text-headline-md md:text-headline-lg text-on-background uppercase">
+    <section style={{ padding: '6rem 3rem', background: '#0d0a07' }}>
+      <div style={{ maxWidth: '1300px', margin: '0 auto' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem' }}>
+          <div>
+            <span style={{ fontSize: '0.58rem', letterSpacing: '0.35em', textTransform: 'uppercase', color: '#7d5b31', fontWeight: 600 }}>
+              Shop By Category
+            </span>
+            <h2 style={{ margin: '0.5rem 0 0', fontSize: 'clamp(1.8rem, 3.5vw, 2.8rem)', fontWeight: 700, letterSpacing: '-0.02em', color: '#f0e6d3' }}>
               Our Collections
             </h2>
           </div>
-          <Link href="/collections" className="hidden md:flex items-center gap-2 font-button-text text-button-text uppercase tracking-widest hover:text-primary-container transition-colors font-bold">
-            View All
-            <span className="material-symbols-outlined">arrow_forward</span>
+          <Link href="/collections" style={{ fontSize: '0.68rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#c9a96e', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            View All <span>→</span>
           </Link>
         </div>
-      </div>
 
-      {/* Full-bleed Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-1 md:gap-2 w-full bg-white dark:bg-black">
-        {collections.map((collection) => (
-          <Link 
-            key={collection.title}
-            href={collection.href} 
-            className="group relative overflow-hidden aspect-square md:aspect-[4/5] bg-black"
-          >
-            {/* Background Image */}
-            <div className="absolute inset-0">
-              <img 
-                src={collection.image} 
-                alt={collection.title}
-                className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700 ease-in-out"
-              />
-            </div>
-            
-            {/* Overlay Gradient */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
-            
-            {/* Text Content */}
-            <div className="absolute bottom-6 left-6 right-6">
-              <span className="font-headline-md text-headline-md-mobile md:text-headline-md text-white font-medium group-hover:tracking-wider transition-all duration-300">
-                {collection.title}
-              </span>
-            </div>
-          </Link>
-        ))}
+        <div style={{ marginBottom: '2.5rem' }}>
+          <OrnamentalDivider />
+        </div>
+
+        {/* 3 collection tiles */}
+        <div className="collections-3" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1px', background: 'rgba(125,91,49,0.12)' }}>
+          {collections.map((col) => (
+            <Link
+              key={col.label}
+              href="/collections"
+              className="product-card"
+              style={{
+                background: '#0d0a07', textDecoration: 'none', display: 'block',
+              }}
+            >
+              <div style={{ position: 'relative', aspectRatio: '4/5', overflow: 'hidden', background: '#140d08' }}>
+                <img
+                  src={col.img}
+                  alt={col.alt}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center top' }}
+                />
+                <div style={{
+                  position: 'absolute', inset: 0,
+                  background: 'linear-gradient(to bottom, transparent 40%, rgba(13,10,7,0.85) 100%)',
+                }} />
+                <div style={{ position: 'absolute', bottom: '1.75rem', left: '1.5rem', right: '1.5rem' }}>
+                  <div style={{ fontSize: '1.1rem', fontWeight: 700, color: '#f0e6d3', letterSpacing: '0.02em', marginBottom: '0.4rem' }}>
+                    {col.label}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ width: '1.5rem', height: '1px', background: '#c9a96e' }} />
+                    <span style={{ fontSize: '0.58rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: '#c9a96e', fontWeight: 500 }}>
+                      Explore
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
     </section>
   );

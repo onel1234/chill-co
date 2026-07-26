@@ -1,38 +1,94 @@
+"use client";
+
 import React from 'react';
 import Link from 'next/link';
 
 export default function Footer() {
   return (
-    <footer className="bg-white border-t border-surface-variant w-full py-section-gap px-margin-mobile md:px-margin-desktop relative overflow-hidden">
-      <div className="absolute inset-0 bg-texture opacity-30 pointer-events-none"></div>
-      <div className="absolute bottom-0 right-0 w-64 h-64 border-[40px] border-surface-container rounded-full translate-x-1/3 translate-y-1/3 opacity-50 z-0"></div>
-      <div className="max-w-full mx-auto grid grid-cols-1 md:grid-cols-4 gap-gutter relative z-10">
-        <div className="col-span-1 md:col-span-2 flex flex-col items-start space-y-stack-md">
-          <img 
-            alt="Chill Co." 
-            className="h-20 w-auto object-contain mix-blend-multiply mb-4" 
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqB65R-CNaUPWxe_JwjGRHxiS3EUkEaXgG_Ykp-m9DV7dZVVB2qnF0O1xUNp6ioaAH7YSjRh1PAkQrEacFEWd3ju5pOJ4rXlPTBID9lpaGpjs_02jZwIsNjKKKPA5WYRj0rclafY-H2LtxCzFRxb7nyftQ-rr0G6RYnF-CnkK305lo-IqnWrNri_UUhYERexGtllSN_-WafAqC7s1ZWKuvcHAWDKK4NqZyTA-qs7UtMfISab21PmlHbupj6bYL8Rxyrmbo3LtTvSs" 
-          />
-          <p className="font-body-md text-body-md text-on-surface-variant max-w-sm font-medium">
-            Designed for comfort. Built for everyday.
-          </p>
-          <p className="font-label-caps text-label-caps text-tertiary mt-auto pt-8 font-bold">
+    <footer style={{ background: '#070503', borderTop: '1px solid rgba(125,91,49,0.18)', padding: '4rem 3rem 2rem' }}>
+      <div style={{ maxWidth: '1300px', margin: '0 auto' }}>
+        {/* Top row */}
+        <div className="footer-3" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '3rem', marginBottom: '3.5rem' }}>
+          {/* Brand */}
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <img
+                src="/images/WhatsApp_Image_2026-07-26_at_23.42.00-removebg-preview.png"
+                alt="Chill Co."
+                style={{
+                  height: '140px',
+                  maxWidth: '300px',
+                  width: 'auto',
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.8))',
+                }}
+              />
+            </div>
+            <p style={{ fontSize: '0.78rem', lineHeight: 1.8, color: 'rgba(240,230,211,0.35)', fontWeight: 300, maxWidth: '220px', marginBottom: '1.5rem' }}>
+              Designed for comfort. Built for everyday.
+            </p>
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              {['IG', 'TT', 'FB'].map((s) => (
+                <a key={s} href="#" style={{
+                  width: '1.8rem', height: '1.8rem',
+                  border: '1px solid rgba(125,91,49,0.3)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: '0.5rem', letterSpacing: '0.05em', color: '#c9a96e',
+                  fontWeight: 600, textDecoration: 'none',
+                }}>
+                  {s}
+                </a>
+              ))}
+            </div>
+          </div>
+
+          {/* Shop */}
+          <div>
+            <div style={{ fontSize: '0.58rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: '#7d5b31', fontWeight: 600, marginBottom: '1.25rem' }}>
+              Shop
+            </div>
+            {[
+              { label: 'New Drops', path: '/shop' },
+              { label: 'Essentials', path: '/shop' },
+              { label: 'Accessories', path: '/shop' },
+            ].map((link) => (
+              <Link key={link.label} href={link.path} className="nav-link" style={{ display: 'block', marginBottom: '0.7rem', fontSize: '0.78rem', fontWeight: 300, letterSpacing: '0.04em' }}>
+                {link.label}
+              </Link>
+            ))}
+          </div>
+
+          {/* Support */}
+          <div>
+            <div style={{ fontSize: '0.58rem', letterSpacing: '0.28em', textTransform: 'uppercase', color: '#7d5b31', fontWeight: 600, marginBottom: '1.25rem' }}>
+              Support
+            </div>
+            {[
+              { label: 'Privacy Policy', path: '#' },
+              { label: 'Terms of Service', path: '#' },
+              { label: 'Shipping', path: '#' },
+              { label: 'Returns', path: '#' },
+              { label: 'Contact', path: '#' },
+            ].map((link) => (
+              <Link key={link.label} href={link.path} className="nav-link" style={{ display: 'block', marginBottom: '0.7rem', fontSize: '0.78rem', fontWeight: 300, letterSpacing: '0.04em' }}>
+                {link.label}
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom bar */}
+        <div style={{ borderTop: '1px solid rgba(125,91,49,0.12)', paddingTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+          <span style={{ fontSize: '0.62rem', color: 'rgba(240,230,211,0.2)', letterSpacing: '0.06em' }}>
             © 2026 Chill Co.
-          </p>
-        </div>
-        <div className="col-span-1 flex flex-col space-y-stack-sm">
-          <span className="font-label-caps text-label-caps text-on-background uppercase mb-4 font-bold tracking-widest">Shop</span>
-          <Link href="#" className="font-body-md text-body-md text-on-surface-variant hover:text-primary-container transition-colors duration-300 font-medium">New Drops</Link>
-          <Link href="#" className="font-body-md text-body-md text-on-surface-variant hover:text-primary-container transition-colors duration-300 font-medium">Essentials</Link>
-          <Link href="#" className="font-body-md text-body-md text-on-surface-variant hover:text-primary-container transition-colors duration-300 font-medium">Accessories</Link>
-        </div>
-        <div className="col-span-1 flex flex-col space-y-stack-sm">
-          <span className="font-label-caps text-label-caps text-on-background uppercase mb-4 font-bold tracking-widest">Support</span>
-          <Link href="#" className="font-body-md text-body-md text-on-surface-variant hover:text-primary-container transition-colors duration-300 font-medium">Privacy Policy</Link>
-          <Link href="#" className="font-body-md text-body-md text-on-surface-variant hover:text-primary-container transition-colors duration-300 font-medium">Terms of Service</Link>
-          <Link href="#" className="font-body-md text-body-md text-on-surface-variant hover:text-primary-container transition-colors duration-300 font-medium">Shipping</Link>
-          <Link href="#" className="font-body-md text-body-md text-on-surface-variant hover:text-primary-container transition-colors duration-300 font-medium">Returns</Link>
-          <Link href="#" className="font-body-md text-body-md text-on-surface-variant hover:text-primary-container transition-colors duration-300 font-medium">Contact</Link>
+          </span>
+          <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <div style={{ width: '1.5rem', height: '1px', background: '#7d5b31' }} />
+            <span style={{ fontSize: '0.55rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(201,169,110,0.35)', fontWeight: 500 }}>
+              Ancient Craft · Modern Spirit
+            </span>
+            <div style={{ width: '1.5rem', height: '1px', background: '#7d5b31' }} />
+          </div>
         </div>
       </div>
     </footer>

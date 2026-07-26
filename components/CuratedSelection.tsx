@@ -1,145 +1,82 @@
 "use client";
 
-import React, { useRef, useState, useEffect } from 'react';
-import ProductCard from './ProductCard';
+import React from 'react';
 import Link from 'next/link';
+import ProductCard from './ProductCard';
+import OrnamentalDivider from './OrnamentalDivider';
 
 const products = [
   {
-    id: 1,
-    title: 'Essential Tote Bag',
-    subtitle: 'Natural Canvas',
+    name: 'Essential Tote Bag',
+    variant: 'Natural Canvas',
     price: 'Rs 3,000.00',
-    imageSrc: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?q=80&w=1000&auto=format&fit=crop',
+    img: '/images/WhatsApp_Image_2026-07-10_at_09.12.29.jpeg',
     badge: 'NEW',
   },
   {
-    id: 2,
-    title: 'Contrast Piped Cami Top',
-    subtitle: 'Black/White',
+    name: 'Contrast Piped Cami Top',
+    variant: 'Black / White',
     price: 'Rs 2,700.00',
-    imageSrc: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=1000&auto=format&fit=crop',
+    img: '/images/WhatsApp_Image_2026-07-10_at_09.12.31__3_.jpeg',
   },
   {
-    id: 3,
-    title: 'Chalk Corset Top',
-    subtitle: 'White/Black',
+    name: 'Chalk Corset Top',
+    variant: 'White / Black',
     price: 'Rs 2,900.00',
-    imageSrc: 'https://images.unsplash.com/photo-1550639525-c97d455acf70?q=80&w=1000&auto=format&fit=crop',
+    img: '/images/WhatsApp_Image_2026-07-10_at_09.12.31__1_.jpeg',
   },
   {
-    id: 4,
-    title: 'Loose Flared Jeans',
-    subtitle: 'Washed Black',
+    name: 'Loose Flared Jeans',
+    variant: 'Washed Black',
     price: 'Rs 7,500.00',
-    imageSrc: 'https://images.unsplash.com/photo-1542272604-787c3835535d?q=80&w=1000&auto=format&fit=crop',
+    img: '/images/WhatsApp_Image_2026-07-10_at_09.12.31.jpeg',
   },
   {
-    id: 5,
-    title: 'Oversized Signature Tee',
-    subtitle: 'Harvest Orange',
+    name: 'Oversized Signature Tee',
+    variant: 'Harvest Orange',
     price: 'Rs 4,500.00',
-    imageSrc: 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=1000&auto=format&fit=crop',
-  }
+    img: '/images/WhatsApp_Image_2026-07-10_at_09.12.31__2_.jpeg',
+  },
 ];
 
 export default function CuratedSelection() {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [showLeftArrow, setShowLeftArrow] = useState(false);
-  const [showRightArrow, setShowRightArrow] = useState(true);
-
-  const handleScroll = () => {
-    if (scrollRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-      setShowLeftArrow(scrollLeft > 0);
-      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 5);
-    }
-  };
-
-  useEffect(() => {
-    handleScroll();
-    window.addEventListener('resize', handleScroll);
-    return () => window.removeEventListener('resize', handleScroll);
-  }, []);
-
-  const scroll = (direction: 'left' | 'right') => {
-    if (scrollRef.current) {
-      const scrollAmount = direction === 'left' ? -300 : 300;
-      scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    }
-  };
-
   return (
-    <section className="py-section-gap px-margin-mobile md:px-margin-desktop bg-surface-container-lowest relative">
-      <div className="absolute top-0 left-0 w-full h-full bg-texture opacity-50 pointer-events-none"></div>
-      <div className="max-w-full mx-auto relative z-10">
-        
-        <div className="flex justify-between items-end mb-16 border-b-2 border-on-background pb-6">
-          <div className="space-y-stack-sm">
-            <div className="flex items-center gap-2">
-              <svg className="text-primary-container" fill="none" height="20" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" width="20">
-                <path d="M12 2L15 9L22 12L15 15L12 22L9 15L2 12L9 9L12 2Z" />
-              </svg>
-              <span className="font-label-caps text-label-caps text-primary-container uppercase tracking-widest font-bold">
-                Curated Selection
-              </span>
-            </div>
-            <h2 className="font-display-xl text-headline-md md:text-headline-lg text-on-background uppercase">
+    <section style={{ padding: '6rem 3rem', background: '#0d0a07' }}>
+      <div style={{ maxWidth: '1300px', margin: '0 auto' }}>
+        {/* Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem' }}>
+          <div>
+            <span style={{ fontSize: '0.58rem', letterSpacing: '0.35em', textTransform: 'uppercase', color: '#7d5b31', fontWeight: 600 }}>
+              Curated Selection
+            </span>
+            <h2 style={{ margin: '0.5rem 0 0', fontSize: 'clamp(1.8rem, 3.5vw, 2.8rem)', fontWeight: 700, letterSpacing: '-0.02em', color: '#f0e6d3' }}>
               The Latest Drops
             </h2>
           </div>
-          <Link href="/shop" className="hidden md:flex items-center gap-2 font-button-text text-button-text uppercase tracking-widest hover:text-primary-container transition-colors font-bold">
-            View All
-            <span className="material-symbols-outlined">arrow_forward</span>
+          <Link href="/shop" style={{ fontSize: '0.68rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#c9a96e', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            View All <span>→</span>
           </Link>
         </div>
-        
-        <div className="relative group">
-          {/* Left Arrow */}
-          <div className="absolute -left-5 top-1/2 -translate-y-1/2 z-20 transition-opacity duration-300 opacity-0 group-hover:opacity-100">
-            {showLeftArrow && (
-              <button 
-                onClick={() => scroll('left')}
-                className="hidden md:flex w-10 h-10 bg-white border border-gray-200 rounded-full items-center justify-center shadow-sm hover:bg-gray-50"
-                aria-label="Scroll left"
-              >
-                <span className="material-symbols-outlined text-gray-600">arrow_back</span>
-              </button>
-            )}
-          </div>
 
-          <div 
-            ref={scrollRef}
-            onScroll={handleScroll}
-            className="flex overflow-x-auto gap-4 md:gap-6 snap-x snap-mandatory scrollbar-hide pb-4"
-          >
-            {products.map((product) => (
-              <div key={product.id} className="w-[calc(50%_-_8px)] md:w-[calc(33.333%_-_16px)] snap-start shrink-0">
-                <ProductCard 
-                  title={product.title}
-                  subtitle={product.subtitle}
-                  price={product.price}
-                  imageSrc={product.imageSrc}
-                  badge={product.badge}
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* Right Arrow */}
-          <div className="absolute -right-5 top-1/2 -translate-y-1/2 z-20 transition-opacity duration-300 opacity-0 group-hover:opacity-100">
-            {showRightArrow && (
-              <button 
-                onClick={() => scroll('right')}
-                className="hidden md:flex w-10 h-10 bg-white border border-gray-200 rounded-full items-center justify-center shadow-sm hover:bg-gray-50"
-                aria-label="Scroll right"
-              >
-                <span className="material-symbols-outlined text-gray-600">arrow_forward</span>
-              </button>
-            )}
-          </div>
+        {/* Ornament */}
+        <div style={{ marginBottom: '2.5rem' }}>
+          <OrnamentalDivider />
         </div>
-        
+
+        {/* Products Grid — 5 columns */}
+        <div className="product-5-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1px', background: 'rgba(125,91,49,0.12)' }}>
+          {products.map((p) => (
+            <ProductCard
+              key={p.name}
+              title={p.name}
+              subtitle={p.variant}
+              price={p.price}
+              imageSrc={p.img}
+              badge={p.badge}
+              href="/shop"
+            />
+          ))}
+        </div>
       </div>
     </section>
   );

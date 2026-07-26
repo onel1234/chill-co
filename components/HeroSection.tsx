@@ -1,128 +1,102 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 
-const slides = [
-  {
-    image: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?q=80&w=2520&auto=format&fit=crop",
-    title: "Latest Drops",
-    subtitle: "Premium fabrics. Oversized fit. Everyday wear."
-  },
-  {
-    image: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?q=80&w=2370&auto=format&fit=crop",
-    title: "Exclusive",
-    subtitle: "Streetwear essentials designed for comfort."
-  },
-  {
-    image: "https://images.unsplash.com/photo-1445205170230-053b83016050?q=80&w=2671&auto=format&fit=crop",
-    title: "Heritage",
-    subtitle: "Building your perfect capsule wardrobe."
-  }
-];
-
 export default function HeroSection() {
-  const [currentSlide, setCurrentSlide] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 6000);
-    return () => clearInterval(timer);
-  }, []);
-
   return (
-    <header className="relative min-h-screen w-full flex items-center justify-center overflow-hidden">
-      {/* Slideshow Backgrounds */}
-      {slides.map((slide, index) => (
-        <div
-          key={index}
-          className={`absolute inset-0 w-full h-full transition-opacity duration-[1500ms] ease-in-out ${
-            index === currentSlide ? "opacity-100 z-0" : "opacity-0 -z-10"
-          }`}
-        >
-          {/* Subtle gradient overlay for better text readability */}
-          <div className="absolute inset-0 bg-black/40 z-10"></div>
-          <img
-            src={slide.image}
-            alt={slide.title}
-            className={`w-full h-full object-cover transition-transform duration-[10000ms] ease-linear ${
-              index === currentSlide ? "scale-105" : "scale-100"
-            }`}
-          />
-        </div>
-      ))}
+    <section style={{ position: 'relative', height: '100svh', minHeight: '600px', overflow: 'hidden' }}>
+      {/* Desktop image */}
+      <img
+        src="/images/ChatGPT_Image_Jul_23__2026__10_00_30_PM.png"
+        alt="Kandyan dancer with Sigiriya rock fortress — ancient Sri Lanka"
+        style={{
+          position: 'absolute', inset: 0, width: '100%', height: '100%',
+          objectFit: 'cover', objectPosition: 'center center',
+        }}
+        className="hero-img-desktop"
+      />
 
-      {/* Content - Clean text over image */}
-      <div className="relative z-20 w-full max-w-5xl px-6 md:px-12 flex flex-col items-center justify-center text-center mt-16">
-        
-        <div className="h-28 md:h-32 flex items-center justify-center relative w-full overflow-visible">
-          {slides.map((slide, index) => (
-             <h1 
-               key={`title-${index}`}
-               className={`absolute font-body-md text-5xl md:text-[84px] font-bold tracking-tight text-white transition-all duration-1000 transform leading-[1.1] md:leading-none w-full ${
-                 index === currentSlide ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8 pointer-events-none"
-               }`}
-             >
-               {slide.title}
-             </h1>
-          ))}
-        </div>
-        
-        <div className="h-16 md:h-10 flex items-center justify-center relative w-full mb-8">
-           {slides.map((slide, index) => (
-              <p 
-                key={`subtitle-${index}`}
-                className={`absolute font-body-lg text-base md:text-xl text-white/90 max-w-md mx-auto transition-all duration-1000 w-full ${
-                  index === currentSlide ? "opacity-100 delay-300" : "opacity-0 pointer-events-none"
-                }`}
-              >
-                {slide.subtitle}
-              </p>
-           ))}
+      {/* Mobile image */}
+      <img
+        src="/images/ChatGPT_Image_Jul_24__2026__01_13_05_PM.png"
+        alt="Kandyan dancer with Sigiriya — portrait view"
+        style={{
+          position: 'absolute', inset: 0, width: '100%', height: '100%',
+          objectFit: 'cover', objectPosition: 'center 35%',
+        }}
+        className="hero-img-mobile"
+      />
+
+      {/* Depth overlays */}
+      <div style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(to bottom, rgba(13,10,7,0.18) 0%, rgba(13,10,7,0.05) 30%, rgba(13,10,7,0.55) 65%, rgba(13,10,7,0.97) 100%)',
+      }} />
+      <div className="hero-side-grad" style={{
+        position: 'absolute', inset: 0,
+        background: 'linear-gradient(to right, rgba(13,10,7,0.52) 0%, transparent 55%)',
+      }} />
+
+      {/* Label — top right */}
+      <div className="hero-label" style={{
+        position: 'absolute', top: '5.5rem', right: '2.5rem',
+        display: 'flex', alignItems: 'center', gap: '0.75rem',
+      }}>
+        <span style={{ fontSize: '0.58rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: '#c9a96e', fontWeight: 600 }}>
+          Latest Drops
+        </span>
+        <div style={{ width: '2rem', height: '1px', background: '#7d5b31' }} />
+      </div>
+
+      {/* Main text — bottom */}
+      <div className="hero-content" style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '0 2rem 3.5rem' }}>
+
+        {/* Eyebrow */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+          <div style={{ width: '1.5rem', height: '1px', background: '#7d5b31' }} />
+          <span className="hero-eyebrow" style={{ fontSize: '0.52rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(201,169,110,0.7)', fontWeight: 500 }}>
+            Ancient Craft · Modern Spirit
+          </span>
         </div>
 
-        <div className="pt-4 z-30">
-          <Link href="/collections" className="inline-flex items-center justify-center text-white font-body-md text-xs md:text-sm px-10 py-3 uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-colors duration-300 border border-white rounded-full">
-            Shop Now
+        {/* Headline */}
+        <h1 style={{ margin: '0 0 1rem', lineHeight: 0.88 }}>
+          <span className="hero-h1" style={{
+            display: 'block',
+            fontWeight: 800, letterSpacing: '-0.02em', color: '#f0e6d3',
+          }}>
+            Wear the
+          </span>
+          <span className="hero-h1" style={{
+            display: 'block',
+            fontWeight: 800, letterSpacing: '-0.02em',
+            color: 'transparent',
+            WebkitTextStroke: '1.5px #c9a96e',
+          }}>
+            Story.
+          </span>
+        </h1>
+
+        {/* Sub-row */}
+        <div className="hero-subrow" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1.25rem' }}>
+          <p className="hero-sub" style={{ margin: 0, fontWeight: 300, color: 'rgba(240,230,211,0.6)', letterSpacing: '0.02em', lineHeight: 1.7 }}>
+            Premium fabrics. Oversized fit.<br className="hero-br" /> Everyday wear.
+          </p>
+          <Link href="/shop" className="btn-gold hero-cta">
+            <span>Shop Now</span>
           </Link>
         </div>
       </div>
-      
-      {/* Slideshow Indicators - Positioned absolutely to the header */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center space-x-4 z-30">
-        {slides.map((_, index) => {
-          const isActive = index === currentSlide;
-          return (
-            <button
-              key={`indicator-${index}`}
-              onClick={() => setCurrentSlide(index)}
-              className="relative flex items-center justify-center w-8 h-8 group"
-              aria-label={`Go to slide ${index + 1}`}
-            >
-              {/* Center dot */}
-              <div className={`w-2 h-2 rounded-full transition-all duration-300 ${isActive ? 'bg-white' : 'bg-white/50 group-hover:bg-white/80'}`} />
-              
-              {/* Progress ring for active slide */}
-              {isActive && (
-                <svg key={`ring-${currentSlide}`} className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 24 24">
-                  <circle
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="white"
-                    strokeWidth="1.25"
-                    fill="none"
-                    strokeDasharray="63"
-                    strokeDashoffset="63"
-                    style={{ animation: 'progress 6s linear forwards' }}
-                  />
-                </svg>
-              )}
-            </button>
-          );
-        })}
+
+      {/* Mobile scroll hint */}
+      <div className="hero-scroll-hint" style={{
+        position: 'absolute', bottom: '1rem', left: '50%', transform: 'translateX(-50%)',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem',
+        zIndex: 3,
+      }}>
+        <div style={{ width: '1px', height: '2rem', background: 'linear-gradient(to bottom, #7d5b31, transparent)', animation: 'float 2s ease-in-out infinite' }} />
       </div>
-    </header>
+    </section>
   );
 }

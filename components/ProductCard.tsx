@@ -10,35 +10,52 @@ interface ProductCardProps {
   href?: string;
 }
 
-export default function ProductCard({ title, subtitle, price, imageSrc, badge, href = "#" }: ProductCardProps) {
+export default function ProductCard({ title, subtitle, price, imageSrc, badge, href = "/shop" }: ProductCardProps) {
   return (
-    <Link href={href} className="group cursor-pointer block">
-      <div className="aspect-[3/4] bg-white relative mb-4 overflow-hidden">
-        <img 
-          alt={title} 
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-          src={imageSrc} 
+    <Link href={href} className="product-card block" style={{ background: '#0d0a07', textDecoration: 'none' }}>
+      <div style={{ position: 'relative', aspectRatio: '3/4', overflow: 'hidden', background: '#140d08' }}>
+        <img
+          src={imageSrc}
+          alt={title}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
         />
-        
-        {/* Quick View Button - slides up on hover */}
-        <div className="absolute bottom-0 left-0 w-full translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-          <button className="w-full bg-[#2a2a2a] text-white font-body-md text-[10px] md:text-xs py-3 uppercase tracking-widest hover:bg-black transition-colors">
-            Quick View
-          </button>
-        </div>
 
         {badge && (
-          <div className="absolute top-4 right-4 bg-white px-3 py-1 font-label-caps text-[10px] font-bold z-10">
+          <div style={{
+            position: 'absolute', top: '0.75rem', left: '0.75rem',
+            background: '#7d5b31', color: '#f0e6d3',
+            fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.2em',
+            padding: '0.2rem 0.55rem', textTransform: 'uppercase', zIndex: 10,
+          }}>
             {badge}
           </div>
         )}
+
+        {/* Hover overlay */}
+        <div className="card-overlay" />
+        <div className="card-cta">
+          <button style={{
+            width: '100%', padding: '0.7rem',
+            background: 'rgba(13,10,7,0.88)', backdropFilter: 'blur(8px)',
+            border: '1px solid rgba(201,169,110,0.5)', color: '#c9a96e',
+            fontSize: '0.58rem', letterSpacing: '0.2em', textTransform: 'uppercase',
+            fontWeight: 600, cursor: 'pointer', fontFamily: "'Poppins', sans-serif",
+          }}>
+            Quick View
+          </button>
+        </div>
       </div>
-      
-      {/* Product Info */}
-      <div className="flex flex-col items-start pt-2">
-        <h3 className="font-body-md text-sm md:text-base text-on-background uppercase font-medium tracking-wide leading-tight">{title}</h3>
-        <p className="font-body-md text-xs text-on-surface-variant mt-1 mb-2 hidden md:block">{subtitle}</p>
-        <span className="font-body-md text-sm md:text-base text-on-background font-medium mt-1">{price}</span>
+
+      <div style={{ padding: '1rem 0.75rem 1.25rem' }}>
+        <div style={{ fontSize: '0.82rem', fontWeight: 500, color: '#f0e6d3', marginBottom: '0.2rem', lineHeight: 1.3 }}>
+          {title}
+        </div>
+        <div style={{ fontSize: '0.65rem', color: 'rgba(240,230,211,0.4)', marginBottom: '0.5rem', fontWeight: 400 }}>
+          {subtitle}
+        </div>
+        <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#c9a96e' }}>
+          {price}
+        </div>
       </div>
     </Link>
   );
