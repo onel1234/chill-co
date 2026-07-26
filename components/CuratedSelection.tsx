@@ -41,40 +41,55 @@ const products = [
 
 export default function CuratedSelection() {
   return (
-    <section style={{ padding: '6rem 3rem', background: '#0d0a07' }}>
-      <div style={{ maxWidth: '1300px', margin: '0 auto' }}>
+    <section className="px-4 py-12 md:px-12 md:py-24 bg-[#0d0a07]">
+      <div className="max-w-[1300px] mx-auto">
         {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '3rem' }}>
+        <div className="flex justify-between items-end mb-6 md:mb-12">
           <div>
-            <span style={{ fontSize: '0.58rem', letterSpacing: '0.35em', textTransform: 'uppercase', color: '#7d5b31', fontWeight: 600 }}>
+            <span style={{ fontSize: '0.58rem', letterSpacing: '0.35em', textTransform: 'uppercase', color: '#7d5b31', fontWeight: 600, display: 'block' }}>
               Curated Selection
             </span>
-            <h2 style={{ margin: '0.5rem 0 0', fontSize: 'clamp(1.8rem, 3.5vw, 2.8rem)', fontWeight: 700, letterSpacing: '-0.02em', color: '#f0e6d3' }}>
+            <h2 style={{ margin: '0.3rem 0 0', fontSize: 'clamp(1.6rem, 5vw, 2.8rem)', fontWeight: 700, letterSpacing: '-0.02em', color: '#f0e6d3', lineHeight: 1.1 }}>
               The Latest Drops
             </h2>
           </div>
-          <Link href="/shop" style={{ fontSize: '0.68rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#c9a96e', fontWeight: 600, textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+          <Link
+            href="/shop"
+            style={{
+              fontSize: '0.68rem',
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              color: '#c9a96e',
+              fontWeight: 600,
+              textDecoration: 'none',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              whiteSpace: 'nowrap',
+            }}
+          >
             View All <span>→</span>
           </Link>
         </div>
 
         {/* Ornament */}
-        <div style={{ marginBottom: '2.5rem' }}>
+        <div className="mb-6 md:mb-10">
           <OrnamentalDivider />
         </div>
 
-        {/* Products Grid — 5 columns */}
-        <div className="product-5-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '1px', background: 'rgba(125,91,49,0.12)' }}>
+        {/* Mobile Swipe / Desktop Grid Container */}
+        <div className="flex md:grid md:grid-cols-5 overflow-x-auto md:overflow-visible gap-3 md:gap-[1px] snap-x snap-mandatory scrollbar-hide pb-4 md:pb-0 bg-transparent md:bg-[rgba(125,91,49,0.12)]">
           {products.map((p) => (
-            <ProductCard
-              key={p.name}
-              title={p.name}
-              subtitle={p.variant}
-              price={p.price}
-              imageSrc={p.img}
-              badge={p.badge}
-              href="/shop"
-            />
+            <div key={p.name} className="w-[72vw] max-w-[260px] sm:w-[45vw] md:w-auto shrink-0 md:shrink snap-start">
+              <ProductCard
+                title={p.name}
+                subtitle={p.variant}
+                price={p.price}
+                imageSrc={p.img}
+                badge={p.badge}
+                href="/shop"
+              />
+            </div>
           ))}
         </div>
       </div>

@@ -5,26 +5,26 @@ import Link from 'next/link';
 
 export default function Footer() {
   return (
-    <footer style={{ background: '#070503', borderTop: '1px solid rgba(125,91,49,0.18)', padding: '4rem 3rem 2rem' }}>
+    <footer className="px-6 py-12 md:px-12 md:py-16 bg-[#070503] border-t border-[rgba(125,91,49,0.18)]">
       <div style={{ maxWidth: '1300px', margin: '0 auto' }}>
         {/* Top row */}
-        <div className="footer-3" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '3rem', marginBottom: '3.5rem' }}>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-12 mb-12">
           {/* Brand */}
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.5rem' }}>
+          <div className="md:col-span-2">
+            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.25rem' }}>
               <img
                 src="/images/WhatsApp_Image_2026-07-26_at_23.42.00-removebg-preview.png"
                 alt="Chill Co."
                 style={{
-                  height: '140px',
-                  maxWidth: '300px',
+                  height: '110px',
+                  maxWidth: '260px',
                   width: 'auto',
                   objectFit: 'contain',
                   filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.8))',
                 }}
               />
             </div>
-            <p style={{ fontSize: '0.78rem', lineHeight: 1.8, color: 'rgba(240,230,211,0.35)', fontWeight: 300, maxWidth: '220px', marginBottom: '1.5rem' }}>
+            <p style={{ fontSize: '0.78rem', lineHeight: 1.8, color: 'rgba(240,230,211,0.35)', fontWeight: 300, maxWidth: '240px', marginBottom: '1.5rem' }}>
               Designed for comfort. Built for everyday.
             </p>
             <div style={{ display: 'flex', gap: '0.75rem' }}>

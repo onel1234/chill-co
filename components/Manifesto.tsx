@@ -10,11 +10,12 @@ export default function Manifesto() {
       {/* Crown border top */}
       <CrownBorder />
 
-      <div style={{
-        position: 'relative',
-        background: 'linear-gradient(135deg, #0a0705 0%, #160e08 50%, #0a0705 100%)',
-        padding: '7rem 3rem',
-      }}>
+      <div
+        className="px-6 py-16 md:px-12 md:py-28 relative"
+        style={{
+          background: 'linear-gradient(135deg, #0a0705 0%, #160e08 50%, #0a0705 100%)',
+        }}
+      >
         {/* Background ghosted image */}
         <div style={{
           position: 'absolute', right: 0, top: 0, bottom: 0, width: '45%',
@@ -33,21 +34,21 @@ export default function Manifesto() {
               The Manifesto
             </span>
             <h2 style={{
-              margin: '1rem 0 1.75rem',
-              fontSize: 'clamp(2.5rem, 5.5vw, 4.5rem)',
+              margin: '1rem 0 1.5rem',
+              fontSize: 'clamp(2.2rem, 5.5vw, 4.5rem)',
               fontWeight: 800, lineHeight: 1.05, letterSpacing: '-0.025em',
               color: '#f0e6d3',
             }}>
               &quot;Comfort is the<br />
               ultimate <span className="gold-text">Rebellion.</span>&quot;
             </h2>
-            <p style={{ fontSize: '0.9rem', lineHeight: 1.9, color: 'rgba(240,230,211,0.55)', fontWeight: 300, marginBottom: '2.5rem', maxWidth: '500px' }}>
+            <p style={{ fontSize: '0.88rem', lineHeight: 1.85, color: 'rgba(240,230,211,0.55)', fontWeight: 300, marginBottom: '2.5rem', maxWidth: '500px' }}>
               Streetwear meant to be felt — not just seen. Sustainably sourced fabrics
               from the island&apos;s finest mills, paired with silhouettes built for the
               streets of Colombo and the pace of modern life. Softness is not weakness.
               It is our greatest statement.
             </p>
-            <Link href="/about" className="btn-gold">
+            <Link href="/about" className="btn-gold w-full max-w-[240px] sm:w-auto text-center justify-center">
               <span>Read the Story →</span>
             </Link>
           </div>

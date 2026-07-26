@@ -1,6 +1,6 @@
-"use client";
-
 import React from 'react';
+import Image from 'next/image';
+
 
 export default function AboutClient() {
   return (
@@ -29,7 +29,13 @@ export default function AboutClient() {
           {/* Large Orange Brush Stroke Background element (simulated with CSS for performance/size) */}
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-primary-container rounded-full blur-[100px] opacity-20 -z-10"></div>
           <div className="relative w-full h-full border-hairline bg-surface-container-low overflow-hidden group">
-            <img alt="A young man with curly hair wearing an oversized, light grey graphic t-shirt. He is viewed from behind, turning slightly, showcasing the back of the shirt which has the word 'DIFFERENT' scrawled in a harsh, black, handwritten font over a swath of painted orange texture. The setting is minimal and bright, emphasizing a modern streetwear editorial style." className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDd3mXR0N3N4KGZRIXpork4cnaC2jrcEyPKNSIyCGKWErGUqcgLtvtr3eSqy1lJg-lfTkSJ5MdLE06c-Wvgz9dnvro-2Ba-g8Inf7ePi0CVyLajOXr24EpBTqdgkUGILDwA4tBY7py0JFu_Bm-Vbz0rQBD-NsGY-vZAzswtgVOAqkSVTlUOGFWJT-m51q0BhyLcM4a8ZlxwStVt-UB9161__OlLsWcB6022FcM6NLyDMkYqbbOg5AVtZymfuFu6Zg0iywB2lAQaC00" />
+            <Image
+              alt="Oversized t-shirt model — Chill Co."
+              className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
+              src="/images/WhatsApp_Image_2026-07-10_at_09.12.32__1_.jpeg"
+              fill
+              sizes="(max-width: 768px) 100vw, 55vw"
+            />
             {/* Floating Badge */}
             <div className="absolute bottom-stack-lg right-stack-lg bg-surface-container-lowest border-hairline p-stack-md shadow-sm transform rotate-2">
               <span className="font-label-caps text-label-caps font-bold text-on-surface">Designed<br />Different.</span>
@@ -60,7 +66,13 @@ export default function AboutClient() {
             </div>
             {/* Bento Box 2 (Image Focus) */}
             <div className="md:col-span-2 border-hairline bg-surface-dim relative overflow-hidden min-h-[300px] group">
-              <img alt="Two young men walking down a clean, sunlit urban street, wearing oversized streetwear. One wears a stark white t-shirt and dark loose pants, the other a dark hoodie. The lighting is crisp and modern, casting sharp shadows. The mood is effortless and raw, typical of high-end urban lifestyle photography." className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCfwQUde3ZzmkTBcinaUymJF5Od6yu9hnByzp1wW8MMyhQknL2dvQhgjQ-ebJq88kAEsRVYgBbQBKQhurZYsLDJ5FOobXy-cmDRyIQQK4LdStTodTY0o69tVLAriuQkH7MwN_Qo1azhBqOVTBE8QyQQ1kjsnbTvhDqpleIRvjYsJmK-wnrKjZXXM_darGTMxWTXRFuBDk_rTOHnjgc_9dZPAKAoO0AmIYVBYuvyEyVKidDC5OwgHD_IfEsDix-FHqnxS7DFQ6Gp4So" />
+              <Image
+                alt="Chill Co. streetwear lifestyle"
+                className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                src="/images/WhatsApp_Image_2026-07-10_at_09.12.30__1_.jpeg"
+                fill
+                sizes="(max-width: 768px) 100vw, 66vw"
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-on-background/60 to-transparent"></div>
               <div className="absolute bottom-stack-lg left-stack-lg right-stack-lg text-on-tertiary">
                 <h3 className="font-headline-md text-headline-md mb-stack-sm text-on-primary">The Everyday Uniform</h3>

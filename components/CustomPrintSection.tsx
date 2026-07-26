@@ -33,11 +33,7 @@ export default function CustomPrintSection() {
           }} />
 
           {/* Content — centered over the fabric */}
-          <div style={{
-            position: 'relative', zIndex: 2,
-            width: '100%', padding: '6rem 2rem',
-            display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center',
-          }}>
+          <div className="px-4 py-16 md:px-8 md:py-24 relative z-10 w-full flex flex-col items-center text-center">
 
             {/* Label */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.75rem' }}>
@@ -51,7 +47,7 @@ export default function CustomPrintSection() {
             {/* Main heading */}
             <h2 style={{
               margin: '0 0 0.4rem',
-              fontSize: 'clamp(2.8rem, 6vw, 5.5rem)',
+              fontSize: 'clamp(2.2rem, 6vw, 5.5rem)',
               fontWeight: 800, letterSpacing: '-0.025em', lineHeight: 0.95,
               color: '#f0e6d3',
             }}>
@@ -60,7 +56,7 @@ export default function CustomPrintSection() {
             <h2
               style={{
                 margin: '0 0 2rem',
-                fontSize: 'clamp(2.8rem, 6vw, 5.5rem)',
+                fontSize: 'clamp(2.2rem, 6vw, 5.5rem)',
                 fontWeight: 800, letterSpacing: '-0.025em', lineHeight: 0.95,
               }}
               className="shimmer-text"
@@ -70,7 +66,7 @@ export default function CustomPrintSection() {
 
             {/* Body */}
             <p style={{
-              maxWidth: '480px', margin: '0 0 3rem',
+              maxWidth: '480px', margin: '0 0 2.5rem',
               fontSize: '0.88rem', fontWeight: 300, lineHeight: 1.85,
               color: 'rgba(240,230,211,0.6)', letterSpacing: '0.02em',
             }}>
@@ -82,27 +78,19 @@ export default function CustomPrintSection() {
             {/* CTA Button */}
             <button
               onClick={() => setIsModalOpen(true)}
-              className="btn-gold"
-              style={{ marginBottom: '4.5rem', padding: '1rem 3rem' }}
+              className="btn-gold w-full max-w-[280px] sm:w-auto"
+              style={{ marginBottom: '3.5rem', padding: '1rem 2.5rem' }}
             >
               <span>Customize Your Own →</span>
             </button>
 
             {/* Ornament before steps */}
-            <div style={{ width: '100%', maxWidth: '640px', marginBottom: '3rem' }}>
+            <div style={{ width: '100%', maxWidth: '640px', marginBottom: '2.5rem' }}>
               <OrnamentalDivider color="#6e4b26" />
             </div>
 
-            {/* 3-step process */}
-            <div
-              className="collections-3"
-              style={{
-                display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: '0',
-                width: '100%', maxWidth: '680px',
-                border: '1px solid rgba(125,91,49,0.25)',
-              }}
-            >
+            {/* 3-step process (Responsive Stack on Mobile) */}
+            <div className="grid grid-cols-1 md:grid-cols-3 w-full max-w-[680px] border border-[rgba(125,91,49,0.25)]">
               {[
                 { num: '01', title: 'Upload Artwork', desc: 'Your graphic, motif, or heritage print' },
                 { num: '02', title: 'Choose Fit', desc: 'Oversized, relaxed, or tailored silhouette' },
@@ -110,16 +98,9 @@ export default function CustomPrintSection() {
               ].map((step, i) => (
                 <div
                   key={step.num}
-                  className="heritage-card"
-                  style={{
-                    padding: '2rem 1.5rem',
-                    borderLeft: i > 0 ? '1px solid rgba(125,91,49,0.25)' : 'none',
-                    borderRadius: 0,
-                    background: 'rgba(13,10,7,0.65)',
-                    backdropFilter: 'blur(12px)',
-                    textAlign: 'center',
-                    transition: 'background 0.3s ease',
-                  }}
+                  className={`heritage-card p-6 text-center bg-[rgba(13,10,7,0.65)] backdrop-blur-md ${
+                    i > 0 ? 'border-t md:border-t-0 md:border-l border-[rgba(125,91,49,0.25)]' : ''
+                  }`}
                 >
                   <div style={{
                     fontSize: '0.55rem', letterSpacing: '0.3em', textTransform: 'uppercase',

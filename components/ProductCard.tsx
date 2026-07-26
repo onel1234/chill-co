@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 interface ProductCardProps {
   title: string;
@@ -12,20 +13,22 @@ interface ProductCardProps {
 
 export default function ProductCard({ title, subtitle, price, imageSrc, badge, href = "/shop" }: ProductCardProps) {
   return (
-    <Link href={href} className="product-card block" style={{ background: '#0d0a07', textDecoration: 'none' }}>
+    <Link href={href} className="product-card block h-full" style={{ background: '#0d0a07', textDecoration: 'none' }}>
       <div style={{ position: 'relative', aspectRatio: '3/4', overflow: 'hidden', background: '#140d08' }}>
-        <img
+        <Image
           src={imageSrc}
           alt={title}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }}
+          fill
+          sizes="(max-width: 640px) 80vw, (max-width: 1024px) 45vw, 25vw"
+          style={{ objectFit: 'cover', objectPosition: 'center' }}
         />
 
         {badge && (
           <div style={{
-            position: 'absolute', top: '0.75rem', left: '0.75rem',
+            position: 'absolute', top: '0.6rem', left: '0.6rem',
             background: '#7d5b31', color: '#f0e6d3',
-            fontSize: '0.5rem', fontWeight: 700, letterSpacing: '0.2em',
-            padding: '0.2rem 0.55rem', textTransform: 'uppercase', zIndex: 10,
+            fontSize: '0.52rem', fontWeight: 700, letterSpacing: '0.18em',
+            padding: '0.2rem 0.5rem', textTransform: 'uppercase', zIndex: 10,
           }}>
             {badge}
           </div>
@@ -46,14 +49,14 @@ export default function ProductCard({ title, subtitle, price, imageSrc, badge, h
         </div>
       </div>
 
-      <div style={{ padding: '1rem 0.75rem 1.25rem' }}>
-        <div style={{ fontSize: '0.82rem', fontWeight: 500, color: '#f0e6d3', marginBottom: '0.2rem', lineHeight: 1.3 }}>
+      <div style={{ padding: '0.85rem 0.65rem 1.1rem' }}>
+        <div style={{ fontSize: 'clamp(0.82rem, 3.5vw, 0.92rem)', fontWeight: 500, color: '#f0e6d3', marginBottom: '0.25rem', lineHeight: 1.35 }}>
           {title}
         </div>
-        <div style={{ fontSize: '0.65rem', color: 'rgba(240,230,211,0.4)', marginBottom: '0.5rem', fontWeight: 400 }}>
+        <div style={{ fontSize: '0.68rem', color: 'rgba(240,230,211,0.45)', marginBottom: '0.4rem', fontWeight: 400 }}>
           {subtitle}
         </div>
-        <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#c9a96e' }}>
+        <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#c9a96e' }}>
           {price}
         </div>
       </div>

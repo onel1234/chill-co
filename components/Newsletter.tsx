@@ -16,14 +16,14 @@ export default function Newsletter() {
   };
 
   return (
-    <section style={{ padding: '7rem 3rem', background: '#0d0a07', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+    <section className="px-4 py-16 md:px-12 md:py-28 bg-[#0d0a07] text-center relative overflow-hidden">
       {/* Decorative peacock behind */}
       <div style={{
         position: 'absolute', inset: 0,
         display: 'flex', alignItems: 'center', justifyContent: 'center',
         opacity: 0.04, pointerEvents: 'none',
       }}>
-        <img src="/images/WhatsApp_Image_2026-07-10_at_09.12.30.jpeg" alt="" style={{ width: '50vw', maxWidth: '700px', objectFit: 'contain' }} />
+        <img src="/images/WhatsApp_Image_2026-07-10_at_09.12.30.jpeg" alt="" style={{ width: '80vw', maxWidth: '700px', objectFit: 'contain' }} />
       </div>
 
       <div style={{ position: 'relative', zIndex: 1, maxWidth: '580px', margin: '0 auto' }}>
@@ -35,7 +35,7 @@ export default function Newsletter() {
         </span>
         <h2 style={{
           margin: '0.75rem 0 1rem',
-          fontSize: 'clamp(2.5rem, 6vw, 4.5rem)',
+          fontSize: 'clamp(2.2rem, 6vw, 4.5rem)',
           fontWeight: 800, letterSpacing: '-0.03em',
           color: '#f0e6d3',
         }}>
@@ -51,7 +51,7 @@ export default function Newsletter() {
             Thank you for joining the circle.
           </div>
         ) : (
-          <form onSubmit={handleSubmit} style={{ display: 'flex', maxWidth: '420px', margin: '0 auto' }}>
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row max-w-[420px] mx-auto gap-2 sm:gap-0">
             <input
               type="email"
               value={email}
@@ -62,7 +62,6 @@ export default function Newsletter() {
                 flex: 1,
                 background: 'rgba(255,255,255,0.04)',
                 border: '1px solid rgba(125,91,49,0.4)',
-                borderRight: 'none',
                 color: '#f0e6d3',
                 padding: '0.9rem 1.25rem',
                 fontSize: '0.8rem',
@@ -70,7 +69,7 @@ export default function Newsletter() {
                 outline: 'none',
               }}
             />
-            <button type="submit" className="btn-gold">
+            <button type="submit" className="btn-gold w-full sm:w-auto">
               <span>Submit</span>
             </button>
           </form>

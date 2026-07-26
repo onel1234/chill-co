@@ -1,30 +1,29 @@
-"use client";
-
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function HeroSection() {
   return (
     <section style={{ position: 'relative', height: '100svh', minHeight: '600px', overflow: 'hidden' }}>
-      {/* Desktop image */}
-      <img
+      {/* Desktop image — LCP element, load with priority */}
+      <Image
         src="/images/ChatGPT_Image_Jul_23__2026__10_00_30_PM.png"
         alt="Kandyan dancer with Sigiriya rock fortress — ancient Sri Lanka"
-        style={{
-          position: 'absolute', inset: 0, width: '100%', height: '100%',
-          objectFit: 'cover', objectPosition: 'center center',
-        }}
+        fill
+        priority
+        sizes="100vw"
+        style={{ objectFit: 'cover', objectPosition: 'center center' }}
         className="hero-img-desktop"
       />
 
       {/* Mobile image */}
-      <img
+      <Image
         src="/images/ChatGPT_Image_Jul_24__2026__01_13_05_PM.png"
         alt="Kandyan dancer with Sigiriya — portrait view"
-        style={{
-          position: 'absolute', inset: 0, width: '100%', height: '100%',
-          objectFit: 'cover', objectPosition: 'center 35%',
-        }}
+        fill
+        priority={false}
+        sizes="100vw"
+        style={{ objectFit: 'cover', objectPosition: 'center 35%' }}
         className="hero-img-mobile"
       />
 
@@ -100,3 +99,4 @@ export default function HeroSection() {
     </section>
   );
 }
+

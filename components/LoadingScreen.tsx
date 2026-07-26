@@ -3,11 +3,21 @@
 import React, { useState, useEffect } from 'react';
 
 export default function LoadingScreen() {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [animateOut, setAnimateOut] = useState(false);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
+    // Only show loading screen once per browser session
+    const hasLoaded = sessionStorage.getItem('chill-co-loaded');
+    if (hasLoaded) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    sessionStorage.setItem('chill-co-loaded', '1');
+
     // Animate progress to fill the t-shirt
     const progressInterval = setInterval(() => {
       setProgress(prev => {
