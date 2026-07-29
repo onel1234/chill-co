@@ -33,7 +33,7 @@ const products = [
   },
   {
     name: 'Oversized Signature Tee',
-    variant: 'Harvest Orange',
+    variant: 'Ceylon Cinnamon',
     price: 'Rs 4,500.00',
     img: '/images/WhatsApp_Image_2026-07-10_at_09.12.31__2_.jpeg',
   },

@@ -8,9 +8,11 @@ export default function LoadingScreen() {
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
-    // Only show loading screen once per browser session
+    if (typeof window === 'undefined') return;
+
+    // Do not trigger loading overlay if session is already marked loaded or if DOM is already complete
     const hasLoaded = sessionStorage.getItem('chill-co-loaded');
-    if (hasLoaded) {
+    if (hasLoaded || document.readyState === 'complete') {
       setLoading(false);
       return;
     }
@@ -25,15 +27,15 @@ export default function LoadingScreen() {
           clearInterval(progressInterval);
           return 100;
         }
-        return prev + Math.random() * 10;
+        return prev + Math.random() * 15;
       });
-    }, 180);
+    }, 150);
 
-    // Hide the loader after a set time
+    // Hide the loader after a short initial entry window
     const timer = setTimeout(() => {
       setAnimateOut(true);
-      setTimeout(() => setLoading(false), 800); // Wait for fade out animation
-    }, 2800);
+      setTimeout(() => setLoading(false), 500); // Wait for fade out animation
+    }, 1500);
 
     return () => {
       clearTimeout(timer);

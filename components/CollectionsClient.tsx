@@ -54,7 +54,7 @@ export default function CollectionsClient() {
           <article className="md:col-span-7 group relative">
             <div className="h-full border border-surface-container-high bg-surface-container-lowest p-gutter flex flex-col">
               <div className="relative h-[50vh] mb-stack-md bg-[#e5e5e5] overflow-hidden">
-                <Image alt="Harvest Orange Oversized T-shirt" className="w-full h-full object-cover mix-blend-multiply transition-transform duration-700 group-hover:scale-105" loading="lazy" src="/images/kinetic_tshirt.png" fill sizes="(max-width: 768px) 100vw, 60vw" />
+                <Image alt="Ceylon Cinnamon Heavyweight T-shirt" className="w-full h-full object-cover mix-blend-multiply transition-transform duration-700 group-hover:scale-105" loading="lazy" src="/images/kinetic_tshirt.png" fill sizes="(max-width: 768px) 100vw, 60vw" />
                 {/* Floating Badge */}
                 <div className="absolute top-4 right-4 bg-surface-container-lowest px-3 py-1 font-label-caps text-label-caps border border-on-surface">NEW DROP</div>
               </div>
