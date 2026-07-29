@@ -47,46 +47,46 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
   }, {} as Record<string, Product[]>);
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col bg-white animate-in fade-in duration-300">
+    <div className="fixed inset-x-0 top-[80px] z-[190] flex flex-col max-h-[calc(100dvh-80px)] bg-[#0d0a07]/95 backdrop-blur-xl border-b border-[#7d5b31]/30 text-[#f0e6d3] shadow-2xl shadow-black/90 animate-in slide-in-from-top-4 fade-in duration-300">
       {/* Header */}
-      <div className="flex items-center justify-between px-margin-mobile md:px-margin-desktop py-stack-md border-b border-surface-variant">
+      <div className="flex items-center justify-between px-margin-mobile md:px-margin-desktop py-stack-md border-b border-[#7d5b31]/30">
         <div className="flex-1 flex items-center gap-4">
-          <span className="material-symbols-outlined text-on-surface-variant text-2xl">search</span>
+          <span className="material-symbols-outlined text-[#c9a96e] text-2xl">search</span>
           <input
             ref={inputRef}
             type="text"
             placeholder="Search products..."
-            className="w-full bg-transparent border-none outline-none font-headline-md text-headline-md-mobile md:text-headline-md text-on-surface placeholder:text-surface-variant"
+            className="w-full bg-transparent border-none outline-none text-base md:text-xl font-medium text-[#f0e6d3] placeholder:text-[#f0e6d3]/30"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
         <button 
           onClick={onClose}
-          className="ml-4 p-2 scale-100 active:scale-95 transition-all duration-200 hover:text-primary"
+          className="ml-4 p-2 scale-100 active:scale-95 transition-all duration-200 hover:text-[#c9a96e] text-[#f0e6d3]/60"
         >
           <span className="material-symbols-outlined text-3xl">close</span>
         </button>
       </div>
 
       {/* Results */}
-      <div className="flex-1 overflow-y-auto px-margin-mobile md:px-margin-desktop py-section-gap">
+      <div className="overflow-y-auto px-margin-mobile md:px-margin-desktop py-8">
         {query.trim() === '' ? (
-          <div className="h-full flex flex-col items-center justify-center text-on-surface-variant opacity-50">
-            <span className="material-symbols-outlined text-6xl mb-4">search</span>
-            <p className="font-body-lg text-body-lg">Type to start searching...</p>
+          <div className="py-12 flex flex-col items-center justify-center text-[#c9a96e] opacity-40">
+            <span className="material-symbols-outlined text-4xl md:text-6xl mb-4">search</span>
+            <p className="font-body-lg text-body-lg" style={{ letterSpacing: '0.1em', textTransform: 'uppercase', fontSize: '0.8rem' }}>Type to start searching...</p>
           </div>
         ) : Object.keys(groupedProducts).length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-on-surface-variant">
-            <p className="font-headline-sm text-headline-sm mb-2">No results found for &quot;{query}&quot;</p>
+          <div className="py-12 flex flex-col items-center justify-center text-[#f0e6d3]/60">
+            <p className="font-headline-sm text-headline-sm mb-2 text-[#c9a96e]">No results found for &quot;{query}&quot;</p>
             <p className="font-body-md text-body-md">Try checking your spelling or using different keywords.</p>
           </div>
         ) : (
           <div className="max-w-7xl mx-auto space-y-stack-lg animate-in slide-in-from-bottom-4 duration-500">
             {Object.entries(groupedProducts).map(([collectionName, items]) => (
               <div key={collectionName} className="space-y-stack-sm">
-                <h2 className="font-label-caps text-label-caps text-primary border-b border-surface-variant pb-2 uppercase tracking-widest">
-                  Collection: {collectionName}
+                <h2 className="font-label-caps text-label-caps text-[#c9a96e] border-b border-[#7d5b31]/30 pb-2 uppercase tracking-widest text-xs">
+                  {collectionName}
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-gutter pt-4">
                   {items.map((product) => (
@@ -94,18 +94,18 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                       key={product.id} 
                       href={`/product/${product.slug}`}
                       onClick={onClose}
-                      className="group flex flex-col gap-2"
+                      className="group flex flex-col gap-3"
                     >
-                      <div className="aspect-[3/4] bg-surface-container-low overflow-hidden">
+                      <div className="aspect-[3/4] bg-[#140d08] overflow-hidden border border-[#7d5b31]/10 group-hover:border-[#7d5b31]/40 transition-colors duration-300">
                         <img 
                           src={product.images[0]} 
                           alt={product.name} 
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-90 group-hover:opacity-100"
                         />
                       </div>
                       <div>
-                        <h3 className="font-body-md text-sm md:text-base font-medium uppercase group-hover:text-primary transition-colors line-clamp-1">{product.name}</h3>
-                        <p className="font-body-md text-sm text-on-surface-variant">Rs. {product.price.toLocaleString('en-LK')}</p>
+                        <h3 className="font-body-md text-sm font-medium uppercase text-[#f0e6d3] group-hover:text-[#c9a96e] transition-colors line-clamp-1 tracking-wider">{product.name}</h3>
+                        <p className="font-body-md text-xs text-[#c9a96e]/70 tracking-widest mt-1">Rs. {product.price.toLocaleString('en-LK')}</p>
                       </div>
                     </Link>
                   ))}
