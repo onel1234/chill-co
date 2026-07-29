@@ -67,7 +67,7 @@ export default function ShopClient() {
               key={product.id}
               title={product.name}
               subtitle={product.colors[0]?.name || ''}
-              price={`$${product.price.toFixed(2)}`}
+              price={`Rs. ${product.price.toLocaleString('en-LK')}`}
               imageSrc={product.images[0]}
               badge={product.isNewArrival ? "New Arrival" : undefined}
               href={`/product/${product.slug}`}

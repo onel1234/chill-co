@@ -85,7 +85,7 @@ export default function Footer() {
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
             <div style={{ width: '1.5rem', height: '1px', background: '#7d5b31' }} />
             <span style={{ fontSize: '0.55rem', letterSpacing: '0.25em', textTransform: 'uppercase', color: 'rgba(201,169,110,0.35)', fontWeight: 500 }}>
-              Ancient Craft · Modern Spirit
+              Designed & Developed by <a href="https://www.swiftstack.digital/" target="_blank" rel="noopener noreferrer" style={{ color: '#c9a96e', textDecoration: 'none' }} className="hover:text-white transition-colors duration-300">swift stack digital</a>
             </span>
             <div style={{ width: '1.5rem', height: '1px', background: '#7d5b31' }} />
           </div>

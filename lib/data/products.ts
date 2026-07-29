@@ -5,12 +5,11 @@ export const products: Product[] = [
     id: 'oversized-signature-tee',
     slug: 'oversized-signature-tee',
     name: 'Oversized Signature Tee',
-    price: 48,
+    price: 3299,
     description: 'Oversized fit, premium heavyweight cotton, designed for the everyday. We push boundaries with innovative designs that challenge the norm.',
     images: [
-      '/images/kinetic_tshirt.png',
-      '/images/black-tshirt-back.png',
-      '/images/black-tshirt.png'
+      'https://res.cloudinary.com/dfxolekjs/image/upload/v1785310636/shirt_1_g28hja.jpg',
+      'https://res.cloudinary.com/dfxolekjs/image/upload/v1785310752/shirt_2_dg42sf.jpg',
     ],
     colors: [
       { name: 'Ceylon Cinnamon', hex: '#7d5b31' },
@@ -26,10 +25,10 @@ export const products: Product[] = [
     id: 'different-oversized-tee',
     slug: 'different-oversized-tee',
     name: 'The "Different" Oversized Tee',
-    price: 45,
+    price: 3299,
     description: 'A unique take on our classic oversized tee, featuring subtle details and a relaxed fit.',
     images: [
-      '/images/signature_series.png'
+      'https://res.cloudinary.com/dfxolekjs/image/upload/v1785310752/shirt_2_dg42sf.jpg',
     ],
     colors: [
       { name: 'Off-White', hex: '#F0EAD6' },
@@ -42,40 +41,61 @@ export const products: Product[] = [
     loyaltyPoints: 45
   },
   {
-    id: 'core-heavyweight-hoodie',
-    slug: 'core-heavyweight-hoodie',
-    name: 'Core Heavyweight Hoodie',
-    price: 85,
-    description: 'Our core hoodie designed for ultimate comfort and warmth. Perfect for layering.',
+    id: 'kinetic-drop-tee',
+    slug: 'kinetic-drop-tee',
+    name: 'Kinetic Drop Tee',
+    price: 3299,
+    description: 'High-energy streetwear silhouette crafted from premium heavyweight cotton. Built for the streets, made for Sri Lanka.',
     images: [
-      '/images/midnight_tshirt.png'
+      'https://res.cloudinary.com/dfxolekjs/image/upload/v1785310779/shirt_3_ficcf7.jpg',
     ],
     colors: [
-      { name: 'Heather Grey', hex: '#9CA3AF' }
+      { name: 'Heather Grey', hex: '#9CA3AF' },
+      { name: 'Midnight Black', hex: '#1a1a1a' }
     ],
     sizes: ['S', 'M', 'L', 'XL', 'XXL'],
-    category: 'Hoodies',
-    collection: 'Essentials',
-    isNewArrival: false,
-    loyaltyPoints: 100
+    category: 'Tees',
+    collection: 'Urban Kinetic',
+    isNewArrival: true,
+    loyaltyPoints: 50
   },
   {
-    id: 'everyday-classic-tee',
-    slug: 'everyday-classic-tee',
-    name: 'Everyday Classic Tee',
-    price: 35,
-    description: 'The foundation of your wardrobe. Simple, clean, and perfectly fitting.',
+    id: 'midnight-drop-tee',
+    slug: 'midnight-drop-tee',
+    name: 'Midnight Drop Tee',
+    price: 3299,
+    description: 'Dark mode activated. Inspired by the quiet streets of Colombo at night — bold graphics, clean lines, effortless cool.',
     images: [
-      '/images/staples_tshirt.png'
+      'https://res.cloudinary.com/dfxolekjs/image/upload/v1785310821/shirt_4_hkphui.jpg',
     ],
     colors: [
+      { name: 'Pure Black', hex: '#111111' },
+      { name: 'Dark Olive', hex: '#4a4a2a' }
+    ],
+    sizes: ['S', 'M', 'L', 'XL'],
+    category: 'Tees',
+    collection: 'Midnight Drop',
+    isNewArrival: false,
+    loyaltyPoints: 50
+  },
+  {
+    id: 'staples-heavyweight-tee',
+    slug: 'staples-heavyweight-tee',
+    name: 'Staples Heavyweight Tee',
+    price: 3299,
+    description: 'The foundation of every wardrobe. Premium heavyweight cotton, oversized silhouette, built to last. The everyday essential.',
+    images: [
+      'https://res.cloudinary.com/dfxolekjs/image/upload/v1785310856/shirt_5_u6qrf6.jpg',
+    ],
+    colors: [
+      { name: 'Stone Grey', hex: '#8C8C8C' },
       { name: 'Pure White', hex: '#FFFFFF' }
     ],
     sizes: ['S', 'M', 'L', 'XL'],
     category: 'Tees',
     collection: 'Essentials',
     isNewArrival: false,
-    loyaltyPoints: 30
+    loyaltyPoints: 50
   }
 ];
 

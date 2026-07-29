@@ -105,7 +105,7 @@ export default function SearchOverlay({ isOpen, onClose }: SearchOverlayProps) {
                       </div>
                       <div>
                         <h3 className="font-body-md text-sm md:text-base font-medium uppercase group-hover:text-primary transition-colors line-clamp-1">{product.name}</h3>
-                        <p className="font-body-md text-sm text-on-surface-variant">${product.price.toFixed(2)}</p>
+                        <p className="font-body-md text-sm text-on-surface-variant">Rs. {product.price.toLocaleString('en-LK')}</p>
                       </div>
                     </Link>
                   ))}

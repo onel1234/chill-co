@@ -70,7 +70,7 @@ export default function ProductClient({ product }: ProductClientProps) {
                 <span className="font-label-caps text-label-caps text-tertiary">{product.category}</span>
               </div>
               <h1 className="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface mb-stack-sm uppercase">{product.name}</h1>
-              <p className="font-body-lg text-body-lg text-on-surface-variant">${product.price.toFixed(2)}</p>
+              <p className="font-body-lg text-body-lg text-on-surface-variant">Rs. {product.price.toLocaleString('en-LK')}</p>
             </div>
             <div>
               <p className="font-body-md text-body-md text-on-surface-variant max-w-[400px]">
@@ -123,7 +123,7 @@ export default function ProductClient({ product }: ProductClientProps) {
                 {isAdding ? 'Added to Bag' : 'Add to Bag'}
                 <span className="material-symbols-outlined">{isAdding ? 'check' : 'shopping_bag'}</span>
               </button>
-              <p className="text-center font-label-caps text-label-caps text-tertiary mt-stack-sm">Free shipping on orders over $100</p>
+              <p className="text-center font-label-caps text-label-caps text-tertiary mt-stack-sm">Free shipping on orders over Rs. 15,000</p>
             </div>
             
             {/* Accordions */}

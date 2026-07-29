@@ -165,7 +165,7 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
                     Qty: {item.quantity}
                   </span>
                   <span className="font-body-md font-medium">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    Rs. {(item.price * item.quantity).toLocaleString('en-LK')}
                   </span>
                 </div>
               </div>

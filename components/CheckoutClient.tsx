@@ -53,7 +53,7 @@ export default function CheckoutClient() {
     fetchTiers();
   }, [supabase]);
 
-  const shippingCost = totalPrice >= 100 || items.length === 0 ? 0 : 10;
+  const shippingCost = totalPrice >= 15000 || items.length === 0 ? 0 : 350;
 
   // Apply discount from selected loyalty tier
   const discountAmount = appliedTier
@@ -166,13 +166,13 @@ export default function CheckoutClient() {
     
     message += `*Order Items*\n`;
     items.forEach(item => {
-      message += `- ${item.quantity}x ${item.name} (${item.color}, ${item.size}) - $${(item.price * item.quantity).toFixed(2)}\n`;
+      message += `- ${item.quantity}x ${item.name} (${item.color}, ${item.size}) - Rs. ${(item.price * item.quantity).toLocaleString('en-LK')}\n`;
     });
     
     message += `\n*Totals*\n`;
-    message += `Subtotal: $${(totalPrice - discountAmount).toFixed(2)}\n`;
-    message += `Shipping: ${shippingCost === 0 ? 'Free' : `$${shippingCost.toFixed(2)}`}\n`;
-    message += `*Total: $${orderTotal.toFixed(2)}*`;
+    message += `Subtotal: Rs. ${(totalPrice - discountAmount).toLocaleString('en-LK')}\n`;
+    message += `Shipping: ${shippingCost === 0 ? 'Free' : `Rs. ${shippingCost.toLocaleString('en-LK')}`}\n`;
+    message += `*Total: Rs. ${orderTotal.toLocaleString('en-LK')}*`;
 
     const encodedMessage = encodeURIComponent(message);
     window.open(`https://wa.me/${waNumber}?text=${encodedMessage}`, '_blank');
@@ -449,7 +449,7 @@ export default function CheckoutClient() {
                         )}
                       </div>
                       <div className="text-sm font-medium">
-                        ${(item.price * item.quantity).toFixed(2)}
+                        Rs. {(item.price * item.quantity).toLocaleString('en-LK')}
                       </div>
                     </div>
                   ))}
@@ -511,21 +511,21 @@ export default function CheckoutClient() {
                 <div className="border-t border-surface-variant pt-6 space-y-4">
                   <div className="flex justify-between font-body-md text-on-surface-variant">
                     <span>Subtotal</span>
-                    <span>${totalPrice.toFixed(2)}</span>
+                    <span>Rs. {totalPrice.toLocaleString('en-LK')}</span>
                   </div>
                   {appliedTier && discountAmount > 0 && (
                     <div className="flex justify-between font-body-md text-secondary">
                       <span>Loyalty Discount (-{appliedTier.discount_percentage}%)</span>
-                      <span>-${discountAmount.toFixed(2)}</span>
+                      <span>-Rs. {discountAmount.toLocaleString('en-LK')}</span>
                     </div>
                   )}
                   <div className="flex justify-between font-body-md text-on-surface-variant">
                     <span>Shipping</span>
-                    <span>{shippingCost === 0 ? 'Free' : `$${shippingCost.toFixed(2)}`}</span>
+                    <span>{shippingCost === 0 ? 'Free' : `Rs. ${shippingCost.toLocaleString('en-LK')}`}</span>
                   </div>
                   <div className="flex justify-between font-headline-sm text-headline-sm uppercase pt-4 border-t border-surface-variant">
                     <span>Total</span>
-                    <span>${orderTotal.toFixed(2)}</span>
+                    <span>Rs. {orderTotal.toLocaleString('en-LK')}</span>
                   </div>
                 </div>
 

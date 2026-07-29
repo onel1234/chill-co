@@ -1,99 +1,131 @@
 import React from 'react';
 import Image from 'next/image';
-
+import Link from 'next/link';
 
 export default function CollectionsClient() {
   return (
-    <main className="pt-[100px] pb-[100px] md:pb-0">
+    <main style={{ backgroundColor: '#0d0a07', minHeight: '100vh', paddingTop: '80px', color: '#f0e6d3' }}>
       {/* Hero Section */}
-      <section className="relative min-h-[60vh] items-center bg-primary-container text-on-primary-container bg-grain overflow-hidden px-margin-mobile md:px-margin-desktop py-section-gap grid md:grid-cols-2 p-0">
-        {/* Decorative Elements */}
-        <div className="absolute top-10 right-10 opacity-30 text-6xl">✨</div>
-        <div className="absolute bottom-20 left-10 opacity-30 text-4xl font-headline-lg font-bold">XXX</div>
-
-        <div className="relative z-20 max-w-4xl md:col-span-1 flex flex-col justify-center p-margin-mobile md:p-margin-desktop">
-          <p className="font-label-caps text-label-caps mb-stack-sm tracking-widest">EST. 2024 / DESIGNED DIFFERENT</p>
-          <h1 className="font-display-xl text-5xl sm:text-6xl md:text-display-xl font-black uppercase leading-none tracking-tighter mix-blend-multiply break-words">
-            THE<br />
-            <span className="text-surface-container-lowest">COLLECTIONS</span>
-          </h1>
-          <p className="font-body-lg text-body-lg mt-stack-md max-w-md font-medium">
-            Pushing boundaries with innovative designs that challenge the norm. Every piece is crafted to be unique—just like you.
+      <section style={{ position: 'relative', height: '70vh', minHeight: '500px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+        <Image
+          src="/images/collection_hero_1785312373972.jpg"
+          alt="Kandyan dancer inspired streetwear collection"
+          fill
+          priority
+          sizes="100vw"
+          style={{ objectFit: 'cover', objectPosition: 'center', opacity: 0.6 }}
+        />
+        <div style={{
+          position: 'absolute', inset: 0,
+          background: 'linear-gradient(to bottom, rgba(13,10,7,0.8) 0%, rgba(13,10,7,0.3) 50%, rgba(13,10,7,1) 100%)',
+        }} />
+        
+        <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', padding: '0 2rem', maxWidth: '800px' }}>
+          <p style={{ fontSize: '0.65rem', letterSpacing: '0.3em', textTransform: 'uppercase', color: '#c9a96e', fontWeight: 600, marginBottom: '1.5rem' }}>
+            Est. 2024 · Designed Different
           </p>
-        </div>
-        {/* Brush stroke graphic placeholder (using css shapes) */}
-        <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-surface-container-lowest opacity-20 transform rotate-12 translate-y-1/4 translate-x-1/4 rounded-full blur-3xl"></div>
-        <div className="relative h-full min-h-[300px] md:min-h-0 overflow-hidden mt-8 md:mt-0">
-          <Image src="/images/hero_collection.png" alt="Urban Kinetic Streetwear Collection" className="w-full h-full object-cover" fill sizes="50vw" />
-          <div className="absolute inset-0 bg-primary/20 mix-blend-overlay"></div>
-          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-primary-container to-transparent md:block hidden"></div>
+          <h1 style={{ fontSize: 'clamp(3rem, 8vw, 6rem)', fontWeight: 800, lineHeight: 0.9, textTransform: 'uppercase', marginBottom: '1.5rem', letterSpacing: '-0.02em' }}>
+            <span style={{ color: '#f0e6d3', display: 'block' }}>The</span>
+            <span className="gold-text" style={{ display: 'block' }}>Collections</span>
+          </h1>
+          <p style={{ fontSize: '0.9rem', color: 'rgba(240, 230, 211, 0.7)', maxWidth: '500px', margin: '0 auto', lineHeight: 1.8 }}>
+            Pushing boundaries with innovative designs that challenge the norm. Ancient Sri Lankan heritage meets modern oversized silhouettes.
+          </p>
         </div>
       </section>
 
       {/* Collections Grid */}
-      <section className="px-margin-mobile md:px-margin-desktop py-section-gap max-w-screen-2xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter">
-          {/* Collection 1: Essentials (Large Feature) */}
-          <article className="md:col-span-12 group relative mb-section-gap">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-surface-container-high bg-surface-container-lowest transition-transform duration-500 hover:scale-[1.01]">
-              <div className="p-gutter md:p-stack-lg flex flex-col justify-center bg-surface-container-low">
-                <span className="font-label-caps text-label-caps text-primary mb-stack-sm">01 / STAPLES</span>
-                <h2 className="font-headline-lg text-5xl sm:text-6xl md:text-display-xl font-black uppercase mb-stack-md break-words">Essentials</h2>
-                <p className="font-body-lg text-body-lg text-on-surface-variant mb-stack-lg max-w-md">Premium fabrics. Oversized fit. Everyday wear. Effortless style. That&apos;s chill.</p>
-                <a className="inline-flex items-center font-button-text text-button-text bg-primary text-on-primary px-8 py-4 w-max hover:bg-on-surface transition-colors" href="#">
-                  EXPLORE ESSENTIALS <span className="material-symbols-outlined ml-2 text-sm">arrow_forward</span>
-                </a>
-              </div>
-              <div className="relative h-[60vh] md:h-auto bg-[#e5e5e5]">
-                <Image alt="Stone Grey Heavyweight T-shirt" className="w-full h-full object-cover mix-blend-multiply" loading="lazy" src="/images/staples_tshirt.png" fill sizes="50vw" />
-              </div>
+      <section style={{ padding: '6rem 2rem', maxWidth: '1400px', margin: '0 auto' }}>
+        
+        {/* Collection 1: Staple / Essential */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '4rem', marginBottom: '8rem', alignItems: 'center' }}>
+          <div style={{ position: 'relative', height: '600px', borderRadius: '4px', overflow: 'hidden' }}>
+            <Image 
+              src="/images/collection_essential_1785312385598.jpg" 
+              alt="Essentials Collection" 
+              fill 
+              sizes="(max-width: 768px) 100vw, 50vw"
+              style={{ objectFit: 'cover' }} 
+            />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(13,10,7,0.9), transparent)' }} />
+          </div>
+          <div style={{ padding: '2rem 0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+              <span style={{ color: '#c9a96e', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.15em' }}>01</span>
+              <div style={{ height: '1px', width: '40px', backgroundColor: '#7d5b31' }}></div>
+              <span style={{ color: '#c9a96e', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Heritage</span>
             </div>
-          </article>
-          
-          {/* Collection 2 & 3: Bento Grid */}
-          <article className="md:col-span-7 group relative">
-            <div className="h-full border border-surface-container-high bg-surface-container-lowest p-gutter flex flex-col">
-              <div className="relative h-[50vh] mb-stack-md bg-[#e5e5e5] overflow-hidden">
-                <Image alt="Ceylon Cinnamon Heavyweight T-shirt" className="w-full h-full object-cover mix-blend-multiply transition-transform duration-700 group-hover:scale-105" loading="lazy" src="/images/kinetic_tshirt.png" fill sizes="(max-width: 768px) 100vw, 60vw" />
-                {/* Floating Badge */}
-                <div className="absolute top-4 right-4 bg-surface-container-lowest px-3 py-1 font-label-caps text-label-caps border border-on-surface">NEW DROP</div>
-              </div>
-              <span className="font-label-caps text-label-caps text-primary mb-2">02 / HIGH ENERGY</span>
-              <h2 className="font-headline-md text-headline-md font-bold uppercase mb-2">Urban Kinetic</h2>
-              <a className="inline-flex items-center font-button-text text-button-text text-on-surface mt-auto pt-stack-sm border-t border-surface-container-high group-hover:text-primary transition-colors" href="#">
-                VIEW COLLECTION <span className="material-symbols-outlined ml-2 text-sm">arrow_forward</span>
-              </a>
-            </div>
-          </article>
-          
-          <article className="md:col-span-5 group relative">
-            <div className="h-full border border-surface-container-high bg-surface-container-lowest p-gutter flex flex-col">
-              <div className="relative h-[50vh] mb-stack-md bg-[#e5e5e5] overflow-hidden">
-                <Image alt="Midnight Black T-shirt" className="w-full h-full object-cover mix-blend-multiply transition-transform duration-700 group-hover:scale-105" loading="lazy" src="/images/midnight_tshirt.png" fill sizes="(max-width: 768px) 100vw, 40vw" />
-              </div>
-              <span className="font-label-caps text-label-caps text-primary mb-2">03 / DARK MODE</span>
-              <h2 className="font-headline-md text-headline-md font-bold uppercase mb-2">Midnight Drop</h2>
-              <a className="inline-flex items-center font-button-text text-button-text text-on-surface mt-auto pt-stack-sm border-t border-surface-container-high group-hover:text-primary transition-colors" href="#">
-                VIEW COLLECTION <span className="material-symbols-outlined ml-2 text-sm">arrow_forward</span>
-              </a>
-            </div>
-          </article>
-          
-          {/* Collection 4: Full width banner style */}
-          <article className="md:col-span-12 mt-section-gap relative">
-            <div className="relative h-[70vh] border border-surface-container-high bg-[#e5e5e5] overflow-hidden flex items-center">
-              <Image alt="Model wearing Chill Co. from back" className="absolute inset-0 w-full h-full object-cover object-top mix-blend-multiply opacity-80" loading="lazy" src="/images/signature_series.png" fill sizes="100vw" />
-              {/* Text Overlay */}
-              <div className="relative z-10 w-full flex flex-col items-center text-center p-gutter">
-                <span className="font-label-caps text-label-caps mb-stack-md bg-surface-container-lowest px-4 py-2 border border-on-surface">04 / EXCLUSIVE</span>
-                <h2 className="font-display-xl text-5xl md:text-display-xl font-black uppercase stroke-text text-surface-container-lowest mb-stack-lg mix-blend-difference">The Signature<br />Series</h2>
-                <a className="inline-flex items-center font-button-text text-button-text bg-transparent border-2 border-on-surface text-on-surface px-8 py-4 hover:bg-on-surface hover:text-surface-container-lowest transition-colors backdrop-blur-sm bg-surface-container-lowest/30" href="#">
-                  SHOP SIGNATURE <span className="material-symbols-outlined ml-2 text-sm">arrow_forward</span>
-                </a>
-              </div>
-            </div>
-          </article>
+            <h2 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '1.5rem', lineHeight: 1 }}>
+              Heritage
+            </h2>
+            <p style={{ color: 'rgba(240, 230, 211, 0.7)', fontSize: '0.95rem', lineHeight: 1.8, marginBottom: '2.5rem', maxWidth: '450px' }}>
+              Premium heavyweight fabrics. Oversized fit. The foundation of the Chill Co. aesthetic, designed for everyday wear without compromising on luxury.
+            </p>
+            <Link href="#" className="btn-gold">
+              <span>Explore Essentials</span>
+            </Link>
+          </div>
         </div>
+
+        {/* Collection 2: Kinetic */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '4rem', marginBottom: '8rem', alignItems: 'center', direction: 'rtl' }}>
+          <div style={{ position: 'relative', height: '600px', borderRadius: '4px', overflow: 'hidden', direction: 'ltr' }}>
+            <Image 
+              src="/images/collection_kinetic_1785312397247.jpg" 
+              alt="Urban Kinetic Collection" 
+              fill 
+              sizes="(max-width: 768px) 100vw, 50vw"
+              style={{ objectFit: 'cover' }} 
+            />
+            <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(13,10,7,0.9), transparent)' }} />
+            <div style={{ position: 'absolute', top: '2rem', right: '2rem', border: '1px solid #7d5b31', padding: '0.5rem 1rem', fontSize: '0.65rem', letterSpacing: '0.2em', color: '#c9a96e', textTransform: 'uppercase' }}>
+              New Drop
+            </div>
+          </div>
+          <div style={{ padding: '2rem 0', direction: 'ltr' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+              <span style={{ color: '#c9a96e', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.15em' }}>02</span>
+              <div style={{ height: '1px', width: '40px', backgroundColor: '#7d5b31' }}></div>
+              <span style={{ color: '#c9a96e', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Latest Drops</span>
+            </div>
+            <h2 style={{ fontSize: 'clamp(2.5rem, 5vw, 4rem)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '1.5rem', lineHeight: 1 }}>
+              Latest Drops
+            </h2>
+            <p style={{ color: 'rgba(240, 230, 211, 0.7)', fontSize: '0.95rem', lineHeight: 1.8, marginBottom: '2.5rem', maxWidth: '450px' }}>
+              Dynamic fits featuring subtle traditional Sri Lankan art graphics. A collision of high energy streetwear and ancient storytelling.
+            </p>
+            <Link href="#" className="btn-gold">
+              <span>View Collection</span>
+            </Link>
+          </div>
+        </div>
+
+        {/* Collection 3: Exclusive */}
+        <div style={{ position: 'relative', height: '80vh', minHeight: '600px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderRadius: '4px', border: '1px solid rgba(125, 91, 49, 0.3)' }}>
+          <Image 
+            src="/images/collection_exclusive_1785312409173.jpg" 
+            alt="The Signature Series" 
+            fill 
+            sizes="100vw"
+            style={{ objectFit: 'cover', opacity: 0.7 }} 
+          />
+          <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to top, rgba(13,10,7,0.9) 0%, rgba(13,10,7,0.2) 100%)' }} />
+          
+          <div style={{ position: 'relative', zIndex: 10, textAlign: 'center', padding: '2rem', width: '100%' }}>
+             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '1rem', marginBottom: '2rem', border: '1px solid #7d5b31', padding: '0.5rem 1.5rem', backgroundColor: 'rgba(13, 10, 7, 0.5)', backdropFilter: 'blur(4px)' }}>
+              <span style={{ color: '#c9a96e', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.15em' }}>03</span>
+              <div style={{ height: '1px', width: '20px', backgroundColor: '#7d5b31' }}></div>
+              <span style={{ color: '#c9a96e', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Exclusive</span>
+            </div>
+            <h2 className="shimmer-text" style={{ fontSize: 'clamp(3rem, 8vw, 5.5rem)', fontWeight: 800, textTransform: 'uppercase', marginBottom: '2rem', lineHeight: 1, letterSpacing: '-0.02em' }}>
+              The Signature<br />Series
+            </h2>
+            <Link href="#" className="btn-gold" style={{ backgroundColor: 'rgba(13, 10, 7, 0.8)' }}>
+              <span>Shop Signature</span>
+            </Link>
+          </div>
+        </div>
+
       </section>
     </main>
   );

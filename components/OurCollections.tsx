@@ -5,9 +5,9 @@ import Link from 'next/link';
 import OrnamentalDivider from './OrnamentalDivider';
 
 const collections = [
-  { label: 'Latest Drops', img: '/images/ChatGPT_Image_Jul_23__2026__10_00_30_PM.png', alt: 'Latest drops — cultural hero image' },
-  { label: 'Exclusive', img: '/images/WhatsApp_Image_2026-07-10_at_09.12.29.jpeg', alt: 'Exclusive — traditional parrot art' },
-  { label: 'Heritage', img: '/images/WhatsApp_Image_2026-07-10_at_09.12.30.jpeg', alt: 'Heritage — peacock motif art' },
+  { label: 'Latest Drops', img: '/images/collection_kinetic_1785312397247.jpg', alt: 'Latest drops — cultural streetwear' },
+  { label: 'Heritage', img: '/images/collection_essential_1785312385598.jpg', alt: 'Heritage — premium heavyweight' },
+  { label: 'Exclusive', img: '/images/collection_exclusive_1785312409173.jpg', alt: 'Exclusive — luxury streetwear' },
 ];
 
 export default function OurCollections() {
