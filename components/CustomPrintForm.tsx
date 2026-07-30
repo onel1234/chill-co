@@ -3,7 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UploadCloud, CheckCircle2, PaintBucket, Ruler, Scaling, RotateCcw, Image as ImageIcon } from 'lucide-react';
+import { UploadCloud, CheckCircle2, PaintBucket, Ruler, Scaling, RotateCcw, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { PrintSize } from './TShirtRenderer';
 
 export const COLORS = [
@@ -15,8 +15,9 @@ export const SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
 export const PRINT_SIZES: PrintSize[] = ['Logo', 'A4', 'A3', 'Oversized'];
 
 interface CustomPrintFormProps {
-  onFrontUpload: (imageUrl: string) => void;
-  onBackUpload: (imageUrl: string) => void;
+  /** Called with the object URL (for preview) and the raw File (for upload) */
+  onFrontUpload: (imageUrl: string, file: File) => void;
+  onBackUpload: (imageUrl: string, file: File) => void;
   frontImage: string | null;
   backImage: string | null;
   selectedColor: string;
@@ -30,6 +31,8 @@ interface CustomPrintFormProps {
   isFlipped: boolean;
   onFlipToggle: () => void;
   onSubmit: (data: { name: string; email: string }) => void;
+  /** When true, disables the submit button and shows a spinner */
+  isLoading?: boolean;
 }
 
 export default function CustomPrintForm({
@@ -48,24 +51,25 @@ export default function CustomPrintForm({
   isFlipped,
   onFlipToggle,
   onSubmit,
+  isLoading = false,
 }: CustomPrintFormProps) {
   const [step, setStep] = useState(1);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  // Dropzone for Front
+  // Dropzone for Front — passes both the preview URL and the raw File
   const onDropFront = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
-      onFrontUpload(URL.createObjectURL(acceptedFiles[0]));
+      onFrontUpload(URL.createObjectURL(acceptedFiles[0]), acceptedFiles[0]);
     }
   }, [onFrontUpload]);
   const { getRootProps: getRootPropsFront, getInputProps: getInputPropsFront } = useDropzone({ onDrop: onDropFront, accept: { 'image/*': ['.jpeg', '.jpg', '.png', '.webp'] }, maxFiles: 1 });
 
-  // Dropzone for Back
+  // Dropzone for Back — passes both the preview URL and the raw File
   const onDropBack = useCallback((acceptedFiles: File[]) => {
     if (acceptedFiles && acceptedFiles.length > 0) {
-      onBackUpload(URL.createObjectURL(acceptedFiles[0]));
+      onBackUpload(URL.createObjectURL(acceptedFiles[0]), acceptedFiles[0]);
     }
   }, [onBackUpload]);
   const { getRootProps: getRootPropsBack, getInputProps: getInputPropsBack } = useDropzone({ onDrop: onDropBack, accept: { 'image/*': ['.jpeg', '.jpg', '.png', '.webp'] }, maxFiles: 1 });
@@ -73,7 +77,6 @@ export default function CustomPrintForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSubmit({ name, email });
-    setIsSubmitted(true);
   };
 
   return (
@@ -95,8 +98,9 @@ export default function CustomPrintForm({
               onClick={() => {
                 setIsSubmitted(false);
                 setStep(1);
-                onFrontUpload('');
-                onBackUpload('');
+                const emptyFile = new File([], '');
+                onFrontUpload('', emptyFile);
+                onBackUpload('', emptyFile);
               }}
               className="px-6 py-3 bg-on-primary-container text-primary-container font-button-text uppercase tracking-widest rounded-full hover:opacity-90 transition-opacity font-bold"
             >
@@ -304,10 +308,17 @@ export default function CustomPrintForm({
                 </div>
                 <button
                   type="submit"
-                  disabled={!name || !email}
-                  className="w-full py-4 bg-primary text-on-primary font-button-text uppercase tracking-widest rounded-xl hover:opacity-90 transition-opacity font-bold disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+                  disabled={!name || !email || isLoading}
+                  className="w-full py-4 bg-primary text-on-primary font-button-text uppercase tracking-widest rounded-xl hover:opacity-90 transition-opacity font-bold disabled:opacity-50 disabled:cursor-not-allowed mt-4 flex items-center justify-center gap-2"
                 >
-                  Submit Request
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    'Submit Request'
+                  )}
                 </button>
               </form>
             </div>

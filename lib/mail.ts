@@ -212,3 +212,233 @@ export const sendDiscountCouponEmail = async (
     console.error('Error sending discount coupon email:', error);
   }
 };
+
+export interface CustomPrintEmailData {
+  name: string;
+  email: string;
+  color: string;
+  colorName: string;
+  size: string;
+  frontPrintSize: string;
+  backPrintSize: string;
+  frontImageBase64?: string; // data:image/...;base64,...
+  backImageBase64?: string;
+}
+
+/**
+ * Sends a detailed custom print request notification to the store admin.
+ * Design images are embedded inline via CID so they render in the email body.
+ */
+export const sendCustomPrintRequestEmail = async (
+  adminEmail: string,
+  data: CustomPrintEmailData
+) => {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.error('Missing GMAIL_USER or GMAIL_APP_PASSWORD in environment variables');
+    return;
+  }
+
+  const attachments: nodemailer.SendMailOptions['attachments'] = [];
+
+  if (data.frontImageBase64) {
+    const base64Data = data.frontImageBase64.replace(/^data:image\/\w+;base64,/, '');
+    attachments.push({
+      filename: 'front-design.png',
+      content: base64Data,
+      encoding: 'base64',
+      cid: 'front-design',
+    });
+  }
+
+  if (data.backImageBase64) {
+    const base64Data = data.backImageBase64.replace(/^data:image\/\w+;base64,/, '');
+    attachments.push({
+      filename: 'back-design.png',
+      content: base64Data,
+      encoding: 'base64',
+      cid: 'back-design',
+    });
+  }
+
+  const frontImageHtml = data.frontImageBase64
+    ? `<img src="cid:front-design" alt="Front Design" style="width:240px;height:240px;object-fit:contain;border-radius:8px;border:1px solid #333;background:#f5f5f5;" />`
+    : `<div style="width:240px;height:240px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px dashed #555;color:#888;font-size:13px;">No front design</div>`;
+
+  const backImageHtml = data.backImageBase64
+    ? `<img src="cid:back-design" alt="Back Design" style="width:240px;height:240px;object-fit:contain;border-radius:8px;border:1px solid #333;background:#f5f5f5;" />`
+    : `<div style="width:240px;height:240px;display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px dashed #555;color:#888;font-size:13px;">No back design</div>`;
+
+  const mailOptions: nodemailer.SendMailOptions = {
+    from: `"Chill Co Studio" <${process.env.GMAIL_USER}>`,
+    to: adminEmail,
+    replyTo: data.email,
+    subject: `🎨 New Custom Print Request — ${data.name}`,
+    attachments,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 640px; margin: 0 auto; color: #f0e6d3; background: #0d0a07;">
+
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #1a1208, #0d0a07); padding: 32px 24px; text-align: center; border-bottom: 1px solid #7d5b31;">
+          <h1 style="color: #c9a96e; margin: 0; font-size: 28px; letter-spacing: 4px; text-transform: uppercase;">CHILL CO</h1>
+          <p style="color: rgba(201,169,110,0.6); margin: 8px 0 0; font-size: 11px; text-transform: uppercase; letter-spacing: 3px;">Custom Print Studio — New Request</p>
+        </div>
+
+        <!-- Customer Info -->
+        <div style="padding: 28px 24px; background: #111008; border-bottom: 1px solid rgba(125,91,49,0.3);">
+          <h2 style="color: #c9a96e; font-size: 13px; text-transform: uppercase; letter-spacing: 3px; margin: 0 0 16px;">Customer Details</h2>
+          <table style="width:100%; border-collapse:collapse;">
+            <tr>
+              <td style="padding: 6px 0; color: rgba(240,230,211,0.5); font-size: 12px; width: 120px;">Name</td>
+              <td style="padding: 6px 0; color: #f0e6d3; font-size: 14px; font-weight: bold;">${data.name}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; color: rgba(240,230,211,0.5); font-size: 12px;">Email</td>
+              <td style="padding: 6px 0;">
+                <a href="mailto:${data.email}" style="color: #c9a96e; font-size: 14px; text-decoration: none;">${data.email}</a>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Tee Specs -->
+        <div style="padding: 28px 24px; background: #0d0a07; border-bottom: 1px solid rgba(125,91,49,0.3);">
+          <h2 style="color: #c9a96e; font-size: 13px; text-transform: uppercase; letter-spacing: 3px; margin: 0 0 16px;">Tee Specifications</h2>
+          <table style="width:100%; border-collapse:collapse;">
+            <tr>
+              <td style="padding: 8px 12px; color: rgba(240,230,211,0.5); font-size: 12px; width: 140px; border-bottom: 1px solid rgba(125,91,49,0.15);">Colour</td>
+              <td style="padding: 8px 12px; border-bottom: 1px solid rgba(125,91,49,0.15);">
+                <span style="display:inline-flex;align-items:center;gap:8px;">
+                  <span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:${data.color};border:1px solid rgba(255,255,255,0.2);"></span>
+                  <span style="color:#f0e6d3;font-size:13px;">${data.colorName}</span>
+                </span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 12px; color: rgba(240,230,211,0.5); font-size: 12px; border-bottom: 1px solid rgba(125,91,49,0.15);">Size</td>
+              <td style="padding: 8px 12px; color: #f0e6d3; font-size: 13px; font-weight: bold; border-bottom: 1px solid rgba(125,91,49,0.15);">${data.size}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 12px; color: rgba(240,230,211,0.5); font-size: 12px; border-bottom: 1px solid rgba(125,91,49,0.15);">Front Print Size</td>
+              <td style="padding: 8px 12px; color: #f0e6d3; font-size: 13px; border-bottom: 1px solid rgba(125,91,49,0.15);">${data.frontPrintSize}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 12px; color: rgba(240,230,211,0.5); font-size: 12px;">Back Print Size</td>
+              <td style="padding: 8px 12px; color: #f0e6d3; font-size: 13px;">${data.backPrintSize}</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Design Previews -->
+        <div style="padding: 28px 24px; background: #111008; border-bottom: 1px solid rgba(125,91,49,0.3);">
+          <h2 style="color: #c9a96e; font-size: 13px; text-transform: uppercase; letter-spacing: 3px; margin: 0 0 20px;">Design Previews</h2>
+          <table style="width:100%; border-collapse:collapse;">
+            <tr>
+              <td style="padding: 0 12px 0 0; vertical-align: top; width: 50%;">
+                <p style="color: rgba(240,230,211,0.4); font-size: 10px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 10px;">Front</p>
+                ${frontImageHtml}
+              </td>
+              <td style="padding: 0 0 0 12px; vertical-align: top; width: 50%;">
+                <p style="color: rgba(240,230,211,0.4); font-size: 10px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 10px;">Back</p>
+                ${backImageHtml}
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- CTA -->
+        <div style="padding: 24px; text-align: center; background: #0d0a07;">
+          <a href="mailto:${data.email}?subject=Re: Your Custom Print Request — Chill Co"
+             style="display:inline-block;background:linear-gradient(135deg,#c9a96e,#7d5b31);color:#0d0a07;padding:14px 32px;text-decoration:none;font-weight:bold;text-transform:uppercase;letter-spacing:2px;font-size:12px;border-radius:2px;">
+            Reply to Customer
+          </a>
+        </div>
+
+        <!-- Footer -->
+        <div style="padding: 16px 24px; text-align: center; color: rgba(240,230,211,0.3); font-size: 11px; border-top: 1px solid rgba(125,91,49,0.2);">
+          Chill Co Custom Print Studio &mdash; Internal Notification
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Custom print request email sent to admin (${adminEmail}) for customer ${data.email}`);
+  } catch (error) {
+    console.error('Error sending custom print request email:', error);
+    throw error;
+  }
+};
+
+/**
+ * Sends a confirmation acknowledgement email to the customer after they submit
+ * a custom print request.
+ */
+export const sendCustomPrintAckEmail = async (
+  customerEmail: string,
+  name: string
+) => {
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.error('Missing GMAIL_USER or GMAIL_APP_PASSWORD in environment variables');
+    return;
+  }
+
+  const mailOptions: nodemailer.SendMailOptions = {
+    from: `"Chill Co" <${process.env.GMAIL_USER}>`,
+    to: customerEmail,
+    subject: `We Got Your Design! — Chill Co Custom Print`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333;">
+
+        <!-- Header -->
+        <div style="background: linear-gradient(135deg, #1a1208, #0d0a07); padding: 40px 24px; text-align: center;">
+          <h1 style="color: #c9a96e; margin: 0 0 8px; font-size: 26px; letter-spacing: 4px; text-transform: uppercase;">CHILL CO</h1>
+          <p style="color: rgba(201,169,110,0.5); margin: 0; font-size: 10px; text-transform: uppercase; letter-spacing: 4px;">Custom Print Studio</p>
+        </div>
+
+        <!-- Body -->
+        <div style="padding: 40px 32px; background: #fff; border: 1px solid #eee;">
+          <h2 style="margin: 0 0 8px; font-size: 22px; color: #1a1208;">We got your design, ${name}!</h2>
+          <p style="color: #777; font-size: 14px; margin: 0 0 28px; line-height: 1.6;">
+            Thank you for submitting your custom print request. Our team has received your design and specifications.
+          </p>
+
+          <!-- Timeline -->
+          <div style="background: #fafaf8; border-left: 3px solid #c9a96e; padding: 20px 24px; margin-bottom: 28px; border-radius: 0 8px 8px 0;">
+            <h3 style="margin: 0 0 12px; font-size: 12px; text-transform: uppercase; letter-spacing: 2px; color: #7d5b31;">What happens next</h3>
+            <ol style="margin: 0; padding-left: 18px; color: #555; font-size: 13px; line-height: 2;">
+              <li>Our team reviews your design &amp; specifications</li>
+              <li>We'll reach out within <strong>24–48 hours</strong> to confirm details &amp; pricing</li>
+              <li>Once confirmed, your custom piece goes into production</li>
+              <li>Crafted and delivered to your door</li>
+            </ol>
+          </div>
+
+          <p style="font-size: 13px; color: #888; margin: 0 0 28px; line-height: 1.6;">
+            Have questions in the meantime? Simply reply to this email — we're here to help.
+          </p>
+
+          <div style="text-align: center;">
+            <a href="https://chill-co.vercel.app/"
+               style="display:inline-block;background:linear-gradient(135deg,#c9a96e,#7d5b31);color:#fff;padding:14px 32px;text-decoration:none;font-weight:bold;text-transform:uppercase;letter-spacing:2px;font-size:12px;border-radius:2px;">
+              Explore the Collection
+            </a>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="padding: 20px 24px; text-align: center; color: #bbb; font-size: 11px;">
+          &copy; Chill Co &mdash; Your story, worn.
+        </div>
+      </div>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`Custom print acknowledgement email sent to ${customerEmail}`);
+  } catch (error) {
+    console.error('Error sending custom print ack email:', error);
+    throw error;
+  }
+};
