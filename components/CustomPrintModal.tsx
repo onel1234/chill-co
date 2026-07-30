@@ -53,7 +53,7 @@ export default function CustomPrintModal({ isOpen, onClose }: CustomPrintModalPr
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-50 bg-background/80 backdrop-blur-md"
+            className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-md"
           />
 
           {/* Modal */}
@@ -62,19 +62,22 @@ export default function CustomPrintModal({ isOpen, onClose }: CustomPrintModalPr
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 pointer-events-none"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 pointer-events-none"
           >
-            <div className="w-full max-w-6xl max-h-[95vh] bg-background border border-outline/10 rounded-2xl sm:rounded-3xl shadow-2xl overflow-y-auto pointer-events-auto relative">
+            <div className="w-full max-w-6xl max-h-[95vh] bg-background border border-outline/10 rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col pointer-events-auto relative overflow-hidden">
               
-              {/* Close button */}
-              <button
-                onClick={onClose}
-                className="absolute top-3 right-3 sm:top-6 sm:right-6 p-2 bg-surface-variant/80 backdrop-blur text-on-surface-variant rounded-full hover:bg-outline/20 transition-colors z-50 shadow-sm"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              {/* Close button wrapper to keep it outside scroll area */}
+              <div className="absolute top-3 right-3 sm:top-6 sm:right-6 z-50">
+                <button
+                  onClick={onClose}
+                  className="p-2 bg-surface-variant/90 backdrop-blur text-on-surface-variant rounded-full hover:bg-outline/20 transition-colors shadow-md border border-white/5"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
 
-              <div className="p-5 sm:p-8 md:p-12 pt-12 sm:pt-8">
+              {/* Scrollable Content */}
+              <div className="flex-1 overflow-y-auto min-h-0 p-5 sm:p-8 md:p-12 pt-12 sm:pt-8">
                 <div className="flex flex-col items-center text-center mb-8 sm:mb-10">
                   <span className="font-label-caps text-[10px] sm:text-xs text-primary tracking-widest uppercase mb-2 sm:mb-3 font-bold">
                     3D Customizer

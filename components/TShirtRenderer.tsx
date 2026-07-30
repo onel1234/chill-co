@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { motion, PanInfo } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 export type PrintSize = 'Logo' | 'A4' | 'A3' | 'Oversized';
 
@@ -35,14 +35,6 @@ export default function TShirtRenderer({
   isFlipped,
   onFlipToggle
 }: TShirtRendererProps) {
-  
-  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    // If dragged horizontally more than 50px, toggle flip
-    if (Math.abs(info.offset.x) > 50) {
-      onFlipToggle();
-    }
-  };
-
   const frontPrintClasses = getPrintSizeClasses(frontPrintSize, true);
   const backPrintClasses = getPrintSizeClasses(backPrintSize, false);
   
@@ -55,13 +47,9 @@ export default function TShirtRenderer({
       
       {/* 3D Container */}
       <motion.div 
-        className="relative w-full h-full rounded-2xl flex items-center justify-center cursor-grab active:cursor-grabbing [transform-style:preserve-3d]" 
+        className="relative w-full h-full rounded-2xl flex items-center justify-center [transform-style:preserve-3d]" 
         animate={{ rotateY: isFlipped ? 180 : 0 }}
         transition={{ type: 'spring', stiffness: 60, damping: 15 }}
-        drag="x"
-        dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.2}
-        onDragEnd={handleDragEnd}
       >
         
         {/* FRONT SIDE */}
@@ -135,11 +123,14 @@ export default function TShirtRenderer({
         </div>
       </motion.div>
       
-      {/* 3D Hint */}
-      <div className="absolute bottom-6 flex items-center gap-2 px-4 py-2 bg-background/50 backdrop-blur-md rounded-full pointer-events-none z-50 shadow-sm border border-outline/10">
-        <span className="material-symbols-outlined text-sm">360</span>
-        <span className="text-xs font-label-caps tracking-widest uppercase font-semibold">Drag to rotate</span>
-      </div>
+      {/* Rotate Button */}
+      <button 
+        onClick={onFlipToggle}
+        className="absolute bottom-6 flex items-center gap-2 px-4 py-2 bg-background/80 backdrop-blur-md rounded-full z-50 shadow-sm border border-outline/10 hover:bg-background transition-colors cursor-pointer group"
+      >
+        <span className="material-symbols-outlined text-sm group-hover:rotate-180 transition-transform duration-500">360</span>
+        <span className="text-xs font-label-caps tracking-widest uppercase font-semibold">Click to rotate</span>
+      </button>
     </div>
   );
 }
