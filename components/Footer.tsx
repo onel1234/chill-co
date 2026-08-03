@@ -105,9 +105,8 @@ export default function Footer() {
                 Shop
               </div>
               {[
-                { label: 'New Drops', path: '/shop' },
-                { label: 'Essentials', path: '/shop' },
-                { label: 'Accessories', path: '/shop' },
+                { label: 'Latest Drops', path: '/shop' },
+                { label: 'Collections', path: '/collections' },
               ].map((link) => (
                 <Link key={link.label} href={link.path} className="nav-link" style={{ display: 'block', marginBottom: '0.7rem', fontSize: '0.78rem', fontWeight: 300, letterSpacing: '0.04em' }}>
                   {link.label}
