@@ -442,3 +442,60 @@ export const sendCustomPrintAckEmail = async (
     throw error;
   }
 };
+
+export interface ContactFormEmailData {
+  name: string;
+  email: string;
+  message: string;
+}
+
+export const sendContactFormEmail = async (data: ContactFormEmailData) => {
+  const recipientEmail = 'Chillco676@gmail.com';
+
+  if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+    console.error('Missing GMAIL_USER or GMAIL_APP_PASSWORD in environment variables');
+    throw new Error('Email server configuration error');
+  }
+
+  const adminMailOptions: nodemailer.SendMailOptions = {
+    from: `"Chill Co Contact" <${process.env.GMAIL_USER}>`,
+    to: recipientEmail,
+    replyTo: data.email,
+    subject: `📩 New Contact Inquiry — ${data.name}`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #f0e6d3; background: #0d0a07; padding: 24px; border: 1px solid #7d5b31;">
+        <h2 style="color: #c9a96e; text-transform: uppercase; letter-spacing: 2px; margin-top: 0;">New Contact Message</h2>
+        <p><strong style="color: #ffe8b5;">From Name:</strong> ${data.name}</p>
+        <p><strong style="color: #ffe8b5;">Email:</strong> <a href="mailto:${data.email}" style="color: #c9a96e;">${data.email}</a></p>
+        <div style="background: rgba(20,13,8,0.8); padding: 16px; border-left: 3px solid #c9a96e; margin-top: 16px;">
+          <strong style="color: #c9a96e; display: block; margin-bottom: 8px;">Message:</strong>
+          <p style="margin: 0; line-height: 1.6; white-space: pre-wrap;">${data.message}</p>
+        </div>
+        <p style="margin-top: 24px; font-size: 11px; color: rgba(240,230,211,0.5);">Dispatched via Chill Co. Contact Portal</p>
+      </div>
+    `,
+  };
+
+  const ackMailOptions: nodemailer.SendMailOptions = {
+    from: `"Chill Co." <${process.env.GMAIL_USER}>`,
+    to: data.email,
+    subject: `We received your message — Chill Co.`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #333; padding: 32px 24px; border: 1px solid #eee; background: #ffffff;">
+        <h2 style="color: #7d5b31; margin-top: 0;">Thank you for contacting Chill Co., ${data.name}!</h2>
+        <p style="color: #555; line-height: 1.6;">We have received your message and our team will get back to you shortly.</p>
+        <div style="background: #faf8f5; border-left: 3px solid #7d5b31; padding: 16px; margin: 20px 0;">
+          <strong style="color: #7d5b31; display: block; margin-bottom: 6px;">Your Inquiry Summary:</strong>
+          <p style="margin: 0; color: #666; font-style: italic;">"${data.message}"</p>
+        </div>
+        <p style="color: #777; font-size: 12px;">Chill Co. Support &mdash; Colombo, Sri Lanka</p>
+      </div>
+    `,
+  };
+
+  await Promise.all([
+    transporter.sendMail(adminMailOptions),
+    transporter.sendMail(ackMailOptions),
+  ]);
+};
+
