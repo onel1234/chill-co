@@ -154,13 +154,19 @@ create policy "Users can insert their own order items"
 -- ============================================================
 -- 5. AUTO-CREATE PROFILE ON SIGN UP
 -- Trigger fires after a new user is inserted into auth.users
+-- Now also processes affiliate referral codes
 -- ============================================================
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
 security definer set search_path = ''
 as $$
+declare
+  v_affiliate_code text;
+  v_affiliate_user_id uuid;
+  v_points integer;
 begin
+  -- Create profile
   insert into public.profiles (id, email, full_name, avatar_url)
   values (
     new.id,
@@ -168,6 +174,39 @@ begin
     new.raw_user_meta_data ->> 'full_name',
     new.raw_user_meta_data ->> 'avatar_url'
   );
+
+  -- Process affiliate code if provided during signup
+  v_affiliate_code := new.raw_user_meta_data ->> 'affiliate_code';
+  if v_affiliate_code is not null and v_affiliate_code != '' then
+    -- Look up the code owner
+    select user_id into v_affiliate_user_id
+    from public.affiliate_codes
+    where code = upper(v_affiliate_code) and is_active = true;
+
+    if v_affiliate_user_id is not null and v_affiliate_user_id != new.id then
+      -- Get reward points from settings
+      select points_per_referral into v_points
+      from public.affiliate_settings limit 1;
+      v_points := coalesce(v_points, 50);
+
+      -- Award points to affiliate
+      update public.profiles
+      set loyalty_points = loyalty_points + v_points
+      where id = v_affiliate_user_id;
+
+      -- Record the referral
+      insert into public.affiliate_referrals
+        (affiliate_user_id, referred_user_id, code_used, points_awarded)
+      values
+        (v_affiliate_user_id, new.id, upper(v_affiliate_code), v_points);
+
+      -- Increment code counter
+      update public.affiliate_codes
+      set total_referrals = total_referrals + 1
+      where code = upper(v_affiliate_code);
+    end if;
+  end if;
+
   return new;
 end;
 $$;
@@ -261,3 +300,121 @@ create policy "Users can update their own coupons"
 -- We handle this securely in the API route instead with service role.
 
 
+-- ============================================================
+-- 9. AFFILIATE SETTINGS TABLE
+-- Single-row config for customizable affiliate rewards
+-- ============================================================
+create table if not exists public.affiliate_settings (
+  id uuid default gen_random_uuid() primary key,
+  points_per_referral integer not null default 50,
+  max_codes_per_user integer not null default 3,
+  updated_at timestamptz default now()
+);
+
+-- Enable RLS
+alter table public.affiliate_settings enable row level security;
+
+-- Anyone can read settings (needed for display)
+create policy "Anyone can view affiliate settings"
+  on public.affiliate_settings for select
+  using (true);
+
+-- Seed default settings row
+insert into public.affiliate_settings (points_per_referral, max_codes_per_user)
+values (50, 3)
+on conflict do nothing;
+
+
+-- ============================================================
+-- 10. AFFILIATE CODES TABLE
+-- User-created referral codes
+-- ============================================================
+create table if not exists public.affiliate_codes (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references public.profiles on delete cascade not null,
+  code text unique not null,
+  is_active boolean default true,
+  total_referrals integer default 0,
+  created_at timestamptz default now()
+);
+
+-- Enable RLS
+alter table public.affiliate_codes enable row level security;
+
+-- Users can view their own codes
+create policy "Users can view their own affiliate codes"
+  on public.affiliate_codes for select
+  using (auth.uid() = user_id);
+
+-- Users can insert their own codes
+create policy "Users can insert their own affiliate codes"
+  on public.affiliate_codes for insert
+  with check (auth.uid() = user_id);
+
+-- Users can update their own codes (toggle active)
+create policy "Users can update their own affiliate codes"
+  on public.affiliate_codes for update
+  using (auth.uid() = user_id);
+
+-- Anyone can validate codes (needed during signup, read-only)
+create policy "Anyone can validate affiliate codes"
+  on public.affiliate_codes for select
+  using (true);
+
+
+-- ============================================================
+-- 11. AFFILIATE REFERRALS TABLE
+-- Audit log of successful referrals
+-- ============================================================
+create table if not exists public.affiliate_referrals (
+  id uuid default gen_random_uuid() primary key,
+  affiliate_user_id uuid references public.profiles on delete cascade not null,
+  referred_user_id uuid references public.profiles on delete cascade not null unique,
+  code_used text not null,
+  points_awarded integer not null,
+  created_at timestamptz default now()
+);
+
+-- Enable RLS
+alter table public.affiliate_referrals enable row level security;
+
+-- Users can view referrals where they are the affiliate
+create policy "Users can view their own referrals"
+  on public.affiliate_referrals for select
+  using (auth.uid() = affiliate_user_id);
+
+-- Insert handled by the trigger (security definer), not by users directly
+
+
+-- ============================================================
+-- 12. AFFILIATE REFERRAL RPC FUNCTION
+-- Used by OAuth callback to process referrals server-side
+-- ============================================================
+create or replace function public.process_affiliate_referral(
+  p_affiliate_user_id uuid,
+  p_referred_user_id uuid,
+  p_code text,
+  p_points integer
+)
+returns void
+language plpgsql
+security definer set search_path = ''
+as $$
+begin
+  -- Award points to affiliate
+  update public.profiles
+  set loyalty_points = loyalty_points + p_points
+  where id = p_affiliate_user_id;
+
+  -- Record the referral
+  insert into public.affiliate_referrals
+    (affiliate_user_id, referred_user_id, code_used, points_awarded)
+  values
+    (p_affiliate_user_id, p_referred_user_id, p_code, p_points);
+
+  -- Increment code counter
+  update public.affiliate_codes
+  set total_referrals = total_referrals + 1
+  where code = p_code;
+end;
+$$;

@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useAuth } from "@/lib/context/AuthContext";
 
-export default function SignupClient() {
+function SignupForm() {
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,16 +15,83 @@ export default function SignupClient() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Affiliate / Referral state variables
+  const [affiliateCode, setAffiliateCode] = useState("");
+  const [showAffiliateField, setShowAffiliateField] = useState(false);
+  const [affiliateValid, setAffiliateValid] = useState<boolean | null>(null);
+  const [affiliateChecking, setAffiliateChecking] = useState(false);
+
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, isLoading: authLoading } = useAuth();
   const supabase = createClient();
 
   useEffect(() => {
-    // Only redirect once we know auth state is resolved
     if (!authLoading && user) {
       router.push("/account");
     }
   }, [user, authLoading, router]);
+
+  // Read ?ref=CODE on mount or restore from localStorage
+  useEffect(() => {
+    const refParam = searchParams.get("ref");
+    if (refParam) {
+      setAffiliateCode(refParam);
+      setShowAffiliateField(true);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("affiliate_ref_code", refParam);
+      }
+    } else if (typeof window !== "undefined") {
+      const savedCode = localStorage.getItem("affiliate_ref_code");
+      if (savedCode) {
+        setAffiliateCode(savedCode);
+        setShowAffiliateField(true);
+      }
+    }
+  }, [searchParams]);
+
+  // Function to validate affiliate code via API
+  const validateAffiliateCode = async (code: string) => {
+    const trimmed = code.trim();
+    if (!trimmed) {
+      setAffiliateValid(null);
+      setAffiliateChecking(false);
+      return;
+    }
+
+    setAffiliateChecking(true);
+    setAffiliateValid(null);
+
+    try {
+      const res = await fetch(`/api/affiliate/validate-code?code=${encodeURIComponent(trimmed)}`);
+      const data = await res.json();
+      if (res.ok && data.valid) {
+        setAffiliateValid(true);
+      } else {
+        setAffiliateValid(false);
+      }
+    } catch {
+      setAffiliateValid(false);
+    } finally {
+      setAffiliateChecking(false);
+    }
+  };
+
+  // Validate affiliate code on change (debounced)
+  useEffect(() => {
+    if (!affiliateCode.trim()) {
+      setAffiliateValid(null);
+      setAffiliateChecking(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      validateAffiliateCode(affiliateCode);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [affiliateCode]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +115,7 @@ export default function SignupClient() {
       options: {
         data: {
           full_name: fullName,
+          ...(affiliateCode.trim() ? { affiliate_code: affiliateCode.trim() } : {}),
         },
       },
     });
@@ -56,26 +124,34 @@ export default function SignupClient() {
       setError(error.message);
       setIsLoading(false);
     } else if (data.user && !data.session) {
-      // Email confirmation is enabled on Supabase — tell the user to check their email
       setError(null);
       setIsLoading(false);
       router.push("/account/login?message=check_email");
     } else {
-      // Session created immediately (email confirmation disabled)
       router.push("/account");
       router.refresh();
     }
   };
 
-
   const handleGoogleSignup = async () => {
     setIsGoogleLoading(true);
     setError(null);
+
+    const codeToSave = affiliateCode.trim() || (typeof window !== "undefined" ? localStorage.getItem("affiliate_ref_code") || "" : "");
+    if (codeToSave && typeof window !== "undefined") {
+      localStorage.setItem("affiliate_ref_code", codeToSave);
+    }
+
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    let redirectTo = `${siteUrl}/auth/callback`;
+    if (codeToSave) {
+      redirectTo += `?affiliate_ref=${encodeURIComponent(codeToSave)}`;
+    }
+
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${siteUrl}/auth/callback`,
+        redirectTo,
       },
     });
     if (error) {
@@ -83,8 +159,6 @@ export default function SignupClient() {
       setIsGoogleLoading(false);
     }
   };
-
-
 
   return (
     <main className="min-h-screen flex items-center justify-center px-margin-mobile py-24 bg-texture kinetic-bg">
@@ -94,8 +168,8 @@ export default function SignupClient() {
           <Link href="/" className="inline-block mb-8">
             <img
               alt="Chill Co. Logo"
-              className="h-12 w-auto mx-auto"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqB65R-CNaUPWxe_JwjGRHxiS3EUkEaXgG_Ykp-m9DV7dZVVB2qnF0O1xUNp6ioaAH7YSjRh1PAkQrEacFEWd3ju5pOJ4rXlPTBID9lpaGpjs_02jZwIsNjKKKPA5WYRj0rclafY-H2LtxCzFRxb7nyftQ-rr0G6RYnF-CnkK305lo-IqnWrNri_UUhYERexGtllSN_-WafAqC7s1ZWKuvcHAWDKK4NqZyTA-qs7UtMfISab21PmlHbupj6bYL8Rxyrmbo3LtTvSs"
+              className="h-16 w-auto mx-auto object-contain"
+              src="/images/WhatsApp_Image_2026-07-26_at_23.42.00-removebg-preview.png"
             />
           </Link>
           <h1 className="font-headline-lg text-headline-lg-mobile uppercase tracking-tighter text-on-surface">
@@ -108,7 +182,6 @@ export default function SignupClient() {
 
         {/* Card */}
         <div className="bg-surface-container-lowest border border-surface-variant p-8 shadow-sm">
-          {/* Error Message */}
           {error && (
             <div className="mb-6 p-4 bg-error-container border border-error/20 flex items-start gap-3">
               <span className="material-symbols-outlined text-on-error-container text-sm mt-0.5">error</span>
@@ -216,6 +289,62 @@ export default function SignupClient() {
               />
             </div>
 
+            {/* Affiliate / Referral Code Field */}
+            {!showAffiliateField ? (
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={() => setShowAffiliateField(true)}
+                  className="inline-flex items-center gap-1.5 font-body-md text-xs text-on-surface-variant/60 hover:text-primary transition-colors cursor-pointer border-none bg-transparent p-0"
+                >
+                  <span className="material-symbols-outlined text-[16px]">card_giftcard</span>
+                  Have a referral code?
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-1.5 pt-1 animate-fadeIn transition-all duration-300">
+                <label className="font-label-caps text-label-caps text-on-surface-variant mb-1.5 block">
+                  Referral Code
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={affiliateCode}
+                    onChange={(e) => setAffiliateCode(e.target.value.toUpperCase())}
+                    placeholder="Enter referral code"
+                    className="w-full bg-surface-container-low border border-surface-variant p-4 pr-12 font-body-md text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-on-surface-variant/50 uppercase"
+                  />
+                  <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
+                    {affiliateChecking && (
+                      <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                    )}
+                    {!affiliateChecking && affiliateValid === true && (
+                      <span className="material-symbols-outlined text-[20px] text-green-500">
+                        check_circle
+                      </span>
+                    )}
+                    {!affiliateChecking && affiliateValid === false && affiliateCode.trim() !== "" && (
+                      <span className="material-symbols-outlined text-[20px] text-red-500">
+                        cancel
+                      </span>
+                    )}
+                  </div>
+                </div>
+                {!affiliateChecking && affiliateValid === true && (
+                  <p className="font-body-md text-xs text-green-600 flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[14px]">check</span>
+                    Valid referral code!
+                  </p>
+                )}
+                {!affiliateChecking && affiliateValid === false && affiliateCode.trim() !== "" && (
+                  <p className="font-body-md text-xs text-red-500 flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[14px]">error</span>
+                    Invalid referral code
+                  </p>
+                )}
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={isLoading}
@@ -248,5 +377,13 @@ export default function SignupClient() {
         </p>
       </div>
     </main>
+  );
+}
+
+export default function SignupClient() {
+  return (
+    <Suspense fallback={null}>
+      <SignupForm />
+    </Suspense>
   );
 }

@@ -64,8 +64,8 @@ export default function LoadingScreen() {
         }`}>
           <img 
             alt="Chill Co. Logo" 
-            className="w-auto h-[50px] md:h-[65px] object-contain drop-shadow-2xl transition-all duration-500 ease-in-out hover:scale-105" 
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqB65R-CNaUPWxe_JwjGRHxiS3EUkEaXgG_Ykp-m9DV7dZVVB2qnF0O1xUNp6ioaAH7YSjRh1PAkQrEacFEWd3ju5pOJ4rXlPTBID9lpaGpjs_02jZwIsNjKKKPA5WYRj0rclafY-H2LtxCzFRxb7nyftQ-rr0G6RYnF-CnkK305lo-IqnWrNri_UUhYERexGtllSN_-WafAqC7s1ZWKuvcHAWDKK4NqZyTA-qs7UtMfISab21PmlHbupj6bYL8Rxyrmbo3LtTvSs" 
+            className="w-auto h-[60px] md:h-[85px] object-contain drop-shadow-2xl transition-all duration-500 ease-in-out hover:scale-105" 
+            src="/images/WhatsApp_Image_2026-07-26_at_23.42.00-removebg-preview.png" 
           />
         </div>
 

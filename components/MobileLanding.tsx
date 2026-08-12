@@ -118,7 +118,7 @@ export default function MobileLanding() {
       {/* Footer */}
       <footer className="bg-surface-container-lowest py-section-gap px-margin-mobile flex flex-col gap-12">
         <div>
-          <img alt="Chill Co. Logo" className="h-10 w-auto mb-6" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCR2wNMBztwufgW8lGS2JpO70hZORdFxujBhNc39mVggd3KM5Xb_m0iozTj3MImDhr0zzXa3OIpbCjLzCkL6CzmedrhCPm86EPmuAEe9sSBoraXEyT-5wKT3ozZ7sN63-T8PlHiCh0Efxz80uyPX6gHrEo328WXlOxNs1AoA435_bCNKuVfe09q8cH8ObudefTMiJ6CoW4Yy7bk0KhGo8OgyCYny30eAtLbwkwLyY1K24WgrAMBh242JxieUkJB_UucVG4SJMXzFV4" />
+          <img alt="Chill Co. Logo" className="h-12 w-auto mb-6 object-contain" src="/images/WhatsApp_Image_2026-07-26_at_23.42.00-removebg-preview.png" />
           <p className="font-body-md text-body-md text-on-surface-variant max-w-xs">Premium streetwear designed for comfort and the urban kinetic lifestyle.</p>
         </div>
         <div className="grid grid-cols-2 gap-stack-lg">

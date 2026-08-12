@@ -12,7 +12,7 @@ const poppins = Poppins({
   variable: '--font-poppins',
 });
 
-const logoUrl = "/images/Screenshot 2026-08-03 192547.png";
+const logoUrl = "/images/WhatsApp_Image_2026-07-26_at_23.42.00-removebg-preview.png";
 
 export const metadata: Metadata = {
   title: "Chill Co. | Effortless Comfort",

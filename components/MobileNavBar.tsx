@@ -21,7 +21,7 @@ export default function MobileNavBar() {
             <span className="material-symbols-outlined text-primary text-[28px]">menu</span>
           </button>
           <Link href="/">
-            <img alt="Chill Co. Logo" className="h-8 w-auto" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCR2wNMBztwufgW8lGS2JpO70hZORdFxujBhNc39mVggd3KM5Xb_m0iozTj3MImDhr0zzXa3OIpbCjLzCkL6CzmedrhCPm86EPmuAEe9sSBoraXEyT-5wKT3ozZ7sN63-T8PlHiCh0Efxz80uyPX6gHrEo328WXlOxNs1AoA435_bCNKuVfe09q8cH8ObudefTMiJ6CoW4Yy7bk0KhGo8OgyCYny30eAtLbwkwLyY1K24WgrAMBh242JxieUkJB_UucVG4SJMXzFV4" />
+            <img alt="Chill Co. Logo" className="h-10 w-auto object-contain" src="/images/WhatsApp_Image_2026-07-26_at_23.42.00-removebg-preview.png" />
           </Link>
         </div>
         <div className="flex items-center gap-stack-md">

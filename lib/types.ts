@@ -58,3 +58,26 @@ export interface OrderItem {
   size: string;
   quantity: number;
 }
+
+export interface AffiliateCode {
+  id: string;
+  user_id: string;
+  code: string;
+  is_active: boolean;
+  total_referrals: number;
+  created_at: string;
+}
+
+export interface AffiliateReferral {
+  id: string;
+  affiliate_user_id: string;
+  referred_user_id: string;
+  code_used: string;
+  points_awarded: number;
+  created_at: string;
+}
+
+export interface AffiliateSettings {
+  points_per_referral: number;
+  max_codes_per_user: number;
+}

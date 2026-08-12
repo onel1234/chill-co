@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/context/AuthContext";
 import { createClient } from "@/lib/supabase/client";
-import { Order } from "@/lib/types";
+import { Order, AffiliateCode, AffiliateSettings } from "@/lib/types";
 
 interface LoyaltyTier {
   id: string;
@@ -21,13 +21,23 @@ interface ClaimedCoupon {
 }
 
 export default function AccountClient() {
-  const { user, profile, isAdmin, isLoading, signOut } = useAuth();
+  const { user, profile, isAdmin, isLoading, signOut, refreshProfile } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [tiers, setTiers] = useState<LoyaltyTier[]>([]);
   const [showTierChart, setShowTierChart] = useState(false);
   const router = useRouter();
   const supabase = createClient();
+
+  // Affiliate state
+  const [affiliateCodes, setAffiliateCodes] = useState<AffiliateCode[]>([]);
+  const [affiliateSettings, setAffiliateSettings] = useState<AffiliateSettings | null>(null);
+  const [affiliateStats, setAffiliateStats] = useState<{ total_referrals: number; total_points_earned: number } | null>(null);
+  const [newCode, setNewCode] = useState("");
+  const [codeError, setCodeError] = useState<string | null>(null);
+  const [codeSuccess, setCodeSuccess] = useState<string | null>(null);
+  const [isCreatingCode, setIsCreatingCode] = useState(false);
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -64,6 +74,71 @@ export default function AccountClient() {
         });
     }
   }, [profile?.is_loyalty_member]);
+
+  // Fetch affiliate data
+  const fetchAffiliateData = useCallback(async () => {
+    const [codesRes, statsRes, settingsRes] = await Promise.all([
+      fetch('/api/affiliate/my-codes'),
+      fetch('/api/affiliate/stats'),
+      fetch('/api/affiliate/settings'),
+    ]);
+    const codesData = await codesRes.json();
+    const statsData = await statsRes.json();
+    const settingsData = await settingsRes.json();
+    if (!codesData.error) setAffiliateCodes(codesData);
+    if (!statsData.error) setAffiliateStats(statsData);
+    if (!settingsData.error) setAffiliateSettings(settingsData);
+  }, []);
+
+  useEffect(() => {
+    if (user) {
+      fetchAffiliateData();
+    }
+  }, [user, fetchAffiliateData]);
+
+  const handleCreateCode = async () => {
+    setCodeError(null);
+    setCodeSuccess(null);
+    const trimmed = newCode.trim();
+    if (!trimmed) {
+      setCodeError("Please enter a code.");
+      return;
+    }
+    if (!/^[A-Za-z0-9]{4,20}$/.test(trimmed)) {
+      setCodeError("Code must be 4–20 alphanumeric characters.");
+      return;
+    }
+    setIsCreatingCode(true);
+    try {
+      const res = await fetch('/api/affiliate/create-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: trimmed }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setCodeError(data.error || 'Failed to create code.');
+      } else {
+        setCodeSuccess(`Code "${data.code}" created!`);
+        setNewCode("");
+        fetchAffiliateData();
+      }
+    } catch {
+      setCodeError('Something went wrong.');
+    }
+    setIsCreatingCode(false);
+  };
+
+  const copyToClipboard = (text: string, id: string) => {
+    navigator.clipboard.writeText(text);
+    setCopiedCode(id);
+    setTimeout(() => setCopiedCode(null), 2000);
+  };
+
+  const getShareableLink = (code: string) => {
+    const base = typeof window !== 'undefined' ? window.location.origin : 'https://chillco.store';
+    return `${base}/account/signup?ref=${code}`;
+  };
 
   const handleSignOut = async () => {
     await signOut();
@@ -279,6 +354,129 @@ export default function AccountClient() {
               })}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Affiliate Program Section */}
+      {user && (
+        <div className="mb-stack-lg border-t border-surface-variant pt-stack-lg">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-3">
+              <span className="material-symbols-outlined text-primary">handshake</span>
+              <h2 className="font-headline-md text-headline-sm uppercase tracking-tight">Affiliate Program</h2>
+            </div>
+            {affiliateSettings && (
+              <p className="text-sm text-on-surface-variant">
+                Earn <span className="text-primary font-bold">{affiliateSettings.points_per_referral} points</span> for every friend who signs up with your code
+              </p>
+            )}
+          </div>
+
+          {/* Affiliate Stats */}
+          {affiliateStats && (affiliateStats.total_referrals > 0) && (
+            <div className="grid grid-cols-2 gap-gutter mb-6">
+              <div className="bg-primary/5 border border-primary/20 p-5 text-center">
+                <p className="font-display-xl text-headline-lg text-primary">{affiliateStats.total_referrals}</p>
+                <p className="font-label-caps text-label-caps text-primary/80 mt-1">Referrals</p>
+              </div>
+              <div className="bg-primary/5 border border-primary/20 p-5 text-center">
+                <p className="font-display-xl text-headline-lg text-primary">{affiliateStats.total_points_earned}</p>
+                <p className="font-label-caps text-label-caps text-primary/80 mt-1">Points Earned</p>
+              </div>
+            </div>
+          )}
+
+          {/* Create Code */}
+          <div className="bg-surface-container-lowest border border-surface-variant p-5 mb-4">
+            <p className="font-label-caps text-label-caps text-on-surface-variant mb-3">Create Your Referral Code</p>
+            <div className="flex gap-3">
+              <input
+                type="text"
+                value={newCode}
+                onChange={(e) => { setNewCode(e.target.value.toUpperCase()); setCodeError(null); setCodeSuccess(null); }}
+                placeholder="e.g. JOHN2024"
+                maxLength={20}
+                className="flex-1 bg-surface-container-low border border-surface-variant p-3 font-mono text-sm uppercase focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-on-surface-variant/50"
+              />
+              <button
+                onClick={handleCreateCode}
+                disabled={isCreatingCode || !newCode.trim()}
+                className="bg-primary text-on-primary font-button-text text-button-text uppercase px-5 py-3 hover:bg-primary-container active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isCreatingCode ? (
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <span className="material-symbols-outlined text-[18px]">add</span>
+                )}
+                Create
+              </button>
+            </div>
+            {codeError && (
+              <p className="text-sm text-error mt-2 flex items-center gap-1">
+                <span className="material-symbols-outlined text-[16px]">error</span>
+                {codeError}
+              </p>
+            )}
+            {codeSuccess && (
+              <p className="text-sm text-secondary mt-2 flex items-center gap-1">
+                <span className="material-symbols-outlined text-[16px]">check_circle</span>
+                {codeSuccess}
+              </p>
+            )}
+            {affiliateSettings && (
+              <p className="text-xs text-on-surface-variant/60 mt-2">
+                {affiliateCodes.length} / {affiliateSettings.max_codes_per_user} codes used · 4–20 alphanumeric characters
+              </p>
+            )}
+          </div>
+
+          {/* My Codes */}
+          {affiliateCodes.length > 0 && (
+            <div className="space-y-3">
+              {affiliateCodes.map((ac) => (
+                <div
+                  key={ac.id}
+                  className={`border p-4 transition-colors ${
+                    ac.is_active ? 'border-surface-variant bg-surface-container-lowest' : 'border-surface-variant/50 bg-surface-container-lowest/50 opacity-60'
+                  }`}
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono text-lg font-bold text-primary tracking-wider">{ac.code}</span>
+                      {!ac.is_active && (
+                        <span className="font-label-caps text-[10px] text-on-surface-variant bg-surface-container px-1.5 py-0.5">INACTIVE</span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-label-caps text-label-caps text-on-surface-variant">
+                        {ac.total_referrals} referral{ac.total_referrals !== 1 ? 's' : ''}
+                      </span>
+                      <button
+                        onClick={() => copyToClipboard(ac.code, `code-${ac.id}`)}
+                        className="flex items-center gap-1 text-xs text-on-surface-variant hover:text-primary transition-colors border border-surface-variant px-2 py-1"
+                        title="Copy code"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">
+                          {copiedCode === `code-${ac.id}` ? 'check' : 'content_copy'}
+                        </span>
+                        {copiedCode === `code-${ac.id}` ? 'Copied!' : 'Code'}
+                      </button>
+                      <button
+                        onClick={() => copyToClipboard(getShareableLink(ac.code), `link-${ac.id}`)}
+                        className="flex items-center gap-1 text-xs text-on-surface-variant hover:text-primary transition-colors border border-surface-variant px-2 py-1"
+                        title="Copy shareable link"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">
+                          {copiedCode === `link-${ac.id}` ? 'check' : 'link'}
+                        </span>
+                        {copiedCode === `link-${ac.id}` ? 'Copied!' : 'Link'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
