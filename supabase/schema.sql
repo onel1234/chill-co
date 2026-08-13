@@ -418,3 +418,8 @@ begin
   where code = p_code;
 end;
 $$;
+
+-- Add payment columns to orders table
+ALTER TABLE orders
+ADD COLUMN IF NOT EXISTS payment_transaction_id text,
+ADD COLUMN IF NOT EXISTS payment_method text;

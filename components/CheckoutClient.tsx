@@ -178,6 +178,44 @@ export default function CheckoutClient() {
     window.open(`https://wa.me/${waNumber}?text=${encodedMessage}`, '_blank');
   };
 
+  const handleOnlinePayment = async () => {
+    setIsProcessing(true);
+    try {
+      const response = await fetch('/api/payment/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items,
+          email,
+          phone,
+          shippingAddress,
+          appliedTier,
+          discountAmount,
+          userId: user?.id || null,
+          totalPrice,
+          shippingCost,
+          orderTotal
+        }),
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Payment creation failed');
+      }
+      
+      if (data.paymentUrl) {
+        window.location.href = data.paymentUrl;
+      } else {
+        throw new Error('No payment URL received');
+      }
+    } catch (error) {
+      console.error('Online payment error:', error);
+      alert(error instanceof Error ? error.message : 'Failed to initiate payment');
+      setIsProcessing(false);
+    }
+  };
+
   if (isSuccess) {
     return (
       <main className="pt-[120px] pb-section-gap px-margin-mobile md:px-margin-desktop min-h-[70vh] flex flex-col items-center justify-center text-center">
@@ -386,7 +424,7 @@ export default function CheckoutClient() {
 
               <section>
                 <h2 className="font-headline-sm text-headline-sm uppercase mb-4">Payment Method</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <button
                     onClick={handleCashOnDelivery}
                     disabled={isProcessing}
@@ -398,8 +436,19 @@ export default function CheckoutClient() {
                   </button>
 
                   <button
+                    onClick={handleOnlinePayment}
+                    disabled={isProcessing}
+                    className="flex flex-col items-center justify-center p-6 border-2 border-[#0b6fcc] bg-[#0b6fcc]/5 hover:bg-[#0b6fcc]/10 transition-colors disabled:opacity-50 gap-2"
+                  >
+                    <span className="material-symbols-outlined text-4xl text-[#0b6fcc]">credit_card</span>
+                    <span className="font-button-text text-button-text uppercase text-[#0b6fcc]">Pay Online</span>
+                    {isProcessing && <span className="text-xs text-[#0b6fcc]">Processing...</span>}
+                  </button>
+
+                  <button
                     onClick={handleWhatsAppInquiry}
-                    className="flex flex-col items-center justify-center p-6 border-2 border-[#25D366] bg-[#25D366]/5 hover:bg-[#25D366]/10 transition-colors gap-2"
+                    disabled={isProcessing}
+                    className="flex flex-col items-center justify-center p-6 border-2 border-[#25D366] bg-[#25D366]/5 hover:bg-[#25D366]/10 transition-colors disabled:opacity-50 gap-2"
                   >
                     <svg className="w-10 h-10 text-[#25D366]" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12.031 0C5.385 0 0 5.386 0 12.03c0 2.128.552 4.195 1.6 6.012L.156 23.366l5.46-1.433a11.96 11.96 0 006.415 1.84h.005c6.645 0 12.031-5.387 12.031-12.034C24.067 5.385 18.675 0 12.031 0zm0 21.782h-.005a9.92 9.92 0 01-5.068-1.385l-.364-.216-3.77.99.998-3.682-.236-.375A9.962 9.962 0 012.062 12.03c0-5.508 4.484-9.992 9.97-9.992s9.968 4.484 9.968 9.992-4.485 9.99-9.969 9.99zm5.474-7.483c-.3-.15-1.776-.877-2.052-.977-.275-.1-.475-.15-.675.15-.2.3-.775.977-.95 1.176-.175.2-.35.226-.65.076-.3-.15-1.268-.467-2.417-1.49-.893-.794-1.496-1.776-1.67-2.076-.176-.3-.018-.462.132-.612.135-.135.3-.35.45-.525.15-.175.2-.3.3-.5.1-.2.05-.375-.025-.525-.075-.15-.675-1.626-.925-2.226-.24-.585-.487-.506-.675-.515-.175-.01-.375-.01-.575-.01s-.525.075-.8.375c-.275.3-1.05 1.026-1.05 2.502s1.075 2.898 1.225 3.098c.15.2 2.115 3.226 5.115 4.526.714.31 1.272.495 1.706.635.717.228 1.368.196 1.884.119.58-.087 1.776-.726 2.026-1.426.25-.7.25-1.302.175-1.426-.075-.125-.275-.2-.575-.35z"/>
