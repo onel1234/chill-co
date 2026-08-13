@@ -47,8 +47,8 @@ let tokenExpiresAt: number = 0;
 function getBaseUrl() {
   const env = process.env.GENIE_ENV || 'sandbox';
   return env === 'production'
-    ? 'https://api.geniebusiness.lk'
-    : 'https://sandbox.geniebusiness.lk';
+    ? 'https://api.geniebiz.lk'
+    : 'https://api.geniebiz.lk';
 }
 
 export async function getGenieAuthToken(): Promise<string> {
