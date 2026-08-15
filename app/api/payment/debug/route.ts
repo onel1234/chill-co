@@ -8,9 +8,8 @@ export async function GET() {
   const merchantId = process.env.GENIE_MERCHANT_ID;
   const env = process.env.GENIE_ENV || 'sandbox';
 
-  const baseUrl = env === 'production'
-    ? 'https://api.geniebiz.lk'
-    : 'https://api-uat.geniebiz.lk';
+  // Both sandbox and production use the same URL
+  const baseUrl = 'https://api.geniebiz.lk';
 
   const result: Record<string, unknown> = {
     env,
@@ -22,6 +21,8 @@ export async function GET() {
     appKeyLength: appKey?.length,
     hasMerchantId: !!merchantId,
     merchantId,
+    expectedSandboxMerchantId: '6397f39df07fba000842a90b',
+    merchantIdMatchesSandbox: merchantId === '6397f39df07fba000842a90b',
   };
 
   // Try the auth token endpoint
@@ -35,7 +36,8 @@ export async function GET() {
     const body = await res.text();
     result.authUrl = authUrl;
     result.authStatus = res.status;
-    result.authResponse = body.slice(0, 500); // limit size
+    result.authHeaders = Object.fromEntries(res.headers.entries());
+    result.authResponse = body.slice(0, 1000);
   } catch (err) {
     result.authUrl = authUrl;
     result.authError = String(err);

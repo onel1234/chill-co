@@ -45,10 +45,9 @@ let cachedToken: string | null = null;
 let tokenExpiresAt: number = 0;
 
 function getBaseUrl() {
-  const env = process.env.GENIE_ENV || 'sandbox';
-  return env === 'production'
-    ? 'https://api.geniebiz.lk'
-    : 'https://api-uat.geniebiz.lk';
+  // Both sandbox and production use the same base URL.
+  // The environment is distinguished by the credentials (appId/appKey) used.
+  return 'https://api.geniebiz.lk';
 }
 
 export async function getGenieAuthToken(): Promise<string> {
