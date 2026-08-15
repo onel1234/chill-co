@@ -1,46 +1,70 @@
 import { NextResponse } from 'next/server';
 
 // TEMPORARY DEBUG ENDPOINT — REMOVE BEFORE GOING TO PRODUCTION
-// Visit: /api/payment/debug to see Genie API connectivity details
 export async function GET() {
   const appId = process.env.GENIE_APP_ID;
   const appKey = process.env.GENIE_APP_KEY;
   const merchantId = process.env.GENIE_MERCHANT_ID;
-  const env = process.env.GENIE_ENV || 'sandbox';
-
-  // Both sandbox and production use the same URL
   const baseUrl = 'https://api.geniebiz.lk';
 
   const result: Record<string, unknown> = {
-    env,
-    baseUrl,
-    hasAppId: !!appId,
-    appIdLength: appId?.length,
-    appIdPreview: appId ? `${appId.slice(0, 8)}...` : null,
-    hasAppKey: !!appKey,
-    appKeyLength: appKey?.length,
-    hasMerchantId: !!merchantId,
     merchantId,
-    expectedSandboxMerchantId: '6397f39df07fba000842a90b',
     merchantIdMatchesSandbox: merchantId === '6397f39df07fba000842a90b',
   };
 
-  // Try the auth token endpoint
+  // ── Test 1: appKey as x-api-key header, appId in body ──────────────────
   const authUrl = `${baseUrl}/v1/auth/token`;
   try {
     const res = await fetch(authUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ appId, appKey }),
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': appKey!,
+      },
+      body: JSON.stringify({ appId }),
     });
     const body = await res.text();
-    result.authUrl = authUrl;
-    result.authStatus = res.status;
-    result.authHeaders = Object.fromEntries(res.headers.entries());
-    result.authResponse = body.slice(0, 1000);
+    result.test1_desc = 'POST /v1/auth/token — x-api-key: appKey, body: { appId }';
+    result.test1_status = res.status;
+    result.test1_response = body.slice(0, 500);
   } catch (err) {
-    result.authUrl = authUrl;
-    result.authError = String(err);
+    result.test1_error = String(err);
+  }
+
+  // ── Test 2: appKey as Bearer token directly (no separate auth step) ────
+  const companyUrl = `${baseUrl}/v1/company`;
+  try {
+    const res = await fetch(companyUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${appKey}`,
+        'x-api-key': appKey!,
+      },
+    });
+    const body = await res.text();
+    result.test2_desc = 'GET /v1/company — Authorization: Bearer appKey + x-api-key: appKey';
+    result.test2_status = res.status;
+    result.test2_response = body.slice(0, 500);
+  } catch (err) {
+    result.test2_error = String(err);
+  }
+
+  // ── Test 3: appKey as Bearer only (no x-api-key) ──────────────────────
+  try {
+    const res = await fetch(companyUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${appKey}`,
+      },
+    });
+    const body = await res.text();
+    result.test3_desc = 'GET /v1/company — Authorization: Bearer appKey only';
+    result.test3_status = res.status;
+    result.test3_response = body.slice(0, 500);
+  } catch (err) {
+    result.test3_error = String(err);
   }
 
   return NextResponse.json(result);
