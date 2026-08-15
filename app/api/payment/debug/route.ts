@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
 
+// TEMPORARY DEBUG — tests original production credentials against the correct /public/ paths
 export async function GET() {
-  const appId  = process.env.GENIE_APP_ID!;
-  const appKey = process.env.GENIE_APP_KEY!;
-  const companyId = process.env.GENIE_MERCHANT_ID!;
   const base = 'https://api.geniebiz.lk';
+
+  // ── Original production credentials (restored for testing) ───────────
+  const prodAppId       = '455e0af8-319a-4e85-9493-aa1d32850b7c';
+  const prodAppKey      = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcHBJZCI6IjQ1NWUwYWY4LTMxOWEtNGU4NS05NDkzLWFhMWQzMjg1MGI3YyIsImNvbXBhbnlJZCI6IjZhMzJlNzJlMmRmZTFjMDAwMmI5YTAyNSIsImlhdCI6MTc4MTcyMTE1MCwiZXhwIjo0OTM3Mzk0NzUwfQ.es4XY8DmZzILpuLX4PtQfwDVzTPYZwKSCF_MT3qxvpg';
+  const prodApiKey      = 'pk_production_ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SmpJam9pTm1Fek1tVTNNbVV5WkdabE1XTXdNREF5WWpsaE1ESTFJaXdpYUNJNkltaDBkSEJ6T2k4dlpHRnphR0p2WVhKa0xtZGxibWxsWW1sNkxteHJJaXdpWVNJNklqUTFOV1V3WVdZNExUTXhPV0V0TkdVNE5TMDVORGt6TFdGaE1XUXpNamcxTUdJM1l5SXNJblZ4SWpvaU56UTVNR0UxTURndE9HWTBaQzAwT1dGa0xXSmxZemd0TWpVeU5qY3haakF4WXpabElpd2lhV0YwSWpveE56Z3hOekl4TVRVd0xDSmxlSEFpT2pRNU16Y3pPVFEzTlRCOS5YSUtPalVBWDZvRk9QZUtEQVd5UnROYjF1bE50TFc4cFFCa0pmc2xyajc0';
+  const prodCompanyId   = '6a32e72e2dfe1c0002b9a025';
 
   const results: Record<string, unknown> = {};
 
@@ -18,50 +22,58 @@ export async function GET() {
     }
   }
 
-  // x-api-key: appKey is confirmed to pass the AWS gateway
-  const gatewayHeaders: HeadersInit = { 'x-api-key': appKey, 'Content-Type': 'application/json' };
-
-  // ── 1. Try auth/token at the /public/ path with known-working gateway key ─
-  await probe('auth_public_token', `${base}/public/auth/token`, {
-    method: 'POST', headers: gatewayHeaders,
-    body: JSON.stringify({ appId, appKey }),
-  });
-  await probe('auth_public_login', `${base}/public/login`, {
-    method: 'POST', headers: gatewayHeaders,
-    body: JSON.stringify({ appId, appKey }),
-  });
-  await probe('auth_v1_token_with_gateway_key', `${base}/v1/auth/token`, {
-    method: 'POST', headers: gatewayHeaders,
-    body: JSON.stringify({ appId, appKey }),
-  });
-  await probe('auth_public_auth', `${base}/public/auth`, {
-    method: 'POST', headers: gatewayHeaders,
-    body: JSON.stringify({ appId, appKey }),
+  const txBody = JSON.stringify({
+    amount: 100,
+    currency: 'LKR',
+    redirectUrl: 'https://chillco.store/checkout/callback',
+    localId: 'test-order-001',
   });
 
-  // ── 2. Try GET company with x-api-key (the gateway key that works) ────────
-  await probe('company_with_gateway_key', `${base}/public/company`, {
-    method: 'GET', headers: gatewayHeaders,
-  });
-  await probe('company_id_with_gateway_key', `${base}/public/company/${companyId}`, {
-    method: 'GET', headers: gatewayHeaders,
-  });
-
-  // ── 3. POST transaction with companyId as query param ─────────────────────
-  await probe('tx_companyId_queryparam', `${base}/public/transactions?companyId=${companyId}`, {
-    method: 'POST', headers: gatewayHeaders,
-    body: JSON.stringify({ amount: 100, currency: 'LKR', redirectUrl: 'https://chillco.store/checkout/callback', localId: 'test-001' }),
-  });
-  await probe('tx_appId_queryparam', `${base}/public/transactions?appId=${appId}`, {
-    method: 'POST', headers: gatewayHeaders,
-    body: JSON.stringify({ amount: 100, currency: 'LKR', redirectUrl: 'https://chillco.store/checkout/callback', localId: 'test-001' }),
-  });
-
-  // ── 4. POST transaction with companyId as custom header ───────────────────
-  await probe('tx_x_company_header', `${base}/public/transactions`, {
+  // ── Test 1: pkKey as x-api-key + appKey as Bearer ─────────────────────
+  await probe('P1_pkKey_Bearer', `${base}/public/transactions`, {
     method: 'POST',
-    headers: { ...gatewayHeaders, 'x-company-id': companyId, 'x-app-id': appId },
-    body: JSON.stringify({ amount: 100, currency: 'LKR', redirectUrl: 'https://chillco.store/checkout/callback', localId: 'test-001' }),
+    headers: { 'x-api-key': prodApiKey, 'Authorization': `Bearer ${prodAppKey}`, 'Content-Type': 'application/json' },
+    body: txBody,
+  });
+
+  // ── Test 2: pkKey as x-api-key only ───────────────────────────────────
+  await probe('P2_pkKey_only', `${base}/public/transactions`, {
+    method: 'POST',
+    headers: { 'x-api-key': prodApiKey, 'Content-Type': 'application/json' },
+    body: txBody,
+  });
+
+  // ── Test 3: appKey as x-api-key + Bearer ──────────────────────────────
+  await probe('P3_appKey_Both', `${base}/public/transactions`, {
+    method: 'POST',
+    headers: { 'x-api-key': prodAppKey, 'Authorization': `Bearer ${prodAppKey}`, 'Content-Type': 'application/json' },
+    body: txBody,
+  });
+
+  // ── Test 4: GET company with pkKey as x-api-key + Bearer ──────────────
+  await probe('P4_company_pkKey_Bearer', `${base}/public/company`, {
+    method: 'GET',
+    headers: { 'x-api-key': prodApiKey, 'Authorization': `Bearer ${prodAppKey}`, 'Content-Type': 'application/json' },
+  });
+
+  // ── Test 5: GET company/companyId ─────────────────────────────────────
+  await probe('P5_company_id_pkKey_Bearer', `${base}/public/company/${prodCompanyId}`, {
+    method: 'GET',
+    headers: { 'x-api-key': prodApiKey, 'Authorization': `Bearer ${prodAppKey}`, 'Content-Type': 'application/json' },
+  });
+
+  // ── Test 6: v1/auth/token with pkKey ──────────────────────────────────
+  await probe('P6_auth_token_pkKey', `${base}/v1/auth/token`, {
+    method: 'POST',
+    headers: { 'x-api-key': prodApiKey, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ appId: prodAppId, appKey: prodAppKey }),
+  });
+
+  // ── Test 7: v1/auth/token with appKey as both ─────────────────────────
+  await probe('P7_auth_token_appKey', `${base}/v1/auth/token`, {
+    method: 'POST',
+    headers: { 'x-api-key': prodAppKey, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ appId: prodAppId }),
   });
 
   return NextResponse.json(results);
