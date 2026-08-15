@@ -18,23 +18,6 @@ export async function GET() {
     }
   }
 
-  // The previous test showed that x-api-key: appKey bypassed the 403 Forbidden.
-  const h_ApiKeyOnly = { 
-    'x-api-key': appKey, 
-    'Content-Type': 'application/json' 
-  };
-  
-  const h_BearerAndApiKey = { 
-    'x-api-key': appKey, 
-    'Authorization': `Bearer ${appKey}`, 
-    'Content-Type': 'application/json' 
-  };
-  
-  const h_BearerOnly = {
-    'Authorization': `Bearer ${appKey}`, 
-    'Content-Type': 'application/json'
-  };
-
   const dummyTxId = 'test-tx-123';
   const dummyPayload = JSON.stringify({
     amount: 100,
@@ -44,15 +27,22 @@ export async function GET() {
     customerReference: "ref-123"
   });
 
-  // Test GET with all three header combinations to see which returns 404 (not found) instead of 401
-  await probe('GetTx_ApiKeyOnly', `${base}/public/transactions/${dummyTxId}`, { method: 'GET', headers: h_ApiKeyOnly });
-  await probe('GetTx_BearerAndApiKey', `${base}/public/transactions/${dummyTxId}`, { method: 'GET', headers: h_BearerAndApiKey });
-  await probe('GetTx_BearerOnly', `${base}/public/transactions/${dummyTxId}`, { method: 'GET', headers: h_BearerOnly });
+  // Since x-api-key: appKey bypassed 403 but gave "Unspecified company" (PP-T-002),
+  // we will try adding companyId or appId in various headers.
+  
+  const headersToTest: Record<string, HeadersInit> = {
+    'ApiKey_And_AppId_Header': { 'x-api-key': appKey, 'x-app-id': appId, 'Content-Type': 'application/json' },
+    'ApiKey_And_CompanyId_Header': { 'x-api-key': appKey, 'x-company-id': companyId, 'Content-Type': 'application/json' },
+    'ApiKey_And_MerchantId_Header': { 'x-api-key': appKey, 'x-merchant-id': companyId, 'Content-Type': 'application/json' },
+    // Maybe AppId is the x-api-key, and AppKey is the Bearer? We missed testing this for /public/
+    'AppIdAsApiKey_AppKeyAsBearer': { 'x-api-key': appId, 'Authorization': `Bearer ${appKey}`, 'Content-Type': 'application/json' },
+    // Maybe AppId is the x-api-key and the company is inferred?
+    'AppIdAsApiKey_Only': { 'x-api-key': appId, 'Content-Type': 'application/json' },
+  };
 
-  // Test POST
-  await probe('CreateTx_ApiKeyOnly', `${base}/public/transactions`, { method: 'POST', headers: h_ApiKeyOnly, body: dummyPayload });
-  await probe('CreateTx_BearerAndApiKey', `${base}/public/transactions`, { method: 'POST', headers: h_BearerAndApiKey, body: dummyPayload });
-  await probe('CreateTx_BearerOnly', `${base}/public/transactions`, { method: 'POST', headers: h_BearerOnly, body: dummyPayload });
+  for (const [key, headers] of Object.entries(headersToTest)) {
+    await probe(`CreateTx_${key}`, `${base}/public/transactions`, { method: 'POST', headers, body: dummyPayload });
+  }
 
   return NextResponse.json(results);
 }
