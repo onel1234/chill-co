@@ -18,26 +18,51 @@ export async function GET() {
     }
   }
 
-  // The winning auth: x-api-key: appKey
-  const headers: HeadersInit = { 'x-api-key': appKey, 'Content-Type': 'application/json' };
+  // x-api-key: appKey is confirmed to pass the AWS gateway
+  const gatewayHeaders: HeadersInit = { 'x-api-key': appKey, 'Content-Type': 'application/json' };
 
-  // Try companyId in the body under different field names
-  const baseBody = {
-    amount: 100,
-    currency: 'LKR',
-    redirectUrl: 'https://chillco.store/checkout/callback',
-    localId: 'test-order-001',
-  };
+  // ── 1. Try auth/token at the /public/ path with known-working gateway key ─
+  await probe('auth_public_token', `${base}/public/auth/token`, {
+    method: 'POST', headers: gatewayHeaders,
+    body: JSON.stringify({ appId, appKey }),
+  });
+  await probe('auth_public_login', `${base}/public/login`, {
+    method: 'POST', headers: gatewayHeaders,
+    body: JSON.stringify({ appId, appKey }),
+  });
+  await probe('auth_v1_token_with_gateway_key', `${base}/v1/auth/token`, {
+    method: 'POST', headers: gatewayHeaders,
+    body: JSON.stringify({ appId, appKey }),
+  });
+  await probe('auth_public_auth', `${base}/public/auth`, {
+    method: 'POST', headers: gatewayHeaders,
+    body: JSON.stringify({ appId, appKey }),
+  });
 
-  await probe('body_companyId',  `${base}/public/transactions`, { method: 'POST', headers, body: JSON.stringify({ ...baseBody, companyId }) });
-  await probe('body_merchantId', `${base}/public/transactions`, { method: 'POST', headers, body: JSON.stringify({ ...baseBody, merchantId: companyId }) });
-  await probe('body_appId',      `${base}/public/transactions`, { method: 'POST', headers, body: JSON.stringify({ ...baseBody, appId }) });
+  // ── 2. Try GET company with x-api-key (the gateway key that works) ────────
+  await probe('company_with_gateway_key', `${base}/public/company`, {
+    method: 'GET', headers: gatewayHeaders,
+  });
+  await probe('company_id_with_gateway_key', `${base}/public/company/${companyId}`, {
+    method: 'GET', headers: gatewayHeaders,
+  });
 
-  // Also test the "Get Company" endpoint — this would tell us what fields the API uses
-  await probe('GET_company',            `${base}/public/company`,                         { headers });
-  await probe('GET_company_id',         `${base}/public/company/${companyId}`,            { headers });
-  await probe('GET_company_appId',      `${base}/public/company/${appId}`,                { headers });
-  await probe('GET_companies_companyId',`${base}/public/companies/${companyId}`,          { headers });
+  // ── 3. POST transaction with companyId as query param ─────────────────────
+  await probe('tx_companyId_queryparam', `${base}/public/transactions?companyId=${companyId}`, {
+    method: 'POST', headers: gatewayHeaders,
+    body: JSON.stringify({ amount: 100, currency: 'LKR', redirectUrl: 'https://chillco.store/checkout/callback', localId: 'test-001' }),
+  });
+  await probe('tx_appId_queryparam', `${base}/public/transactions?appId=${appId}`, {
+    method: 'POST', headers: gatewayHeaders,
+    body: JSON.stringify({ amount: 100, currency: 'LKR', redirectUrl: 'https://chillco.store/checkout/callback', localId: 'test-001' }),
+  });
+
+  // ── 4. POST transaction with companyId as custom header ───────────────────
+  await probe('tx_x_company_header', `${base}/public/transactions`, {
+    method: 'POST',
+    headers: { ...gatewayHeaders, 'x-company-id': companyId, 'x-app-id': appId },
+    body: JSON.stringify({ amount: 100, currency: 'LKR', redirectUrl: 'https://chillco.store/checkout/callback', localId: 'test-001' }),
+  });
 
   return NextResponse.json(results);
 }
