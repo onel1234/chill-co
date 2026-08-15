@@ -48,7 +48,7 @@ function getBaseUrl() {
   const env = process.env.GENIE_ENV || 'sandbox';
   return env === 'production'
     ? 'https://api.geniebiz.lk'
-    : 'https://api.geniebiz.lk';
+    : 'https://api-uat.geniebiz.lk';
 }
 
 export async function getGenieAuthToken(): Promise<string> {
@@ -56,27 +56,34 @@ export async function getGenieAuthToken(): Promise<string> {
     return cachedToken;
   }
 
-  const clientId = process.env.GENIE_CLIENT_ID;
-  const clientSecret = process.env.GENIE_CLIENT_SECRET;
+  // The Genie API uses appId / appKey (not clientId / clientSecret).
+  // In sandbox mode these come from GENIE_APP_ID / GENIE_APP_KEY.
+  const appId = process.env.GENIE_APP_ID;
+  const appKey = process.env.GENIE_APP_KEY;
 
-  if (!clientId || !clientSecret) {
-    throw new Error('Genie credentials not configured');
+  if (!appId || !appKey) {
+    throw new Error('Genie credentials not configured (GENIE_APP_ID / GENIE_APP_KEY missing)');
   }
 
-  const response = await fetch(`${getBaseUrl()}/v1/auth/token`, {
+  const url = `${getBaseUrl()}/v1/auth/token`;
+  console.log('[Genie] Requesting auth token from:', url);
+
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ clientId, clientSecret }),
+    body: JSON.stringify({ appId, appKey }),
   });
 
   if (!response.ok) {
-    throw new Error('Failed to get Genie auth token');
+    const errText = await response.text();
+    console.error('[Genie] Auth token error:', response.status, errText);
+    throw new Error(`Failed to get Genie auth token: ${response.status} ${errText}`);
   }
 
   const data = (await response.json()) as GenieTokenResponse;
-  
+
   cachedToken = data.accessToken;
   // Expire 1 minute early to be safe
   tokenExpiresAt = Date.now() + (data.expiresIn - 60) * 1000;
@@ -86,26 +93,23 @@ export async function getGenieAuthToken(): Promise<string> {
 
 export async function createGenieTransaction(params: GenieTransactionParams): Promise<GenieTransactionResponse> {
   const token = await getGenieAuthToken();
-  const apiKey = process.env.GENIE_API_KEY;
 
-  if (!apiKey) {
-    throw new Error('Genie API key not configured');
-  }
+  const url = `${getBaseUrl()}/v1/transactions/create`;
+  console.log('[Genie] Creating transaction at:', url, 'params:', JSON.stringify(params));
 
-  const response = await fetch(`${getBaseUrl()}/v1/transactions/create`, {
+  const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
-      'x-api-key': apiKey,
     },
     body: JSON.stringify(params),
   });
 
   if (!response.ok) {
     const text = await response.text();
-    console.error('Genie create error:', text);
-    throw new Error('Failed to create Genie transaction');
+    console.error('[Genie] Create transaction error:', response.status, text);
+    throw new Error(`Failed to create Genie transaction: ${response.status} ${text}`);
   }
 
   return response.json() as Promise<GenieTransactionResponse>;
@@ -113,22 +117,21 @@ export async function createGenieTransaction(params: GenieTransactionParams): Pr
 
 export async function getGenieTransactionStatus(transactionId: string): Promise<GenieStatusResponse> {
   const token = await getGenieAuthToken();
-  const apiKey = process.env.GENIE_API_KEY;
 
-  if (!apiKey) {
-    throw new Error('Genie API key not configured');
-  }
+  const url = `${getBaseUrl()}/v1/transactions/${transactionId}/status`;
+  console.log('[Genie] Getting transaction status from:', url);
 
-  const response = await fetch(`${getBaseUrl()}/v1/transactions/${transactionId}/status`, {
+  const response = await fetch(url, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
-      'x-api-key': apiKey,
     },
   });
 
   if (!response.ok) {
-    throw new Error('Failed to get Genie transaction status');
+    const text = await response.text();
+    console.error('[Genie] Transaction status error:', response.status, text);
+    throw new Error(`Failed to get Genie transaction status: ${response.status} ${text}`);
   }
 
   return response.json() as Promise<GenieStatusResponse>;
