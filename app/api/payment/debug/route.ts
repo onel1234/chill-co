@@ -1,15 +1,12 @@
 import { NextResponse } from 'next/server';
 
-// TEMPORARY DEBUG ENDPOINT — REMOVE BEFORE GOING TO PRODUCTION
 export async function GET() {
-  const appId = process.env.GENIE_APP_ID!;   // UUID — likely the x-api-key
-  const appKey = process.env.GENIE_APP_KEY!;  // JWT  — likely the Bearer token
-  const companyId = process.env.GENIE_MERCHANT_ID!;
+  const appId = process.env.GENIE_APP_ID!;
+  const appKey = process.env.GENIE_APP_KEY!;
   const base = 'https://api.geniebiz.lk';
 
-  const results: Record<string, unknown> = { appId, companyId };
+  const results: Record<string, unknown> = { appId };
 
-  // Helper to make a request and capture status + body
   async function probe(label: string, url: string, opts: RequestInit) {
     try {
       const r = await fetch(url, opts);
@@ -20,46 +17,25 @@ export async function GET() {
     }
   }
 
-  const bearerOnly    = { 'Authorization': `Bearer ${appKey}`, 'Content-Type': 'application/json' };
-  const uuidKey       = { 'x-api-key': appId, 'Content-Type': 'application/json' };
-  const uuidKeyBearer = { 'x-api-key': appId, 'Authorization': `Bearer ${appKey}`, 'Content-Type': 'application/json' };
-  const jwtKey        = { 'x-api-key': appKey, 'Content-Type': 'application/json' };
-  const jwtKeyBearer  = { 'x-api-key': appKey, 'Authorization': `Bearer ${appKey}`, 'Content-Type': 'application/json' };
-
-  // ── Test URL path variants with the most likely auth combo ───────────
-  // Pattern A: appId as x-api-key + appKey as Bearer
-  await probe('A1_company',           `${base}/v1/company`,                             { headers: uuidKeyBearer });
-  await probe('A2_companies_id',      `${base}/v1/companies/${companyId}`,              { headers: uuidKeyBearer });
-  await probe('A3_merchant',          `${base}/v1/merchant`,                            { headers: uuidKeyBearer });
-  await probe('A4_app_company',       `${base}/v1/app/company`,                         { headers: uuidKeyBearer });
-  await probe('A5_business_company',  `${base}/v1/business/company`,                   { headers: uuidKeyBearer });
-  await probe('A6_prod_company',      `${base}/prod/v1/company`,                        { headers: uuidKeyBearer });
-
-  // ── Pattern B: appId as x-api-key only (no Bearer) ───────────────────
-  await probe('B1_company_uuidOnly',  `${base}/v1/company`,                             { headers: uuidKey });
-
-  // ── Pattern C: Bearer only (no x-api-key) ────────────────────────────
-  await probe('C1_company_bearer',    `${base}/v1/company`,                             { headers: bearerOnly });
-  await probe('C2_companies_bearer',  `${base}/v1/companies/${companyId}`,              { headers: bearerOnly });
-
-  // ── Pattern D: appKey JWT as x-api-key (what we tried before) ────────
-  await probe('D1_company_jwtKey',    `${base}/v1/company`,                             { headers: jwtKey });
-  await probe('D2_company_jwtBoth',   `${base}/v1/company`,                             { headers: jwtKeyBearer });
-
-  // ── Try auth/token with appId as x-api-key ───────────────────────────
-  await probe('E1_auth_uuidKey', `${base}/v1/auth/token`, {
-    method: 'POST',
-    headers: uuidKey,
-    body: JSON.stringify({ appId, appKey }),
-  });
-  await probe('E2_auth_bearerOnly', `${base}/v1/auth/token`, {
-    method: 'POST',
-    headers: bearerOnly,
-    body: JSON.stringify({ appId }),
-  });
-
-  // ── Probe root to see what info we get ───────────────────────────────
-  await probe('Z_root', base, { headers: uuidKeyBearer });
+  const dummyTxId = 'test-tx-123';
+  
+  // Headers to test
+  const h1 = { 'Authorization': `Bearer ${appKey}`, 'Content-Type': 'application/json' };
+  const h2 = { 'x-api-key': appId, 'Content-Type': 'application/json' };
+  const h3 = { 'x-api-key': appKey, 'Content-Type': 'application/json' };
+  const h4 = { 'Authorization': appKey, 'Content-Type': 'application/json' };
+  const h5 = { 'x-api-key': appKey, 'Authorization': `Bearer ${appKey}`, 'Content-Type': 'application/json' };
+  
+  // As per PDF, Get Transaction is /public/transactions/{transactionId}
+  await probe('GetTx_Bearer', `${base}/public/transactions/${dummyTxId}`, { method: 'GET', headers: h1 });
+  await probe('GetTx_XApiKey_AppId', `${base}/public/transactions/${dummyTxId}`, { method: 'GET', headers: h2 });
+  await probe('GetTx_XApiKey_AppKey', `${base}/public/transactions/${dummyTxId}`, { method: 'GET', headers: h3 });
+  
+  await probe('CreateTx_Bearer', `${base}/public/transactions`, { method: 'POST', headers: h1, body: '{}' });
+  await probe('CreateTx_XApiKey_AppKey', `${base}/public/transactions`, { method: 'POST', headers: h3, body: '{}' });
+  
+  // Let's also check if they use /api/public/...
+  await probe('GetTx_api_public_Bearer', `${base}/api/public/transactions/${dummyTxId}`, { method: 'GET', headers: h1 });
 
   return NextResponse.json(results);
 }
