@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 export async function GET() {
-  const appId = process.env.GENIE_APP_ID!;
+  const appId  = process.env.GENIE_APP_ID!;
   const appKey = process.env.GENIE_APP_KEY!;
   const companyId = process.env.GENIE_MERCHANT_ID!;
   const base = 'https://api.geniebiz.lk';
@@ -12,37 +12,32 @@ export async function GET() {
     try {
       const r = await fetch(url, opts);
       const body = await r.text();
-      results[label] = { status: r.status, body: body.slice(0, 300) };
+      results[label] = { status: r.status, body: body.slice(0, 500) };
     } catch (e) {
       results[label] = { error: String(e) };
     }
   }
 
-  const dummyTxId = 'test-tx-123';
-  const dummyPayload = JSON.stringify({
-    amount: 100,
-    currency: "LKR",
-    redirectUrl: "https://example.com/callback",
-    localId: "test-tx-123",
-    customerReference: "ref-123"
-  });
+  // The winning auth: x-api-key: appKey
+  const headers: HeadersInit = { 'x-api-key': appKey, 'Content-Type': 'application/json' };
 
-  // Since x-api-key: appKey bypassed 403 but gave "Unspecified company" (PP-T-002),
-  // we will try adding companyId or appId in various headers.
-  
-  const headersToTest: Record<string, HeadersInit> = {
-    'ApiKey_And_AppId_Header': { 'x-api-key': appKey, 'x-app-id': appId, 'Content-Type': 'application/json' },
-    'ApiKey_And_CompanyId_Header': { 'x-api-key': appKey, 'x-company-id': companyId, 'Content-Type': 'application/json' },
-    'ApiKey_And_MerchantId_Header': { 'x-api-key': appKey, 'x-merchant-id': companyId, 'Content-Type': 'application/json' },
-    // Maybe AppId is the x-api-key, and AppKey is the Bearer? We missed testing this for /public/
-    'AppIdAsApiKey_AppKeyAsBearer': { 'x-api-key': appId, 'Authorization': `Bearer ${appKey}`, 'Content-Type': 'application/json' },
-    // Maybe AppId is the x-api-key and the company is inferred?
-    'AppIdAsApiKey_Only': { 'x-api-key': appId, 'Content-Type': 'application/json' },
+  // Try companyId in the body under different field names
+  const baseBody = {
+    amount: 100,
+    currency: 'LKR',
+    redirectUrl: 'https://chillco.store/checkout/callback',
+    localId: 'test-order-001',
   };
 
-  for (const [key, headers] of Object.entries(headersToTest)) {
-    await probe(`CreateTx_${key}`, `${base}/public/transactions`, { method: 'POST', headers, body: dummyPayload });
-  }
+  await probe('body_companyId',  `${base}/public/transactions`, { method: 'POST', headers, body: JSON.stringify({ ...baseBody, companyId }) });
+  await probe('body_merchantId', `${base}/public/transactions`, { method: 'POST', headers, body: JSON.stringify({ ...baseBody, merchantId: companyId }) });
+  await probe('body_appId',      `${base}/public/transactions`, { method: 'POST', headers, body: JSON.stringify({ ...baseBody, appId }) });
+
+  // Also test the "Get Company" endpoint — this would tell us what fields the API uses
+  await probe('GET_company',            `${base}/public/company`,                         { headers });
+  await probe('GET_company_id',         `${base}/public/company/${companyId}`,            { headers });
+  await probe('GET_company_appId',      `${base}/public/company/${appId}`,                { headers });
+  await probe('GET_companies_companyId',`${base}/public/companies/${companyId}`,          { headers });
 
   return NextResponse.json(results);
 }
