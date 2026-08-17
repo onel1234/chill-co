@@ -1,48 +1,31 @@
 // Genie Business (Dialog Pay) API integration.
 //
-// The App Key is a long-lived JWT issued by Genie — it does NOT need to be
-// exchanged for a short-lived token. It is used directly as:
-//   Authorization: Bearer <appKey>
-//   x-api-key: <appKey>   (required by AWS API Gateway usage plan)
+// Authentication: Authorization: <appKey>  (NO "Bearer" prefix)
+//   Also send x-api-key: <appKey> for AWS API Gateway usage plan.
+//
+// Endpoints (v2.0):
+//   Create transaction : POST /public/transactions
+//   Get status         : GET  /public/transactions/{transactionId}
+//
+// The request body must include:
+//   apiVersion      : "2.0"
+//   companyId       : your merchant / company ID
+//   localId         : your internal order ID (maps to orderId)
+//   amount          : integer in smallest currency unit (cents / LKR paise)
+//   currency        : "LKR"
+//   redirectUrl     : where user lands after payment
+//   webhook         : server-side callback URL (optional)
+//   customerReference: free-text customer identifier (optional)
 
-interface GenieTransactionParams {
-  merchantId: string;
-  orderId: string;
-  amount: number;
-  currency: string;
-  redirectUrl: string;
-  webhookUrl?: string;
-  customerDetails?: {
-    customerEmail?: string;
-    customerPhone?: string;
-  };
-  description?: string;
+const GENIE_API_VERSION = '2.0';
+
+function getBaseUrl(): string {
+  const env = process.env.GENIE_ENV;
+  if (env === 'sandbox' || env === 'uat') {
+    return 'https://api.uat.geniebiz.lk';
+  }
+  return 'https://api.geniebiz.lk';
 }
-
-interface GenieTransactionResponse {
-  status: string;
-  data: {
-    transactionId: string;
-    orderId: string;
-    paymentUrl: string;
-    expiresAt: string;
-  };
-}
-
-interface GenieStatusResponse {
-  status: string;
-  data: {
-    transactionId: string;
-    orderId: string;
-    paymentStatus: string;
-    amount: number;
-    currency: string;
-    paymentMethod: string;
-    transactionTimestamp: string;
-  };
-}
-
-const BASE_URL = 'https://api.geniebiz.lk';
 
 function getAuthHeaders(): HeadersInit {
   const appKey = process.env.GENIE_APP_KEY;
@@ -51,38 +34,107 @@ function getAuthHeaders(): HeadersInit {
   }
   return {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${appKey}`,
+    // Genie uses the raw App Key directly — no "Bearer" prefix
+    'Authorization': appKey,
     'x-api-key': appKey,
   };
 }
 
+interface GenieTransactionParams {
+  companyId: string;
+  orderId: string;      // becomes localId in the Genie payload
+  amount: number;       // in LKR (will be sent as-is — Genie accepts decimal LKR)
+  currency: string;
+  redirectUrl: string;
+  webhookUrl?: string;
+  customerReference?: string;
+  description?: string;
+}
+
+interface GenieCreateResponse {
+  // Genie returns the transaction object on success
+  transactionId: string;
+  localId: string;
+  paymentUrl: string;
+  status: string;
+  expiresAt?: string;
+}
+
+interface GenieStatusResponse {
+  transactionId: string;
+  localId: string;
+  paymentStatus: string; // "COMPLETED" | "PENDING" | "FAILED" | "CANCELLED"
+  amount: number;
+  currency: string;
+  paymentMethod?: string;
+  transactionTimestamp?: string;
+}
+
 export async function createGenieTransaction(
   params: GenieTransactionParams
-): Promise<GenieTransactionResponse> {
-  const url = `${BASE_URL}/v1/transactions/create`;
-  console.log('[Genie] Creating transaction at:', url, JSON.stringify(params));
+): Promise<{ status: string; data: { transactionId: string; orderId: string; paymentUrl: string; expiresAt: string } }> {
+  const baseUrl = getBaseUrl();
+  const url = `${baseUrl}/public/transactions`;
+
+  const payload = {
+    apiVersion: GENIE_API_VERSION,
+    companyId: params.companyId,
+    localId: params.orderId,
+    amount: params.amount,
+    currency: params.currency,
+    redirectUrl: params.redirectUrl,
+    ...(params.webhookUrl ? { webhook: params.webhookUrl } : {}),
+    ...(params.customerReference ? { customerReference: params.customerReference } : {}),
+    ...(params.description ? { description: params.description } : {}),
+  };
+
+  console.log('[Genie] Creating transaction at:', url);
+  console.log('[Genie] Payload:', JSON.stringify(payload));
 
   const response = await fetch(url, {
     method: 'POST',
     headers: getAuthHeaders(),
-    body: JSON.stringify(params),
+    body: JSON.stringify(payload),
   });
 
+  const responseText = await response.text();
+  console.log('[Genie] Create response status:', response.status);
+  console.log('[Genie] Create response body:', responseText);
+
   if (!response.ok) {
-    const text = await response.text();
-    console.error('[Genie] Create transaction error:', response.status, text);
     throw new Error(
-      `Genie createTransaction failed: ${response.status} ${text}`
+      `Genie createTransaction failed: ${response.status} ${responseText}`
     );
   }
 
-  return response.json() as Promise<GenieTransactionResponse>;
+  let data: GenieCreateResponse;
+  try {
+    data = JSON.parse(responseText);
+  } catch {
+    throw new Error(`Genie createTransaction: invalid JSON response: ${responseText}`);
+  }
+
+  if (!data.transactionId || !data.paymentUrl) {
+    throw new Error(`Genie createTransaction: missing transactionId or paymentUrl in response: ${responseText}`);
+  }
+
+  return {
+    status: 'SUCCESS',
+    data: {
+      transactionId: data.transactionId,
+      orderId: data.localId ?? params.orderId,
+      paymentUrl: data.paymentUrl,
+      expiresAt: data.expiresAt ?? '',
+    },
+  };
 }
 
 export async function getGenieTransactionStatus(
   transactionId: string
-): Promise<GenieStatusResponse> {
-  const url = `${BASE_URL}/v1/transactions/${transactionId}/status`;
+): Promise<{ status: string; data: GenieStatusResponse }> {
+  const baseUrl = getBaseUrl();
+  const url = `${baseUrl}/public/transactions/${transactionId}`;
+
   console.log('[Genie] Getting status from:', url);
 
   const response = await fetch(url, {
@@ -90,13 +142,21 @@ export async function getGenieTransactionStatus(
     headers: getAuthHeaders(),
   });
 
+  const responseText = await response.text();
+  console.log('[Genie] Status response:', response.status, responseText);
+
   if (!response.ok) {
-    const text = await response.text();
-    console.error('[Genie] Status error:', response.status, text);
     throw new Error(
-      `Genie getTransactionStatus failed: ${response.status} ${text}`
+      `Genie getTransactionStatus failed: ${response.status} ${responseText}`
     );
   }
 
-  return response.json() as Promise<GenieStatusResponse>;
+  let data: GenieStatusResponse;
+  try {
+    data = JSON.parse(responseText);
+  } catch {
+    throw new Error(`Genie getTransactionStatus: invalid JSON response: ${responseText}`);
+  }
+
+  return { status: 'SUCCESS', data };
 }

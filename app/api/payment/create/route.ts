@@ -80,8 +80,8 @@ export async function POST(request: Request) {
     }
 
     // Create Genie payment transaction
-    const merchantId = process.env.GENIE_MERCHANT_ID;
-    if (!merchantId) {
+    const companyId = process.env.GENIE_MERCHANT_ID;
+    if (!companyId) {
       console.error('[Payment] GENIE_MERCHANT_ID not configured');
       return NextResponse.json({ error: 'Payment gateway not configured' }, { status: 500 });
     }
@@ -89,23 +89,15 @@ export async function POST(request: Request) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
     const genieRes = await createGenieTransaction({
-      merchantId,
+      companyId,
       orderId,
       amount: total,
       currency: 'LKR',
       redirectUrl: `${siteUrl}/checkout/callback`,
       webhookUrl: `${siteUrl}/api/payment/webhook`,
-      customerDetails: {
-        customerEmail: email,
-        customerPhone: phone,
-      },
+      customerReference: email,
       description: `Chill Co. Order #${orderId.slice(0, 8).toUpperCase()}`,
     });
-
-    if (genieRes.status !== 'SUCCESS') {
-      console.error('Genie transaction creation failed:', genieRes);
-      return NextResponse.json({ error: 'Payment gateway error' }, { status: 500 });
-    }
 
     const { transactionId, paymentUrl } = genieRes.data;
 
