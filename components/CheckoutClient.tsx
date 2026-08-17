@@ -19,7 +19,7 @@ export default function CheckoutClient() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [shippingAddress, setShippingAddress] = useState({
-    country: 'United States',
+    country: 'Sri Lanka',
     firstName: '',
     lastName: '',
     address: '',
@@ -41,8 +41,22 @@ export default function CheckoutClient() {
   const supabase = createClient();
 
   useEffect(() => {
-    if (profile?.email) setEmail(profile.email);
-    else if (user?.email) setEmail(user.email);
+    const userEmail = profile?.email || user?.email || (user?.user_metadata?.email as string) || '';
+    if (userEmail) {
+      setEmail(userEmail);
+    }
+
+    const fullName = profile?.full_name || (user?.user_metadata?.full_name as string) || (user?.user_metadata?.name as string) || '';
+    if (fullName) {
+      const parts = fullName.trim().split(/\s+/);
+      const first = parts[0] || '';
+      const last = parts.slice(1).join(' ') || '';
+      setShippingAddress(prev => ({
+        ...prev,
+        firstName: prev.firstName || first,
+        lastName: prev.lastName || last,
+      }));
+    }
   }, [profile, user]);
 
   useEffect(() => {
@@ -315,19 +329,6 @@ export default function CheckoutClient() {
               <section>
                 <h2 className="font-headline-sm text-headline-sm uppercase mb-4">Shipping Address</h2>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="col-span-2">
-                    <select
-                      value={shippingAddress.country}
-                      onChange={(e) => setShippingAddress({...shippingAddress, country: e.target.value})}
-                      className="w-full bg-surface-container-low border border-surface-variant p-4 font-body-md focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all appearance-none"
-                    >
-                      <option>United States</option>
-                      <option>Canada</option>
-                      <option>United Kingdom</option>
-                      <option>Sri Lanka</option>
-                      <option>Australia</option>
-                    </select>
-                  </div>
                   <div>
                     <input 
                       required 

@@ -18,7 +18,6 @@ function LoginForm() {
   const { user, isLoading: authLoading } = useAuth();
   const supabase = createClient();
 
-  const message = searchParams.get("message");
 
   useEffect(() => {
     // Only redirect once auth state is fully resolved
@@ -81,14 +80,6 @@ function LoginForm() {
 
         {/* Card */}
         <div className="bg-surface-container-lowest border border-surface-variant p-8 shadow-sm">
-          {/* Email Confirmation Banner */}
-          {message === "check_email" && (
-            <div className="mb-6 p-4 bg-secondary-container border border-secondary/20 flex items-start gap-3">
-              <span className="material-symbols-outlined text-on-secondary-container text-sm mt-0.5">mark_email_unread</span>
-              <p className="font-body-md text-sm text-on-secondary-container">Account created! Please check your email to confirm your address, then sign in.</p>
-            </div>
-          )}
-
           {/* Error Message */}
           {error && (
             <div className="mb-6 p-4 bg-error-container border border-error/20 flex items-start gap-3">

@@ -123,10 +123,6 @@ function SignupForm() {
     if (error) {
       setError(error.message);
       setIsLoading(false);
-    } else if (data.user && !data.session) {
-      setError(null);
-      setIsLoading(false);
-      router.push("/account/login?message=check_email");
     } else {
       router.push("/account");
       router.refresh();
