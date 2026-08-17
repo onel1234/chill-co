@@ -135,7 +135,7 @@ export async function createGenieTransaction(
     raw.links?.checkout ??
     null;
 
-  const expiresAt: string = raw.expiresAt ?? raw.expiry ?? raw.expireAt ?? '';
+  const expiresAt: string = raw.expires ?? raw.expiresAt ?? raw.expiry ?? raw.expireAt ?? '';
 
   if (!transactionId) {
     throw new Error(
