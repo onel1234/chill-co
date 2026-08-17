@@ -107,24 +107,55 @@ export async function createGenieTransaction(
     );
   }
 
-  let data: GenieCreateResponse;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let raw: Record<string, any>;
   try {
-    data = JSON.parse(responseText);
+    raw = JSON.parse(responseText);
   } catch {
     throw new Error(`Genie createTransaction: invalid JSON response: ${responseText}`);
   }
 
-  if (!data.transactionId || !data.paymentUrl) {
-    throw new Error(`Genie createTransaction: missing transactionId or paymentUrl in response: ${responseText}`);
+  console.log('[Genie] Parsed create response keys:', Object.keys(raw));
+
+  // Genie returns a flat transaction object — extract id and payment URL
+  // defensively across known field name variants.
+  const transactionId: string =
+    raw.transactionId ??
+    raw.id ??
+    raw._id ??
+    raw.txnId ??
+    null;
+
+  const paymentUrl: string =
+    raw.paymentUrl ??
+    raw.checkoutUrl ??
+    raw.paymentLink ??
+    raw.url ??
+    raw.links?.payment ??
+    raw.links?.checkout ??
+    null;
+
+  const expiresAt: string = raw.expiresAt ?? raw.expiry ?? raw.expireAt ?? '';
+
+  if (!transactionId) {
+    throw new Error(
+      `Genie createTransaction: cannot find transaction ID in response. Keys: ${Object.keys(raw).join(', ')}. Body: ${responseText.slice(0, 300)}`
+    );
+  }
+
+  if (!paymentUrl) {
+    throw new Error(
+      `Genie createTransaction: cannot find payment URL in response. Keys: ${Object.keys(raw).join(', ')}. Body: ${responseText.slice(0, 300)}`
+    );
   }
 
   return {
     status: 'SUCCESS',
     data: {
-      transactionId: data.transactionId,
-      orderId: data.localId ?? params.orderId,
-      paymentUrl: data.paymentUrl,
-      expiresAt: data.expiresAt ?? '',
+      transactionId,
+      orderId: raw.localId ?? params.orderId,
+      paymentUrl,
+      expiresAt,
     },
   };
 }
@@ -151,12 +182,27 @@ export async function getGenieTransactionStatus(
     );
   }
 
-  let data: GenieStatusResponse;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let raw: Record<string, any>;
   try {
-    data = JSON.parse(responseText);
+    raw = JSON.parse(responseText);
   } catch {
     throw new Error(`Genie getTransactionStatus: invalid JSON response: ${responseText}`);
   }
 
-  return { status: 'SUCCESS', data };
+  console.log('[Genie] Parsed status response keys:', Object.keys(raw));
+
+  // Map known field name variants to our internal GenieStatusResponse shape
+  const mapped: GenieStatusResponse = {
+    transactionId: raw.transactionId ?? raw.id ?? raw._id ?? '',
+    localId: raw.localId ?? raw.orderId ?? '',
+    // Genie uses "state" in some versions, "paymentStatus" in others
+    paymentStatus: raw.paymentStatus ?? raw.state ?? raw.status ?? 'UNKNOWN',
+    amount: raw.amount ?? 0,
+    currency: raw.currency ?? 'LKR',
+    paymentMethod: raw.paymentMethod ?? raw.provider ?? undefined,
+    transactionTimestamp: raw.transactionTimestamp ?? raw.updatedAt ?? raw.updated ?? undefined,
+  };
+
+  return { status: 'SUCCESS', data: mapped };
 }

@@ -15,7 +15,10 @@ export async function POST(request: Request) {
 
     const supabase = await createClient();
 
-    if (paymentStatus === 'COMPLETED') {
+    const isSuccess = ['COMPLETED', 'CONFIRMED', 'SUCCESS'].includes(paymentStatus);
+    const isFailure = ['FAILED', 'CANCELLED', 'DECLINED', 'EXPIRED'].includes(paymentStatus);
+
+    if (isSuccess) {
       // Update order status to confirmed
       await supabase
         .from('orders')
@@ -76,15 +79,16 @@ export async function POST(request: Request) {
       }
 
       return NextResponse.json({ success: true, paymentStatus, orderId, pointsEarned });
-    } else if (paymentStatus === 'PENDING') {
-      return NextResponse.json({ success: false, paymentStatus, orderId });
-    } else {
-      // FAILED or CANCELLED
+    } else if (isFailure) {
+      // FAILED, CANCELLED, DECLINED, EXPIRED
       await supabase
         .from('orders')
         .update({ status: 'payment_failed' })
         .eq('id', orderId);
 
+      return NextResponse.json({ success: false, paymentStatus, orderId });
+    } else {
+      // PENDING, INITIATED, or any other in-progress state
       return NextResponse.json({ success: false, paymentStatus, orderId });
     }
   } catch (error) {

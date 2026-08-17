@@ -16,7 +16,12 @@ export async function GET() {
     try {
       const r = await fetch(url, opts);
       const body = await r.text();
-      results[label] = { status: r.status, body: body.slice(0, 500) };
+      // Parse JSON so the browser shows the full object without truncation
+      try {
+        results[label] = { status: r.status, body: JSON.parse(body) };
+      } catch {
+        results[label] = { status: r.status, body };
+      }
     } catch (e) {
       results[label] = { error: String(e) };
     }
