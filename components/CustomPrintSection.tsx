@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import CustomPrintModal from './CustomPrintModal';
 import OrnamentalDivider from './OrnamentalDivider';
 
@@ -12,11 +13,12 @@ export default function CustomPrintSection() {
       <section style={{ position: 'relative', overflow: 'hidden', background: '#070503' }}>
         {/* Full-bleed fabric image */}
         <div style={{ position: 'relative', minHeight: '680px', display: 'flex', alignItems: 'center' }}>
-          <img
+          <Image
             src="/images/ChatGPT_Image_Jul_23__2026__10_08_10_PM.png"
             alt="Premium dark fabric with gold Sri Lankan cultural motifs — elephant, lotus, temple scrollwork"
+            fill
+            sizes="100vw"
             style={{
-              position: 'absolute', inset: 0, width: '100%', height: '100%',
               objectFit: 'cover', objectPosition: 'center',
             }}
           />

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useCart } from '@/lib/context/CartContext';
 import { useAuth } from '@/lib/context/AuthContext';
@@ -68,9 +69,12 @@ export default function TopNavBar() {
             zIndex: 201,
           }}
         >
-          <img
+          <Image
             src="/images/WhatsApp_Image_2026-07-26_at_23.42.00-removebg-preview.png"
             alt="Chill Co."
+            width={260}
+            height={115}
+            priority
             style={{
               height: '115px',
               maxWidth: '260px',

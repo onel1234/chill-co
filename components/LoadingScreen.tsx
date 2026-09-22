@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 export default function LoadingScreen() {
   const [loading, setLoading] = useState(true);
@@ -64,10 +65,13 @@ export default function LoadingScreen() {
         <div className={`flex flex-col items-center transition-transform duration-[1000ms] ${
           animateOut ? 'translate-y-[-20px]' : 'translate-y-0'
         }`}>
-          <img 
+          <Image 
             alt="Chill Co. Logo" 
             className="w-auto h-[80px] md:h-[110px] object-contain drop-shadow-2xl transition-all duration-500 ease-in-out" 
-            src="/images/WhatsApp_Image_2026-07-26_at_23.42.00-removebg-preview.png" 
+            src="/images/WhatsApp_Image_2026-07-26_at_23.42.00-removebg-preview.png"
+            width={260}
+            height={110}
+            priority
           />
         </div>
 

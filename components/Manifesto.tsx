@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import CrownBorder from './CrownBorder';
 
 export default function Manifesto() {
@@ -21,10 +22,13 @@ export default function Manifesto() {
           position: 'absolute', right: 0, top: 0, bottom: 0, width: '45%',
           opacity: 0.06, pointerEvents: 'none', overflow: 'hidden',
         }}>
-          <img
+          <Image
             src="/images/WhatsApp_Image_2026-07-10_at_09.12.31.jpeg"
             alt=""
-            style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'left center', filter: 'sepia(80%)' }}
+            fill
+            sizes="45vw"
+            quality={30}
+            style={{ objectFit: 'cover', objectPosition: 'left center', filter: 'sepia(80%)' }}
           />
         </div>
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/lib/context/CartContext';
 import { useAuth } from '@/lib/context/AuthContext';
@@ -14,6 +14,10 @@ export default function CheckoutClient() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
+
+  // Shipping cost — starts at 350 fallback, updated live from Royal Express API
+  const [shippingCost, setShippingCost] = useState(350);
+  const [shippingLoading, setShippingLoading] = useState(false);
   
   // Form State
   const [email, setEmail] = useState('');
@@ -67,14 +71,43 @@ export default function CheckoutClient() {
     fetchTiers();
   }, [supabase]);
 
-  const shippingCost = totalPrice >= 15000 || items.length === 0 ? 0 : 350;
+  // Free shipping over Rs. 15,000 — otherwise use Royal Express live rate
+  const effectiveShippingCost = totalPrice >= 15000 || items.length === 0 ? 0 : shippingCost;
 
   // Apply discount from selected loyalty tier
   const discountAmount = appliedTier
     ? totalPrice * (appliedTier.discount_percentage / 100)
     : 0;
 
-  const orderTotal = totalPrice - discountAmount + shippingCost;
+  const orderTotal = totalPrice - discountAmount + effectiveShippingCost;
+
+  // Fetch live shipping cost from Royal Express whenever the city changes
+  const fetchShippingCost = useCallback(async (city: string, state: string) => {
+    if (!city || city.trim().length < 2) return;
+    setShippingLoading(true);
+    try {
+      const params = new URLSearchParams({ city: city.trim(), state: state.trim() });
+      const res = await fetch(`/api/shipping/cost?${params}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (typeof data.cost === 'number') {
+          setShippingCost(data.cost);
+        }
+      }
+    } catch (err) {
+      console.warn('[Shipping] Could not fetch rate, using fallback:', err);
+    } finally {
+      setShippingLoading(false);
+    }
+  }, []);
+
+  // Debounce: wait 700ms after the user stops typing city before calling API
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      fetchShippingCost(shippingAddress.city, shippingAddress.state);
+    }, 700);
+    return () => clearTimeout(timer);
+  }, [shippingAddress.city, shippingAddress.state, fetchShippingCost]);
 
   // Calculate points earned for this order
   const pointsEarned = items.reduce((sum, item) => sum + (item.loyaltyPoints || 0) * item.quantity, 0);
@@ -94,7 +127,7 @@ export default function CheckoutClient() {
       user_id: user?.id || null, // null for guest checkout
       status: 'pending',
       subtotal: totalPrice - discountAmount,
-      shipping: shippingCost,
+      shipping: effectiveShippingCost,
       total: orderTotal,
       customer_email: email,
       customer_phone: phone,
@@ -185,7 +218,7 @@ export default function CheckoutClient() {
     
     message += `\n*Totals*\n`;
     message += `Subtotal: Rs. ${(totalPrice - discountAmount).toLocaleString('en-LK')}\n`;
-    message += `Shipping: ${shippingCost === 0 ? 'Free' : `Rs. ${shippingCost.toLocaleString('en-LK')}`}\n`;
+    message += `Shipping: ${effectiveShippingCost === 0 ? 'Free' : `Rs. ${effectiveShippingCost.toLocaleString('en-LK')}`}\n`;
     message += `*Total: Rs. ${orderTotal.toLocaleString('en-LK')}*`;
 
     const encodedMessage = encodeURIComponent(message);
@@ -571,7 +604,17 @@ export default function CheckoutClient() {
                   )}
                   <div className="flex justify-between font-body-md text-on-surface-variant">
                     <span>Shipping</span>
-                    <span>{shippingCost === 0 ? 'Free' : `Rs. ${shippingCost.toLocaleString('en-LK')}`}</span>
+                    <span>
+                      {shippingLoading ? (
+                        <span className="inline-flex items-center gap-1 text-xs text-on-surface-variant animate-pulse">
+                          Calculating...
+                        </span>
+                      ) : effectiveShippingCost === 0 ? (
+                        'Free'
+                      ) : (
+                        `Rs. ${effectiveShippingCost.toLocaleString('en-LK')}`
+                      )}
+                    </span>
                   </div>
                   <div className="flex justify-between font-headline-sm text-headline-sm uppercase pt-4 border-t border-surface-variant">
                     <span>Total</span>

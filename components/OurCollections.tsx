@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import OrnamentalDivider from './OrnamentalDivider';
 
 const collections = [
@@ -58,9 +59,11 @@ export default function OurCollections() {
               style={{ textDecoration: 'none' }}
             >
               <div className="relative aspect-[16/9] md:aspect-[4/5] w-full overflow-hidden bg-[#140d08]">
-                <img
+                <Image
                   src={col.img}
                   alt={col.alt}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
                   className="w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
                 />
                 <div

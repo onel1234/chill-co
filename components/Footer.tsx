@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import ContactModal from './ContactModal';
 
 export default function Footer() {
@@ -69,9 +70,11 @@ export default function Footer() {
             {/* Brand */}
             <div className="md:col-span-2">
               <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1.25rem' }}>
-                <img
+                <Image
                   src="/images/WhatsApp_Image_2026-07-26_at_23.42.00-removebg-preview.png"
                   alt="Chill Co."
+                  width={260}
+                  height={110}
                   style={{
                     height: '110px',
                     maxWidth: '260px',

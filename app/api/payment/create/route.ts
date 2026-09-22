@@ -5,7 +5,7 @@ import { createGenieTransaction } from '@/lib/genie';
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { items, email, phone, shippingAddress, appliedTier, discountAmount, userId } = body;
+    const { items, email, phone, shippingAddress, appliedTier, discountAmount, userId, shippingCost: clientShippingCost, totalPrice: clientTotalPrice } = body;
 
     if (!items || items.length === 0 || !email) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -22,7 +22,11 @@ export async function POST(request: Request) {
     );
 
     const finalSubtotal = subtotal - (discountAmount || 0);
-    const shippingCost = finalSubtotal >= 15000 || items.length === 0 ? 0 : 350;
+    // Use the shipping cost calculated by the client (from Royal Express API).
+    // Fall back to Rs. 350 only if none provided.
+    const shippingCost = (typeof clientShippingCost === 'number' && clientShippingCost >= 0)
+      ? (finalSubtotal >= 15000 || items.length === 0 ? 0 : clientShippingCost)
+      : (finalSubtotal >= 15000 || items.length === 0 ? 0 : 350);
     const total = finalSubtotal + shippingCost;
 
     const orderId = crypto.randomUUID();

@@ -155,6 +155,7 @@ body {
 
 .product-card img {
   transition: transform 0.7s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
 }
 
 .product-card:hover img {
@@ -205,6 +206,7 @@ body {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   animation: shimmer 4s linear infinite;
+  will-change: background-position;
 }
 
 .ornament-line {
@@ -257,6 +259,7 @@ body {
 .heritage-card {
   border: 1px solid rgba(125, 91, 49, 0.25);
   transition: border-color 0.3s ease, transform 0.4s ease;
+  will-change: transform;
 }
 
 .heritage-card:hover {
