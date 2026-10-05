@@ -108,3 +108,22 @@ BEGIN
   RETURN new;
 END;
 $$;
+
+-- 7. Update SELECT policy on orders so users can view their orders by user_id OR customer_email
+DROP POLICY IF EXISTS "Users can view their own orders" ON public.orders;
+CREATE POLICY "Users can view their own orders"
+  ON public.orders FOR SELECT
+  USING (auth.uid() = user_id OR customer_email = auth.jwt()->>'email');
+
+-- 8. Update SELECT policy on order_items so users can view order items
+DROP POLICY IF EXISTS "Users can view their own order items" ON public.order_items;
+CREATE POLICY "Users can view their own order items"
+  ON public.order_items FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.orders
+      WHERE orders.id = order_items.order_id
+      AND (orders.user_id = auth.uid() OR orders.customer_email = auth.jwt()->>'email')
+    )
+  );
+

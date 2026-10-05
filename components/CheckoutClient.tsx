@@ -165,9 +165,20 @@ export default function CheckoutClient() {
       shipping_address: shippingAddress
     };
 
-    const { error: orderError } = await supabase
+    let { error: orderError } = await supabase
       .from('orders')
       .insert(orderData);
+
+    // If foreign key constraint failed (e.g. missing profile row in database),
+    // retry with user_id = null so the order is safely saved in the table
+    if (orderError && (orderError.code === '23503' || orderError.message?.toLowerCase().includes('foreign key'))) {
+      console.warn('Foreign key violation on user_id, retrying order insertion as guest:', orderError);
+      orderData.user_id = null;
+      const retryRes = await supabase
+        .from('orders')
+        .insert(orderData);
+      orderError = retryRes.error;
+    }
 
     if (orderError) {
       console.error('Failed to create order:', JSON.stringify(orderError, null, 2));
