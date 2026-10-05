@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 
 export default function CheckoutClient() {
   const { items, updateQuantity, removeFromCart, totalPrice, clearCart } = useCart();
-  const { user, profile } = useAuth();
+  const { user, profile, refreshProfile } = useAuth();
   
   const [step, setStep] = useState<1 | 2>(1);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -109,8 +109,8 @@ export default function CheckoutClient() {
     return () => clearTimeout(timer);
   }, [shippingAddress.city, shippingAddress.state, fetchShippingCost]);
 
-  // Calculate points earned for this order
-  const pointsEarned = items.reduce((sum, item) => sum + (item.loyaltyPoints || 0) * item.quantity, 0);
+  // Calculate points earned for this order (each T-shirt earns 10 points)
+  const pointsEarned = items.reduce((sum, item) => sum + (item.loyaltyPoints || 10) * item.quantity, 0);
 
   const handleProceedToCheckout = (e: React.FormEvent) => {
     e.preventDefault();
@@ -207,11 +207,16 @@ export default function CheckoutClient() {
     }
 
     // Update Loyalty Points for logged in members
-    if (user && profile) {
-      let newTotalPoints = (profile.loyalty_points || 0) + pointsEarned;
+    if (user) {
+      const { data: currentProfile } = await supabase
+        .from('profiles')
+        .select('loyalty_points')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      const existingPoints = currentProfile?.loyalty_points || 0;
+      let newTotalPoints = existingPoints + pointsEarned;
       if (appliedTier) {
-        // revert their points to 0 since they claimed the discount
-        // but add back the points they earned from this new order
         newTotalPoints = pointsEarned;
       }
 
@@ -227,8 +232,14 @@ export default function CheckoutClient() {
 
       await supabase
         .from('profiles')
-        .update({ loyalty_points: newTotalPoints, loyalty_tier: newTier })
+        .update({
+          loyalty_points: newTotalPoints,
+          loyalty_tier: newTier,
+          is_loyalty_member: true
+        })
         .eq('id', user.id);
+
+      await refreshProfile();
     }
 
     // Send order confirmation email asynchronously
@@ -328,7 +339,7 @@ export default function CheckoutClient() {
           Thank you for your purchase. Your chill is on the way.
         </p>
         
-        {user && profile?.is_loyalty_member && pointsEarned > 0 && (
+        {user && pointsEarned > 0 && (
           <div className="bg-primary/5 text-primary border border-primary/20 px-6 py-4 rounded-full inline-block mt-4 mb-6">
             <span className="font-label-caps text-sm uppercase tracking-widest">+ {pointsEarned} Loyalty Points Earned!</span>
           </div>
@@ -593,7 +604,7 @@ export default function CheckoutClient() {
                 </div>
 
                 {/* Loyalty Discount Section */}
-                {step === 1 && profile?.is_loyalty_member && availableTiers.length > 0 && (
+                {step === 1 && user && availableTiers.length > 0 && (
                   <div className="border border-surface-variant p-4 bg-surface-container-lowest">
                     <p className="font-headline-sm text-xs uppercase tracking-wider text-on-surface mb-3 flex items-center gap-1">
                       <span className="material-symbols-outlined text-sm text-primary">loyalty</span>
@@ -617,9 +628,9 @@ export default function CheckoutClient() {
                       </div>
                     ) : (
                       <div className="flex flex-col gap-2">
-                        <p className="text-xs text-on-surface-variant">You have <span className="font-bold text-primary">{profile.loyalty_points || 0}</span> points.</p>
+                        <p className="text-xs text-on-surface-variant">You have <span className="font-bold text-primary">{profile?.loyalty_points || 0}</span> points.</p>
                         {(() => {
-                          const eligibleTiers = availableTiers.filter(t => (profile.loyalty_points || 0) >= t.required_points);
+                          const eligibleTiers = availableTiers.filter(t => (profile?.loyalty_points || 0) >= t.required_points);
                           if (eligibleTiers.length > 0) {
                             const bestTier = eligibleTiers[0];
                             return (
@@ -632,9 +643,9 @@ export default function CheckoutClient() {
                               </button>
                             );
                           } else {
-                            const nextTier = [...availableTiers].reverse().find(t => (profile.loyalty_points || 0) < t.required_points);
+                            const nextTier = [...availableTiers].reverse().find(t => (profile?.loyalty_points || 0) < t.required_points);
                             if (nextTier) {
-                              return <p className="text-xs text-on-surface-variant">Earn <span className="font-bold text-primary">{nextTier.required_points - (profile.loyalty_points || 0)}</span> more points to unlock the {nextTier.name} discount.</p>;
+                              return <p className="text-xs text-on-surface-variant">Earn <span className="font-bold text-primary">{nextTier.required_points - (profile?.loyalty_points || 0)}</span> more points to unlock the {nextTier.name} discount.</p>;
                             }
                             return null;
                           }
@@ -677,7 +688,7 @@ export default function CheckoutClient() {
                 </div>
 
                 {/* Points Earned Predictor */}
-                {profile?.is_loyalty_member && pointsEarned > 0 && (
+                {user && pointsEarned > 0 && (
                   <div className="text-center border-t border-surface-variant pt-4">
                     <p className="font-label-caps text-xs text-on-surface-variant uppercase tracking-widest">
                       You will earn <span className="text-primary font-bold">{pointsEarned}</span> points

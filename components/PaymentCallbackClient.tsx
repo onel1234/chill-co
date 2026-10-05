@@ -98,7 +98,7 @@ export default function PaymentCallbackClient() {
           Thank you for your purchase. Your chill is on the way.
         </p>
         
-        {user && profile?.is_loyalty_member && pointsEarned > 0 && (
+        {user && pointsEarned > 0 && (
           <div className="bg-primary/5 text-primary border border-primary/20 px-6 py-4 rounded-full inline-block mt-4 mb-6">
             <span className="font-label-caps text-sm uppercase tracking-widest">+ {pointsEarned} Loyalty Points Earned!</span>
           </div>

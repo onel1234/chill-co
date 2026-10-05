@@ -30,10 +30,6 @@ export async function POST() {
     return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
   }
 
-  if (!profile.is_loyalty_member) {
-    return NextResponse.json({ error: 'Not a loyalty member' }, { status: 403 });
-  }
-
   // Fetch all tiers sorted by required_points DESC to find the best eligible tier
   const { data: tiers, error: tiersError } = await supabase
     .from('loyalty_tiers')

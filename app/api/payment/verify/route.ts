@@ -55,8 +55,8 @@ export async function POST(request: Request) {
           .eq('id', order.user_id)
           .single();
 
-        if (profile?.is_loyalty_member && pointsEarned > 0) {
-          const newPoints = (profile.loyalty_points || 0) + pointsEarned;
+        if (pointsEarned > 0) {
+          const newPoints = (profile?.loyalty_points || 0) + pointsEarned;
 
           // Determine the tier based on new points total
           const { data: tiers } = await supabase
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
 
           await supabase
             .from('profiles')
-            .update({ loyalty_points: newPoints, loyalty_tier: newTier })
+            .update({ loyalty_points: newPoints, loyalty_tier: newTier, is_loyalty_member: true })
             .eq('id', order.user_id);
         }
       }
