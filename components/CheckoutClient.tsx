@@ -122,9 +122,40 @@ export default function CheckoutClient() {
 
     const generatedOrderId = crypto.randomUUID();
 
+    // Ensure user profile exists in profiles table before inserting order
+    let resolvedUserId: string | null = user?.id || null;
+    if (user) {
+      try {
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (!existingProfile) {
+          const { error: profileCreateError } = await supabase
+            .from('profiles')
+            .upsert({
+              id: user.id,
+              email: user.email || email,
+              full_name: profile?.full_name || (user.user_metadata?.full_name as string) || (user.user_metadata?.name as string) || null,
+              avatar_url: profile?.avatar_url || (user.user_metadata?.avatar_url as string) || (user.user_metadata?.picture as string) || null,
+              is_loyalty_member: true,
+            });
+
+          if (profileCreateError) {
+            console.warn('Could not auto-create profile, proceeding with guest user_id:', profileCreateError);
+            resolvedUserId = null;
+          }
+        }
+      } catch (err) {
+        console.warn('Profile check failed:', err);
+      }
+    }
+
     const orderData = {
       id: generatedOrderId,
-      user_id: user?.id || null, // null for guest checkout
+      user_id: resolvedUserId,
       status: 'pending',
       subtotal: totalPrice - discountAmount,
       shipping: effectiveShippingCost,
@@ -140,6 +171,7 @@ export default function CheckoutClient() {
 
     if (orderError) {
       console.error('Failed to create order:', JSON.stringify(orderError, null, 2));
+      alert(`Could not create order: ${orderError.message || 'Please try again.'}`);
       setIsProcessing(false);
       return;
     }

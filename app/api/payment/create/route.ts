@@ -31,10 +31,39 @@ export async function POST(request: Request) {
 
     const orderId = crypto.randomUUID();
 
+    let validUserId: string | null = userId || null;
+    if (userId) {
+      try {
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', userId)
+          .maybeSingle();
+
+        if (!existingProfile) {
+          const { error: profileErr } = await supabase
+            .from('profiles')
+            .upsert({
+              id: userId,
+              email,
+              full_name: shippingAddress ? `${shippingAddress.firstName || ''} ${shippingAddress.lastName || ''}`.trim() : null,
+              is_loyalty_member: true,
+            });
+
+          if (profileErr) {
+            console.warn('Could not auto-create profile for payment create, falling back to guest:', profileErr);
+            validUserId = null;
+          }
+        }
+      } catch (err) {
+        console.warn('Profile check failed in payment create:', err);
+      }
+    }
+
     // Insert order — mirrors the existing COD checkout pattern
     const orderData = {
       id: orderId,
-      user_id: userId || null,
+      user_id: validUserId,
       status: 'payment_pending',
       subtotal: finalSubtotal,
       shipping: shippingCost,

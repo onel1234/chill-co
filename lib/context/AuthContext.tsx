@@ -30,17 +30,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
 
   const fetchProfile = useCallback(
-    async (userId: string) => {
+    async (userId: string, currentUser?: User | null) => {
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", userId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error("Error fetching profile:", error);
-      } else if (data) {
+      }
+
+      if (data) {
         setProfile(data as UserProfile);
+      } else {
+        // Auto-heal missing profile for OAuth or pre-existing auth users
+        const activeUser = currentUser || (await supabase.auth.getUser()).data.user;
+        if (activeUser && activeUser.id === userId) {
+          const { data: newProfile, error: insertError } = await supabase
+            .from("profiles")
+            .upsert({
+              id: userId,
+              email: activeUser.email || '',
+              full_name: (activeUser.user_metadata?.full_name as string) || (activeUser.user_metadata?.name as string) || null,
+              avatar_url: (activeUser.user_metadata?.avatar_url as string) || (activeUser.user_metadata?.picture as string) || null,
+              is_loyalty_member: true,
+            })
+            .select()
+            .maybeSingle();
+
+          if (!insertError && newProfile) {
+            setProfile(newProfile as UserProfile);
+          }
+        }
       }
 
       // Check admin status via API route
@@ -67,7 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id).finally(() => setIsLoading(false));
+        fetchProfile(session.user.id, session.user).finally(() => setIsLoading(false));
       } else {
         setIsLoading(false);
       }
@@ -79,7 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
-        fetchProfile(session.user.id);
+        fetchProfile(session.user.id, session.user);
       } else {
         setProfile(null);
         setIsAdmin(false);
@@ -98,7 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshProfile = useCallback(async () => {
     if (user) {
-      await fetchProfile(user.id);
+      await fetchProfile(user.id, user);
     }
   }, [user, fetchProfile]);
 
