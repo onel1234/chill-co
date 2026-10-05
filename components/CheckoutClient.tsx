@@ -171,9 +171,20 @@ export default function CheckoutClient() {
         // but add back the points they earned from this new order
         newTotalPoints = pointsEarned;
       }
+
+      // Determine the tier based on new points total
+      const { data: tierData } = await supabase
+        .from('loyalty_tiers')
+        .select('name, required_points')
+        .lte('required_points', newTotalPoints)
+        .order('required_points', { ascending: false })
+        .limit(1);
+
+      const newTier = tierData && tierData.length > 0 ? tierData[0].name : null;
+
       await supabase
         .from('profiles')
-        .update({ loyalty_points: newTotalPoints })
+        .update({ loyalty_points: newTotalPoints, loyalty_tier: newTier })
         .eq('id', user.id);
     }
 

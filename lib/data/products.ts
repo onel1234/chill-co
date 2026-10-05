@@ -19,7 +19,7 @@ export const products: Product[] = [
     category: 'Tees',
     collection: 'Urban Kinetic',
     isNewArrival: true,
-    loyaltyPoints: 50
+    loyaltyPoints: 10
   },
   {
     id: 'different-oversized-tee',
@@ -38,7 +38,7 @@ export const products: Product[] = [
     category: 'Tees',
     collection: 'The Signature Series',
     isNewArrival: true,
-    loyaltyPoints: 45
+    loyaltyPoints: 10
   },
   {
     id: 'kinetic-drop-tee',
@@ -57,7 +57,7 @@ export const products: Product[] = [
     category: 'Tees',
     collection: 'Urban Kinetic',
     isNewArrival: true,
-    loyaltyPoints: 50
+    loyaltyPoints: 10
   },
   {
     id: 'midnight-drop-tee',
@@ -76,7 +76,7 @@ export const products: Product[] = [
     category: 'Tees',
     collection: 'Midnight Drop',
     isNewArrival: false,
-    loyaltyPoints: 50
+    loyaltyPoints: 10
   },
   {
     id: 'staples-heavyweight-tee',
@@ -95,7 +95,7 @@ export const products: Product[] = [
     category: 'Tees',
     collection: 'Essentials',
     isNewArrival: false,
-    loyaltyPoints: 50
+    loyaltyPoints: 10
   }
 ];
 

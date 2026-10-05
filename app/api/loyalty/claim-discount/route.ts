@@ -80,10 +80,10 @@ export async function POST() {
     return NextResponse.json({ error: 'Failed to generate coupon' }, { status: 500 });
   }
 
-  // Reset user loyalty points to 0
+  // Reset user loyalty points and tier
   const { error: updateError } = await supabase
     .from('profiles')
-    .update({ loyalty_points: 0 })
+    .update({ loyalty_points: 0, loyalty_tier: null })
     .eq('id', user.id);
 
   if (updateError) {

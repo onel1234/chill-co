@@ -14,6 +14,7 @@ create table if not exists public.profiles (
   avatar_url text,
   is_admin boolean default false,
   loyalty_points integer default 0,
+  loyalty_tier text default null,
   is_loyalty_member boolean default false,
   created_at timestamptz default now(),
   updated_at timestamptz default now()

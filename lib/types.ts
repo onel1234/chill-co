@@ -32,6 +32,7 @@ export interface UserProfile {
   avatar_url?: string;
   is_admin: boolean;
   loyalty_points: number;
+  loyalty_tier: string | null;
   is_loyalty_member: boolean;
   created_at: string;
 }

@@ -66,14 +66,14 @@ export default function AccountClient() {
   }, [user]);
 
   useEffect(() => {
-    if (profile?.is_loyalty_member) {
+    if (user) {
       fetch('/api/loyalty/tiers')
         .then(res => res.json())
         .then(data => {
           if (!data.error) setTiers(data);
         });
     }
-  }, [profile?.is_loyalty_member]);
+  }, [user]);
 
   // Fetch affiliate data
   const fetchAffiliateData = useCallback(async () => {
@@ -199,7 +199,7 @@ export default function AccountClient() {
 
       <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter mb-stack-lg">
         {/* Profile Card */}
-        <div className={`col-span-1 ${profile?.is_loyalty_member ? 'md:col-span-8' : 'md:col-span-12'} bg-surface-container-low border border-surface-variant p-6 flex flex-col sm:flex-row items-start sm:items-center gap-5 h-full`}>
+        <div className={`col-span-1 ${profile?.is_loyalty_member ? 'md:col-span-5' : 'md:col-span-12'} bg-surface-container-low border border-surface-variant p-6 flex flex-col sm:flex-row items-start sm:items-center gap-5 h-full`}>
           {/* Avatar */}
           <div className="relative flex-shrink-0">
             {profile?.avatar_url ? (
@@ -239,14 +239,66 @@ export default function AccountClient() {
           </div>
         </div>
 
-        {/* Loyalty Points Summary (if member) */}
+        {/* Loyalty Tier & Points (if member) */}
         {profile?.is_loyalty_member && (
-          <div className="col-span-1 md:col-span-4 bg-primary/5 border border-primary/20 p-6 flex flex-col justify-center text-center relative overflow-hidden group">
-            <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
-            <span className="material-symbols-outlined text-primary mb-2 relative z-10">loyalty</span>
-            <p className="font-display-xl text-headline-lg text-primary relative z-10">{profile.loyalty_points || 0}</p>
-            <p className="font-label-caps text-label-caps text-primary/80 mt-1 relative z-10 uppercase tracking-widest">Loyalty Points</p>
-          </div>
+          <>
+            {/* Current Tier Card */}
+            <div className="col-span-1 md:col-span-4 border p-6 flex flex-col justify-center text-center relative overflow-hidden group"
+              style={{
+                background: profile.loyalty_tier === 'Culturalist' ? 'linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,165,0,0.1))' :
+                             profile.loyalty_tier === 'Curator' ? 'linear-gradient(135deg, rgba(192,192,192,0.1), rgba(169,169,169,0.1))' :
+                             profile.loyalty_tier ? 'linear-gradient(135deg, rgba(205,127,50,0.1), rgba(184,115,51,0.1))' :
+                             'transparent',
+                borderColor: profile.loyalty_tier === 'Culturalist' ? 'rgba(255,215,0,0.3)' :
+                             profile.loyalty_tier === 'Curator' ? 'rgba(192,192,192,0.3)' :
+                             profile.loyalty_tier ? 'rgba(205,127,50,0.3)' :
+                             'var(--color-surface-variant)',
+              }}
+            >
+              <span className="material-symbols-outlined mb-2 relative z-10"
+                style={{
+                  color: profile.loyalty_tier === 'Culturalist' ? '#FFD700' :
+                         profile.loyalty_tier === 'Curator' ? '#C0C0C0' :
+                         profile.loyalty_tier ? '#CD7F32' : 'var(--color-primary)',
+                }}
+              >
+                {profile.loyalty_tier ? 'workspace_premium' : 'loyalty'}
+              </span>
+              <p className="font-display-xl text-headline-md relative z-10 uppercase tracking-wider"
+                style={{
+                  color: profile.loyalty_tier === 'Culturalist' ? '#DAA520' :
+                         profile.loyalty_tier === 'Curator' ? '#A9A9A9' :
+                         profile.loyalty_tier ? '#CD7F32' : 'var(--color-on-surface-variant)',
+                }}
+              >
+                {profile.loyalty_tier || 'No Tier'}
+              </p>
+              <p className="font-label-caps text-label-caps text-on-surface-variant/80 mt-1 relative z-10 uppercase tracking-widest">
+                {profile.loyalty_tier ? 'Current Tier' : 'Keep shopping to unlock!'}
+              </p>
+              {profile.loyalty_tier && (
+                <p className="text-xs text-on-surface-variant/60 mt-2 relative z-10">
+                  {profile.loyalty_tier === 'Explorer' && '25% Discount Unlocked'}
+                  {profile.loyalty_tier === 'Curator' && '50% Discount Unlocked'}
+                  {profile.loyalty_tier === 'Culturalist' && '100% Discount Unlocked'}
+                </p>
+              )}
+            </div>
+
+            {/* Points Card */}
+            <div className="col-span-1 md:col-span-3 bg-primary/5 border border-primary/20 p-6 flex flex-col justify-center text-center relative overflow-hidden group">
+              <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
+              <span className="material-symbols-outlined text-primary mb-2 relative z-10">loyalty</span>
+              <p className="font-display-xl text-headline-lg text-primary relative z-10">{profile.loyalty_points || 0}</p>
+              <p className="font-label-caps text-label-caps text-primary/80 mt-1 relative z-10 uppercase tracking-widest">Loyalty Points</p>
+              <p className="text-xs text-on-surface-variant/60 mt-2 relative z-10">
+                {profile.loyalty_points < 30 && `${30 - profile.loyalty_points} pts to Explorer`}
+                {profile.loyalty_points >= 30 && profile.loyalty_points < 60 && `${60 - profile.loyalty_points} pts to Curator`}
+                {profile.loyalty_points >= 60 && profile.loyalty_points < 100 && `${100 - profile.loyalty_points} pts to Culturalist`}
+                {profile.loyalty_points >= 100 && '✨ Max tier reached!'}
+              </p>
+            </div>
+          </>
         )}
       </div>
 
@@ -265,7 +317,7 @@ export default function AccountClient() {
               </button>
             </div>
             <p className="text-sm text-on-surface-variant max-w-md">
-              As a loyalty member, you earn points on every purchase. Reach higher tiers to unlock exclusive discounts available directly at checkout.
+              Each T-shirt purchase earns you 10 points. Reach tier thresholds to unlock discounts available at checkout.
             </p>
           </div>
 
@@ -316,9 +368,14 @@ export default function AccountClient() {
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
-            <p className="text-sm text-on-surface-variant mb-5">
-              As a loyalty member, you earn points on every purchase. Reach higher tiers to unlock exclusive discounts available directly at checkout.
+            <p className="text-sm text-on-surface-variant mb-3">
+              Every T-shirt purchase earns you <span className="text-primary font-bold">10 points</span>. Reach higher tiers to unlock exclusive discounts!
             </p>
+            <div className="text-xs text-on-surface-variant/80 mb-5 bg-surface-container-low p-3 border border-surface-variant">
+              <p className="mb-1">🛒 <strong>3 T-shirts</strong> (30 pts) → <span className="text-primary font-bold">Explorer</span> — 25% off</p>
+              <p className="mb-1">🛒 <strong>6 T-shirts</strong> (60 pts) → <span className="text-primary font-bold">Curator</span> — 50% off</p>
+              <p>🛒 <strong>10 T-shirts</strong> (100 pts) → <span className="text-primary font-bold">Culturalist</span> — 100% off</p>
+            </div>
 
             {/* Current Points */}
             <div className="bg-primary/5 border border-primary/20 p-4 flex items-center justify-between mb-5">
@@ -330,11 +387,14 @@ export default function AccountClient() {
             <div className="space-y-3">
               {tiers.map((tier, idx) => {
                 const achieved = (profile?.loyalty_points || 0) >= tier.required_points;
+                const isCurrentTier = profile?.loyalty_tier === tier.name;
                 return (
                   <div key={tier.id} className={`relative flex items-center gap-4 p-3 border transition-colors ${
+                    isCurrentTier ? 'border-primary bg-primary/10 ring-1 ring-primary' :
                     achieved ? 'border-primary bg-primary/5' : 'border-surface-variant'
                   }`}>
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                      isCurrentTier ? 'bg-primary text-on-primary' :
                       achieved ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'
                     }`}>
                       {achieved
@@ -343,7 +403,14 @@ export default function AccountClient() {
                       }
                     </div>
                     <div className="flex-1">
-                      <p className={`font-headline-sm text-sm ${achieved ? 'text-primary' : 'text-on-surface-variant'}`}>{tier.name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className={`font-headline-sm text-sm ${achieved ? 'text-primary' : 'text-on-surface-variant'}`}>{tier.name}</p>
+                        {isCurrentTier && (
+                          <span className="font-label-caps text-[10px] bg-primary text-on-primary px-1.5 py-0.5 uppercase tracking-wider">
+                            Current
+                          </span>
+                        )}
+                      </div>
                       <p className="font-label-caps text-xs text-on-surface-variant uppercase">{tier.required_points} points required</p>
                     </div>
                     <span className={`font-headline-sm text-sm ${achieved ? 'text-secondary' : 'text-on-surface-variant/50'}`}>

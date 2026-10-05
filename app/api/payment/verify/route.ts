@@ -41,10 +41,10 @@ export async function POST(request: Request) {
       // Update loyalty points for logged-in users
       let pointsEarned = 0;
       if (order?.user_id) {
-        // Calculate points from order items (matching existing checkout pattern)
+        // Calculate points from order items: 10 points per T-shirt purchased
         if (orderItems) {
           pointsEarned = orderItems.reduce(
-            (sum: number, item: { quantity: number }) => sum + item.quantity,
+            (sum: number, item: { quantity: number }) => sum + (10 * item.quantity),
             0
           );
         }
@@ -56,9 +56,21 @@ export async function POST(request: Request) {
           .single();
 
         if (profile?.is_loyalty_member && pointsEarned > 0) {
+          const newPoints = (profile.loyalty_points || 0) + pointsEarned;
+
+          // Determine the tier based on new points total
+          const { data: tiers } = await supabase
+            .from('loyalty_tiers')
+            .select('name, required_points')
+            .lte('required_points', newPoints)
+            .order('required_points', { ascending: false })
+            .limit(1);
+
+          const newTier = tiers && tiers.length > 0 ? tiers[0].name : null;
+
           await supabase
             .from('profiles')
-            .update({ loyalty_points: (profile.loyalty_points || 0) + pointsEarned })
+            .update({ loyalty_points: newPoints, loyalty_tier: newTier })
             .eq('id', order.user_id);
         }
       }
