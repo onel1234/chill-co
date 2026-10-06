@@ -87,18 +87,61 @@ export default function Footer() {
               <p style={{ fontSize: '0.78rem', lineHeight: 1.8, color: 'rgba(240,230,211,0.35)', fontWeight: 300, maxWidth: '240px', marginBottom: '1.5rem' }}>
                 Designed for comfort. Built for everyday.
               </p>
-              <div style={{ display: 'flex', gap: '0.75rem' }}>
-                {['IG', 'TT', 'FB'].map((s) => (
-                  <a key={s} href="#" style={{
-                    width: '1.8rem', height: '1.8rem',
-                    border: '1px solid rgba(125,91,49,0.3)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: '0.5rem', letterSpacing: '0.05em', color: '#c9a96e',
-                    fontWeight: 600, textDecoration: 'none',
-                  }}>
-                    {s}
-                  </a>
-                ))}
+              <div>
+                <a
+                  href="https://www.instagram.com/chill_.co?stkn=MTQ3bTVsejl4cnQ1cg=="
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group"
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.75rem',
+                    textDecoration: 'none',
+                    color: '#c9a96e',
+                    transition: 'opacity 0.3s ease',
+                  }}
+                >
+                  <span
+                    style={{
+                      width: '2rem',
+                      height: '2rem',
+                      border: '1px solid rgba(201,169,110,0.35)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: '#c9a96e',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                    </svg>
+                  </span>
+                  <span
+                    style={{
+                      fontSize: '0.68rem',
+                      letterSpacing: '0.14em',
+                      textTransform: 'uppercase',
+                      fontWeight: 500,
+                      color: '#e8d5b0',
+                    }}
+                  >
+                    Follow us on Instagram
+                  </span>
+                </a>
               </div>
             </div>
 

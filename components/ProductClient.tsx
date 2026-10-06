@@ -118,12 +118,12 @@ export default function ProductClient({ product }: ProductClientProps) {
               <button 
                 onClick={handleAddToBag}
                 disabled={isAdding}
-                className="w-full bg-primary-container text-on-primary-container py-4 px-8 font-button-text text-button-text uppercase tracking-wider hover:opacity-90 active:scale-[0.98] transition-all flex justify-center items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full bg-[#c9a96e] hover:bg-[#e3bd79] text-[#0d0a07] font-bold border border-[#e8d5b0]/50 shadow-[0_8px_28px_rgba(201,169,110,0.25)] py-4 px-8 font-button-text text-button-text uppercase tracking-wider active:scale-[0.98] transition-all flex justify-center items-center gap-2 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                {isAdding ? 'Added to Bag' : 'Add to Bag'}
-                <span className="material-symbols-outlined">{isAdding ? 'check' : 'shopping_bag'}</span>
+                <span>{isAdding ? 'Added to Bag' : 'Add to Bag'}</span>
+                <span className="material-symbols-outlined text-[#0d0a07]">{isAdding ? 'check' : 'shopping_bag'}</span>
               </button>
-              <p className="text-center font-label-caps text-label-caps text-tertiary mt-stack-sm">Free shipping on orders over Rs. 15,000</p>
+              <p className="text-center font-label-caps text-label-caps text-on-surface-variant mt-stack-sm">Free shipping on orders over Rs. 15,000</p>
             </div>
             
             {/* Accordions */}

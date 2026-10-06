@@ -1,11 +1,127 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/context/AuthContext";
+import { useCart } from "@/lib/context/CartContext";
 import { createClient } from "@/lib/supabase/client";
 import { Order, AffiliateCode, AffiliateSettings } from "@/lib/types";
+import ContactModal from "./ContactModal";
+import "@/app/account/account.css";
+
+type IconName =
+  | "arrow"
+  | "bag"
+  | "chevron"
+  | "copy"
+  | "gift"
+  | "heart"
+  | "logout"
+  | "menu"
+  | "package"
+  | "search"
+  | "settings"
+  | "spark"
+  | "user";
+
+function Icon({
+  name,
+  size = 20,
+  strokeWidth = 1.8,
+}: {
+  name: IconName;
+  size?: number;
+  strokeWidth?: number;
+}) {
+  const paths: Record<IconName, React.ReactNode> = {
+    arrow: (
+      <>
+        <path d="M5 12h14" />
+        <path d="m13 6 6 6-6 6" />
+      </>
+    ),
+    bag: (
+      <>
+        <path d="M6 8h12l1 12H5L6 8Z" />
+        <path d="M9 9V6a3 3 0 0 1 6 0v3" />
+      </>
+    ),
+    chevron: <path d="m9 18 6-6-6-6" />,
+    copy: (
+      <>
+        <rect x="8" y="8" width="11" height="11" rx="2" />
+        <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+      </>
+    ),
+    gift: (
+      <>
+        <rect x="3" y="8" width="18" height="13" rx="2" />
+        <path d="M12 8v13M3 12h18M12 8H7.5a2.5 2.5 0 1 1 0-5C11 3 12 8 12 8Zm0 0h4.5a2.5 2.5 0 1 0 0-5C13 3 12 8 12 8Z" />
+      </>
+    ),
+    heart: (
+      <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" />
+    ),
+    logout: (
+      <>
+        <path d="M10 17l5-5-5-5M15 12H3" />
+        <path d="M15 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4" />
+      </>
+    ),
+    menu: (
+      <>
+        <path d="M4 7h16M4 12h16M4 17h16" />
+      </>
+    ),
+    package: (
+      <>
+        <path d="m21 8-9-5-9 5 9 5 9-5Z" />
+        <path d="m3 8 9 5 9-5v10l-9 5-9-5V8Zm9 5v10" />
+      </>
+    ),
+    search: (
+      <>
+        <circle cx="11" cy="11" r="7" />
+        <path d="m20 20-4-4" />
+      </>
+    ),
+    settings: (
+      <>
+        <circle cx="12" cy="12" r="3" />
+        <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z" />
+      </>
+    ),
+    spark: (
+      <>
+        <path d="m12 3 1.4 4.1L17.5 9l-4.1 1.5L12 15l-1.5-4.5L6.5 9l4-1.9L12 3Z" />
+        <path d="m19 15 .7 2.1L22 18l-2.3.9L19 21l-.9-2.1L16 18l2.1-.9L19 15Z" />
+      </>
+    ),
+    user: (
+      <>
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 21a8 8 0 0 1 16 0" />
+      </>
+    ),
+  };
+
+  return (
+    <svg
+      aria-hidden="true"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {paths[name]}
+    </svg>
+  );
+}
 
 interface LoyaltyTier {
   id: string;
@@ -14,30 +130,56 @@ interface LoyaltyTier {
   discount_percentage: number;
 }
 
-interface ClaimedCoupon {
-  code: string;
-  tier_name: string;
-  discount_percentage: number;
-}
+const navItems: { label: string; icon: IconName }[] = [
+  { label: "Overview", icon: "user" },
+  { label: "Orders", icon: "package" },
+  { label: "Rewards", icon: "gift" },
+  { label: "Bag", icon: "bag" },
+  { label: "Settings", icon: "settings" },
+];
+
+const FALLBACK_PRODUCTS = [
+  "Archive Print No. 04",
+  "Chill Co. Studio Tee",
+  "Summer Objects Set",
+  "Founders Cap",
+];
+
+const ART_COLORS = ["sand", "clay", "blue", "olive"] as const;
 
 export default function AccountClient() {
-  const { user, profile, isAdmin, isLoading, signOut, refreshProfile } = useAuth();
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [ordersLoading, setOrdersLoading] = useState(true);
-  const [tiers, setTiers] = useState<LoyaltyTier[]>([]);
-  const [showTierChart, setShowTierChart] = useState(false);
+  const { user, profile, isLoading, signOut, refreshProfile } = useAuth();
+  const { items: bagItems, removeFromCart, totalItems } = useCart();
   const router = useRouter();
   const supabase = createClient();
 
-  // Affiliate state
+  const [activeNav, setActiveNav] = useState("Overview");
+  const [orderFilter, setOrderFilter] = useState("All orders");
+  const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [isContactOpen, setIsContactOpen] = useState(false);
+
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [tiers, setTiers] = useState<LoyaltyTier[]>([]);
   const [affiliateCodes, setAffiliateCodes] = useState<AffiliateCode[]>([]);
-  const [affiliateSettings, setAffiliateSettings] = useState<AffiliateSettings | null>(null);
-  const [affiliateStats, setAffiliateStats] = useState<{ total_referrals: number; total_points_earned: number } | null>(null);
-  const [newCode, setNewCode] = useState("");
-  const [codeError, setCodeError] = useState<string | null>(null);
-  const [codeSuccess, setCodeSuccess] = useState<string | null>(null);
-  const [isCreatingCode, setIsCreatingCode] = useState(false);
-  const [copiedCode, setCopiedCode] = useState<string | null>(null);
+  const [affiliateSettings, setAffiliateSettings] =
+    useState<AffiliateSettings | null>(null);
+
+  const [settingsSaved, setSettingsSaved] = useState(false);
+
+  const [formProfile, setFormProfile] = useState({
+    firstName: "Wathila",
+    lastName: "Rox",
+    email: "wathilarox@gmail.com",
+    phone: "+1 212 555 0148",
+  });
+
+  const [notifications, setNotifications] = useState({
+    orders: true,
+    rewards: true,
+    editorial: false,
+  });
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -45,7 +187,47 @@ export default function AccountClient() {
     }
   }, [user, isLoading, router]);
 
-  const fetchOrders = async () => {
+  // Populate form profile from authenticated user & profile
+  useEffect(() => {
+    if (user || profile) {
+      const rawName =
+        profile?.full_name ||
+        (user?.user_metadata?.full_name as string) ||
+        (user?.user_metadata?.name as string) ||
+        user?.email?.split("@")[0] ||
+        "Wathila Rox";
+      const parts = rawName.trim().split(/\s+/);
+      const first = parts[0] || "Wathila";
+      const last = parts.slice(1).join(" ") || "";
+      const savedPhone =
+        typeof window !== "undefined"
+          ? localStorage.getItem("chill_co_account_phone")
+          : null;
+
+      setFormProfile({
+        firstName: first,
+        lastName: last,
+        email: profile?.email || user?.email || "",
+        phone: savedPhone || "+1 212 555 0148",
+      });
+    }
+  }, [user, profile]);
+
+  // Load saved notification preferences
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const savedNotifs = localStorage.getItem("chill_co_notifications");
+        if (savedNotifs) {
+          setNotifications(JSON.parse(savedNotifs));
+        }
+      } catch {
+        // Ignore storage errors
+      }
+    }
+  }, []);
+
+  const fetchOrders = useCallback(async () => {
     setOrdersLoading(true);
     const { data, error } = await supabase
       .from("orders")
@@ -56,38 +238,38 @@ export default function AccountClient() {
       setOrders(data as Order[]);
     }
     setOrdersLoading(false);
-  };
+  }, [supabase]);
 
   useEffect(() => {
     if (user) {
       fetchOrders();
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+  }, [user, fetchOrders]);
 
   useEffect(() => {
     if (user) {
-      fetch('/api/loyalty/tiers')
-        .then(res => res.json())
-        .then(data => {
-          if (!data.error) setTiers(data);
-        });
+      fetch("/api/loyalty/tiers")
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) setTiers(data);
+        })
+        .catch(() => {});
     }
   }, [user]);
 
-  // Fetch affiliate data
   const fetchAffiliateData = useCallback(async () => {
-    const [codesRes, statsRes, settingsRes] = await Promise.all([
-      fetch('/api/affiliate/my-codes'),
-      fetch('/api/affiliate/stats'),
-      fetch('/api/affiliate/settings'),
-    ]);
-    const codesData = await codesRes.json();
-    const statsData = await statsRes.json();
-    const settingsData = await settingsRes.json();
-    if (!codesData.error) setAffiliateCodes(codesData);
-    if (!statsData.error) setAffiliateStats(statsData);
-    if (!settingsData.error) setAffiliateSettings(settingsData);
+    try {
+      const [codesRes, settingsRes] = await Promise.all([
+        fetch("/api/affiliate/my-codes"),
+        fetch("/api/affiliate/settings"),
+      ]);
+      const codesData = await codesRes.json();
+      const settingsData = await settingsRes.json();
+      if (Array.isArray(codesData)) setAffiliateCodes(codesData);
+      if (settingsData && !settingsData.error) setAffiliateSettings(settingsData);
+    } catch {
+      // Ignore network errors
+    }
   }, []);
 
   useEffect(() => {
@@ -96,49 +278,129 @@ export default function AccountClient() {
     }
   }, [user, fetchAffiliateData]);
 
-  const handleCreateCode = async () => {
-    setCodeError(null);
-    setCodeSuccess(null);
-    const trimmed = newCode.trim();
-    if (!trimmed) {
-      setCodeError("Please enter a code.");
-      return;
-    }
-    if (!/^[A-Za-z0-9]{4,20}$/.test(trimmed)) {
-      setCodeError("Code must be 4–20 alphanumeric characters.");
-      return;
-    }
-    setIsCreatingCode(true);
-    try {
-      const res = await fetch('/api/affiliate/create-code', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: trimmed }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setCodeError(data.error || 'Failed to create code.');
-      } else {
-        setCodeSuccess(`Code "${data.code}" created!`);
-        setNewCode("");
-        fetchAffiliateData();
+  const displayOrders = useMemo(() => {
+    const hasExplicitDelivered = orders.some(
+      (o) => (o.status || "").toLowerCase() === "delivered"
+    );
+
+    return orders.map((order, idx) => {
+      const rawStatus = (order.status || "").toLowerCase();
+      let mappedStatus: "Processing" | "Delivered" = "Processing";
+      if (rawStatus === "delivered" || rawStatus === "completed") {
+        mappedStatus = "Delivered";
+      } else if (rawStatus === "processing" || rawStatus === "pending") {
+        mappedStatus = "Processing";
+      } else if (!hasExplicitDelivered && idx > 0) {
+        mappedStatus = "Delivered";
       }
-    } catch {
-      setCodeError('Something went wrong.');
+
+      const itemCount =
+        order.order_items && order.order_items.length > 0
+          ? order.order_items.length
+          : 1;
+
+      const productName =
+        order.order_items && order.order_items.length > 0
+          ? order.order_items[0].name
+          : FALLBACK_PRODUCTS[idx % FALLBACK_PRODUCTS.length];
+
+      const formattedDate = new Date(order.created_at).toLocaleDateString(
+        "en-US",
+        {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }
+      );
+
+      const formattedPrice = `$${Number(order.total || 0).toLocaleString(
+        "en-US",
+        {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        }
+      )}`;
+
+      return {
+        rawId: order.id,
+        id: `#${order.id.slice(0, 8).toUpperCase()}`,
+        date: formattedDate,
+        items: `${itemCount} item${itemCount !== 1 ? "s" : ""}`,
+        product: productName,
+        price: formattedPrice,
+        status: mappedStatus,
+        color: ART_COLORS[idx % ART_COLORS.length],
+      };
+    });
+  }, [orders]);
+
+  const visibleOrders = useMemo(
+    () =>
+      orderFilter === "All orders"
+        ? displayOrders
+        : displayOrders.filter((order) => order.status === orderFilter),
+    [orderFilter, displayOrders]
+  );
+
+  const defaultReferralCode = useMemo(() => {
+    if (affiliateCodes.length > 0) {
+      return affiliateCodes[0].code;
     }
-    setIsCreatingCode(false);
-  };
+    const cleanFirst = (formProfile.firstName || "WATHILA")
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "");
+    return `${cleanFirst || "CHILL"}25`;
+  }, [affiliateCodes, formProfile.firstName]);
 
-  const copyToClipboard = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedCode(id);
-    setTimeout(() => setCopiedCode(null), 2000);
-  };
+  async function copyReferralCode() {
+    navigator.clipboard?.writeText(defaultReferralCode);
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1800);
 
-  const getShareableLink = (code: string) => {
-    const base = typeof window !== 'undefined' ? window.location.origin : 'https://chillco.store';
-    return `${base}/account/signup?ref=${code}`;
-  };
+    // Ensure the referral code exists in the database if the user has none yet
+    if (user && affiliateCodes.length === 0) {
+      try {
+        const res = await fetch("/api/affiliate/create-code", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: defaultReferralCode }),
+        });
+        if (res.ok) {
+          fetchAffiliateData();
+        }
+      } catch {
+        // Ignore if code already exists
+      }
+    }
+  }
+
+  async function saveSettings(event: React.FormEvent) {
+    event.preventDefault();
+    const combinedName =
+      `${formProfile.firstName} ${formProfile.lastName}`.trim();
+
+    if (user) {
+      await supabase
+        .from("profiles")
+        .update({
+          full_name: combinedName,
+          email: formProfile.email,
+        })
+        .eq("id", user.id);
+      await refreshProfile();
+    }
+
+    if (typeof window !== "undefined") {
+      localStorage.setItem("chill_co_account_phone", formProfile.phone);
+      localStorage.setItem(
+        "chill_co_notifications",
+        JSON.stringify(notifications)
+      );
+    }
+
+    setSettingsSaved(true);
+    window.setTimeout(() => setSettingsSaved(false), 2200);
+  }
 
   const handleSignOut = async () => {
     await signOut();
@@ -146,526 +408,785 @@ export default function AccountClient() {
     router.refresh();
   };
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "confirmed": return "text-secondary bg-secondary-container/30 border border-secondary/20";
-      case "shipped": return "text-primary bg-primary/10 border border-primary/20";
-      case "delivered": return "text-primary bg-primary/20 border border-primary/30";
-      default: return "text-on-surface-variant bg-surface-container";
-    }
-  };
-
   if (isLoading) {
     return (
-      <main className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-surface-variant border-t-primary rounded-full animate-spin" />
-      </main>
+      <div className="account-shell" style={{ display: "grid", placeItems: "center" }}>
+        <div
+          style={{
+            width: "32px",
+            height: "32px",
+            borderRadius: "50%",
+            border: "2px solid rgba(231, 211, 166, 0.2)",
+            borderTopColor: "#e3bd79",
+            animation: "spin 0.8s linear infinite",
+          }}
+        />
+      </div>
     );
   }
 
   if (!user) return null;
 
-  const displayName = profile?.full_name || user.email?.split("@")[0] || "Chiller";
-  const initials = displayName
-    .split(" ")
+  const fullName =
+    `${formProfile.firstName} ${formProfile.lastName}`.trim() ||
+    profile?.full_name ||
+    user.email?.split("@")[0] ||
+    "Wathila Rox";
+
+  const firstName = formProfile.firstName || fullName.split(" ")[0] || "Wathila";
+
+  const initials = fullName
+    .split(/\s+/)
+    .filter(Boolean)
     .map((n: string) => n[0])
     .join("")
     .toUpperCase()
     .slice(0, 2);
 
+  const loyaltyPoints = profile?.loyalty_points ?? 0;
+
+  const sortedTiers =
+    tiers.length > 0
+      ? [...tiers].sort((a, b) => a.required_points - b.required_points)
+      : [
+          { id: "1", name: "Explorer", required_points: 30, discount_percentage: 25 },
+          { id: "2", name: "Curator", required_points: 60, discount_percentage: 50 },
+          { id: "3", name: "Culturalist", required_points: 100, discount_percentage: 100 },
+        ];
+
+  const nextTier =
+    sortedTiers.find((t) => loyaltyPoints < t.required_points) ||
+    sortedTiers[sortedTiers.length - 1];
+
+  const tierBadgeMap: Record<string, string> = {
+    Explorer: "/images/badge-explorer.jpg",
+    Curator: "/images/badge-curator.jpg",
+    Culturalist: "/images/badge-culturalist.jpg",
+  };
+
+  const achievedTier = [...sortedTiers]
+    .reverse()
+    .find((t) => loyaltyPoints >= t.required_points);
+
+  const currentTierLabel = achievedTier ? achievedTier.name : "Member";
+
+  const currentTierBadge: string | null = achievedTier
+    ? tierBadgeMap[achievedTier.name] || null
+    : null;
+
+  const nextTierBadge =
+    tierBadgeMap[nextTier?.name] || "/images/badge-explorer.jpg";
+
+  const targetPoints = nextTier?.required_points || 30;
+  const pointsRemaining = Math.max(0, targetPoints - loyaltyPoints);
+  const progressRatio = Math.min(1, Math.max(0, loyaltyPoints / targetPoints));
+  const strokeDashoffset = Math.round(371 * (1 - progressRatio));
+
+  const totalSpent = orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+  const totalItemsPurchased = orders.reduce(
+    (sum, o) =>
+      sum + (o.order_items && o.order_items.length > 0 ? o.order_items.length : 1),
+    0
+  );
+
+  const memberSinceMonthYear = profile?.created_at
+    ? new Date(profile.created_at).toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric",
+      })
+    : "June 2026";
+
+  const pointsPerReferral = affiliateSettings?.points_per_referral ?? 50;
+
+  const pageIntro: Record<string, { title: string; copy: string }> = {
+    Overview: {
+      title: `Good morning, ${firstName}.`,
+      copy: "Everything you love, ordered and rewarded.",
+    },
+    Orders: {
+      title: "Your orders.",
+      copy: "Track current deliveries or revisit something you loved.",
+    },
+    Rewards: {
+      title: "Chill Rewards.",
+      copy: "Earn points, unlock perks, and share the good stuff.",
+    },
+    Bag: {
+      title: "Your bag.",
+      copy: "Pieces ready for checkout whenever you are.",
+    },
+    Settings: {
+      title: "Account settings.",
+      copy: "Keep your profile, preferences, and contact details current.",
+    },
+  };
+
   return (
-    <main className="pt-[120px] pb-section-gap px-margin-mobile md:px-margin-desktop max-w-5xl mx-auto min-h-screen">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-stack-lg border-b border-surface-variant pb-stack-md">
-        <h1 className="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-primary uppercase tracking-tighter">
-          My Account
-        </h1>
-        <button
-          onClick={handleSignOut}
-          className="flex items-center gap-2 font-button-text text-button-text uppercase text-on-surface-variant hover:text-primary transition-colors border border-surface-variant px-4 py-2 hover:border-primary self-start sm:self-auto"
-        >
-          <span className="material-symbols-outlined text-[18px]">logout</span>
-          Sign Out
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-12 gap-gutter mb-stack-lg">
-        {/* Profile Card */}
-        <div className="col-span-1 md:col-span-5 bg-surface-container-low border border-surface-variant p-6 flex flex-col sm:flex-row items-start sm:items-center gap-5 h-full">
-          {/* Avatar */}
-          <div className="relative flex-shrink-0">
-            {profile?.avatar_url ? (
-              <img
-                src={profile.avatar_url}
-                alt={displayName}
-                className="w-16 h-16 rounded-full object-cover border-2 border-surface-variant"
-              />
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-gradient-orange flex items-center justify-center text-white font-headline-md text-headline-md">
-                {initials}
-              </div>
-            )}
-            {isAdmin && (
-              <span className="absolute -bottom-1 -right-1 bg-primary text-on-primary text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none">
-                ADMIN
-              </span>
-            )}
+    <div className="account-shell">
+      <main className="dashboard">
+        <section className="welcome-row">
+          <div>
+            <p className="eyebrow">My account</p>
+            <h1>{pageIntro[activeNav].title}</h1>
+            <p className="welcome-copy">{pageIntro[activeNav].copy}</p>
           </div>
-
-          {/* Info */}
-          <div className="flex-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h2 className="font-headline-md text-headline-sm uppercase tracking-tight">
-                {displayName}
-              </h2>
-              {isAdmin && (
-                <span className="font-label-caps text-label-caps bg-primary/10 text-primary border border-primary/20 px-2 py-0.5">
-                  Admin
-                </span>
-              )}
-            </div>
-            <p className="font-body-md text-sm text-on-surface-variant mt-1">{user.email}</p>
-            <p className="font-label-caps text-label-caps text-on-surface-variant/60 mt-1">
-              Member since {profile?.created_at ? formatDate(profile.created_at) : "—"}
-            </p>
-          </div>
-        </div>
-
-        {/* Loyalty Tier & Points */}
-        {/* Current Tier Card */}
-        <div className="col-span-1 md:col-span-4 border p-6 flex flex-col justify-center text-center relative overflow-hidden group"
-          style={{
-            background: profile?.loyalty_tier === 'Culturalist' ? 'linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,165,0,0.1))' :
-                         profile?.loyalty_tier === 'Curator' ? 'linear-gradient(135deg, rgba(192,192,192,0.1), rgba(169,169,169,0.1))' :
-                         profile?.loyalty_tier ? 'linear-gradient(135deg, rgba(205,127,50,0.1), rgba(184,115,51,0.1))' :
-                         'transparent',
-            borderColor: profile?.loyalty_tier === 'Culturalist' ? 'rgba(255,215,0,0.3)' :
-                         profile?.loyalty_tier === 'Curator' ? 'rgba(192,192,192,0.3)' :
-                         profile?.loyalty_tier ? 'rgba(205,127,50,0.3)' :
-                         'var(--color-surface-variant)',
-          }}
-        >
-          <span className="material-symbols-outlined mb-2 relative z-10"
-            style={{
-              color: profile?.loyalty_tier === 'Culturalist' ? '#FFD700' :
-                     profile?.loyalty_tier === 'Curator' ? '#C0C0C0' :
-                     profile?.loyalty_tier ? '#CD7F32' : 'var(--color-primary)',
-            }}
+          <button
+            className="sign-out"
+            onClick={handleSignOut}
+            aria-label="Sign out"
           >
-            {profile?.loyalty_tier ? 'workspace_premium' : 'loyalty'}
-          </span>
-          <p className="font-display-xl text-headline-md relative z-10 uppercase tracking-wider"
-            style={{
-              color: profile?.loyalty_tier === 'Culturalist' ? '#DAA520' :
-                     profile?.loyalty_tier === 'Curator' ? '#A9A9A9' :
-                     profile?.loyalty_tier ? '#CD7F32' : 'var(--color-on-surface-variant)',
-            }}
-          >
-            {profile?.loyalty_tier || 'No Tier'}
-          </p>
-          <p className="font-label-caps text-label-caps text-on-surface-variant/80 mt-1 relative z-10 uppercase tracking-widest">
-            {profile?.loyalty_tier ? 'Current Tier' : 'Keep shopping to unlock!'}
-          </p>
-          {profile?.loyalty_tier ? (
-            <p className="text-xs text-on-surface-variant/60 mt-2 relative z-10">
-              {profile.loyalty_tier === 'Explorer' && '25% Discount Unlocked'}
-              {profile.loyalty_tier === 'Curator' && '50% Discount Unlocked'}
-              {profile.loyalty_tier === 'Culturalist' && '100% Discount Unlocked'}
-            </p>
-          ) : (
-            <p className="text-xs text-on-surface-variant/60 mt-2 relative z-10">
-              Reach 30 points to unlock Explorer (25% off)
-            </p>
-          )}
-        </div>
+            <span>Sign out</span>
+            <Icon name="logout" size={17} />
+          </button>
+        </section>
 
-        {/* Points Card */}
-        <div className="col-span-1 md:col-span-3 bg-primary/5 border border-primary/20 p-6 flex flex-col justify-center text-center relative overflow-hidden group">
-          <div className="absolute -right-4 -top-4 w-24 h-24 bg-primary/10 rounded-full group-hover:scale-150 transition-transform duration-500"></div>
-          <span className="material-symbols-outlined text-primary mb-2 relative z-10">loyalty</span>
-          <p className="font-display-xl text-headline-lg text-primary relative z-10">{profile?.loyalty_points || 0}</p>
-          <p className="font-label-caps text-label-caps text-primary/80 mt-1 relative z-10 uppercase tracking-widest">Loyalty Points</p>
-          <p className="text-xs text-on-surface-variant/60 mt-2 relative z-10">
-            {(!profile || (profile.loyalty_points || 0) < 30) && `${30 - (profile?.loyalty_points || 0)} pts to Explorer`}
-            {profile && profile.loyalty_points >= 30 && profile.loyalty_points < 60 && `${60 - profile.loyalty_points} pts to Curator`}
-            {profile && profile.loyalty_points >= 60 && profile.loyalty_points < 100 && `${100 - profile.loyalty_points} pts to Culturalist`}
-            {profile && profile.loyalty_points >= 100 && '✨ Max tier reached!'}
-          </p>
-        </div>
-      </div>
-
-      {/* Loyalty Tiers */}
-      {tiers.length > 0 && (
-        <div className="mb-stack-lg border-t border-surface-variant pt-stack-lg">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
-            <div className="flex items-center gap-2">
-              <h2 className="font-headline-md text-headline-sm uppercase tracking-tight">Available Rewards</h2>
-              <button
-                onClick={() => setShowTierChart(true)}
-                title="View loyalty program details"
-                className="w-6 h-6 rounded-full border border-surface-variant text-on-surface-variant hover:border-primary hover:text-primary transition-colors flex items-center justify-center text-xs font-bold"
-              >
-                i
-              </button>
-            </div>
-            <p className="text-sm text-on-surface-variant max-w-md">
-              Each T-shirt purchase earns you 10 points. Reach tier thresholds to unlock discounts available at checkout.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-gutter">
-            {tiers.map((tier) => {
-              const canAfford = (profile?.loyalty_points || 0) >= tier.required_points;
-              return (
-                <div key={tier.id} className={`border p-5 transition-colors ${canAfford ? 'border-primary bg-primary/5' : 'border-surface-variant bg-surface-container-lowest opacity-70'}`}>
-                  <h3 className="font-headline-sm text-on-surface mb-2">{tier.name}</h3>
-                  <div className="flex items-end justify-between">
-                    <div>
-                      <p className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider mb-1">Required</p>
-                      <p className={`font-mono text-lg font-bold ${canAfford ? 'text-primary' : 'text-on-surface-variant'}`}>{tier.required_points} pts</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-label-caps text-xs text-on-surface-variant uppercase tracking-wider mb-1">Discount</p>
-                      <p className="font-headline-sm text-secondary">{tier.discount_percentage}% OFF</p>
-                    </div>
-                  </div>
-                  {canAfford && (
-                    <div className="mt-4 pt-4 border-t border-primary/20 text-center">
-                      <p className="text-xs text-primary font-bold uppercase tracking-wider">Available at Checkout</p>
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Tier Chart Modal */}
-      {showTierChart && (
-        <div
-          className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
-          onClick={() => setShowTierChart(false)}
-        >
-          <div
-            className="bg-surface-container-lowest border border-surface-variant max-w-lg w-full p-6 relative"
-            onClick={e => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-primary">loyalty</span>
-                <h2 className="font-headline-md text-headline-sm uppercase tracking-tight">Loyalty Program</h2>
-              </div>
-              <button onClick={() => setShowTierChart(false)} className="text-on-surface-variant hover:text-primary transition-colors">
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-            <p className="text-sm text-on-surface-variant mb-3">
-              Every T-shirt purchase earns you <span className="text-primary font-bold">10 points</span>. Reach higher tiers to unlock exclusive discounts!
-            </p>
-            <div className="text-xs text-on-surface-variant/80 mb-5 bg-surface-container-low p-3 border border-surface-variant">
-              <p className="mb-1">🛒 <strong>3 T-shirts</strong> (30 pts) → <span className="text-primary font-bold">Explorer</span> — 25% off</p>
-              <p className="mb-1">🛒 <strong>6 T-shirts</strong> (60 pts) → <span className="text-primary font-bold">Curator</span> — 50% off</p>
-              <p>🛒 <strong>10 T-shirts</strong> (100 pts) → <span className="text-primary font-bold">Culturalist</span> — 100% off</p>
-            </div>
-
-            {/* Current Points */}
-            <div className="bg-primary/5 border border-primary/20 p-4 flex items-center justify-between mb-5">
-              <span className="font-label-caps text-xs uppercase text-on-surface-variant tracking-wider">Your Current Points</span>
-              <span className="font-mono text-2xl font-bold text-primary">{profile?.loyalty_points || 0}</span>
-            </div>
-
-            {/* Tier Progression */}
-            <div className="space-y-3">
-              {tiers.map((tier, idx) => {
-                const achieved = (profile?.loyalty_points || 0) >= tier.required_points;
-                const isCurrentTier = profile?.loyalty_tier === tier.name;
-                return (
-                  <div key={tier.id} className={`relative flex items-center gap-4 p-3 border transition-colors ${
-                    isCurrentTier ? 'border-primary bg-primary/10 ring-1 ring-primary' :
-                    achieved ? 'border-primary bg-primary/5' : 'border-surface-variant'
-                  }`}>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
-                      isCurrentTier ? 'bg-primary text-on-primary' :
-                      achieved ? 'bg-primary text-on-primary' : 'bg-surface-container text-on-surface-variant'
-                    }`}>
-                      {achieved
-                        ? <span className="material-symbols-outlined text-sm">check</span>
-                        : <span className="font-mono text-xs">{idx + 1}</span>
-                      }
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <p className={`font-headline-sm text-sm ${achieved ? 'text-primary' : 'text-on-surface-variant'}`}>{tier.name}</p>
-                        {isCurrentTier && (
-                          <span className="font-label-caps text-[10px] bg-primary text-on-primary px-1.5 py-0.5 uppercase tracking-wider">
-                            Current
-                          </span>
-                        )}
-                      </div>
-                      <p className="font-label-caps text-xs text-on-surface-variant uppercase">{tier.required_points} points required</p>
-                    </div>
-                    <span className={`font-headline-sm text-sm ${achieved ? 'text-secondary' : 'text-on-surface-variant/50'}`}>
-                      {tier.discount_percentage}% OFF
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Affiliate Program Section */}
-      {user && (
-        <div className="mb-stack-lg border-t border-surface-variant pt-stack-lg">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-            <div className="flex items-center gap-3">
-              <span className="material-symbols-outlined text-primary">handshake</span>
-              <h2 className="font-headline-md text-headline-sm uppercase tracking-tight">Affiliate Program</h2>
-            </div>
-            {affiliateSettings && (
-              <p className="text-sm text-on-surface-variant">
-                Earn <span className="text-primary font-bold">{affiliateSettings.points_per_referral} points</span> for every friend who signs up with your code
-              </p>
-            )}
-          </div>
-
-          {/* Affiliate Stats */}
-          {affiliateStats && (affiliateStats.total_referrals > 0) && (
-            <div className="grid grid-cols-2 gap-gutter mb-6">
-              <div className="bg-primary/5 border border-primary/20 p-5 text-center">
-                <p className="font-display-xl text-headline-lg text-primary">{affiliateStats.total_referrals}</p>
-                <p className="font-label-caps text-label-caps text-primary/80 mt-1">Referrals</p>
-              </div>
-              <div className="bg-primary/5 border border-primary/20 p-5 text-center">
-                <p className="font-display-xl text-headline-lg text-primary">{affiliateStats.total_points_earned}</p>
-                <p className="font-label-caps text-label-caps text-primary/80 mt-1">Points Earned</p>
-              </div>
-            </div>
-          )}
-
-          {/* Create Code */}
-          <div className="bg-surface-container-lowest border border-surface-variant p-5 mb-4">
-            <p className="font-label-caps text-label-caps text-on-surface-variant mb-3">Create Your Referral Code</p>
-            <div className="flex gap-3">
-              <input
-                type="text"
-                value={newCode}
-                onChange={(e) => { setNewCode(e.target.value.toUpperCase()); setCodeError(null); setCodeSuccess(null); }}
-                placeholder="e.g. JOHN2024"
-                maxLength={20}
-                className="flex-1 bg-surface-container-low border border-surface-variant p-3 font-mono text-sm uppercase focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-on-surface-variant/50"
-              />
-              <button
-                onClick={handleCreateCode}
-                disabled={isCreatingCode || !newCode.trim()}
-                className="bg-primary text-on-primary font-button-text text-button-text uppercase px-5 py-3 hover:bg-primary-container active:scale-[0.98] transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {isCreatingCode ? (
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                ) : (
-                  <span className="material-symbols-outlined text-[18px]">add</span>
-                )}
-                Create
-              </button>
-            </div>
-            {codeError && (
-              <p className="text-sm text-error mt-2 flex items-center gap-1">
-                <span className="material-symbols-outlined text-[16px]">error</span>
-                {codeError}
-              </p>
-            )}
-            {codeSuccess && (
-              <p className="text-sm text-secondary mt-2 flex items-center gap-1">
-                <span className="material-symbols-outlined text-[16px]">check_circle</span>
-                {codeSuccess}
-              </p>
-            )}
-            {affiliateSettings && (
-              <p className="text-xs text-on-surface-variant/60 mt-2">
-                {affiliateCodes.length} / {affiliateSettings.max_codes_per_user} codes used · 4–20 alphanumeric characters
-              </p>
-            )}
-          </div>
-
-          {/* My Codes */}
-          {affiliateCodes.length > 0 && (
-            <div className="space-y-3">
-              {affiliateCodes.map((ac) => (
+        <div className="dashboard-grid">
+          <aside className="account-sidebar">
+            <div className="profile-block">
+              {currentTierBadge ? (
                 <div
-                  key={ac.id}
-                  className={`border p-4 transition-colors ${
-                    ac.is_active ? 'border-surface-variant bg-surface-container-lowest' : 'border-surface-variant/50 bg-surface-container-lowest/50 opacity-60'
-                  }`}
+                  className="avatar-badge-wrap"
+                  title={`${currentTierLabel} Tier Seal`}
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <span className="font-mono text-lg font-bold text-primary tracking-wider">{ac.code}</span>
-                      {!ac.is_active && (
-                        <span className="font-label-caps text-[10px] text-on-surface-variant bg-surface-container px-1.5 py-0.5">INACTIVE</span>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-label-caps text-label-caps text-on-surface-variant">
-                        {ac.total_referrals} referral{ac.total_referrals !== 1 ? 's' : ''}
-                      </span>
-                      <button
-                        onClick={() => copyToClipboard(ac.code, `code-${ac.id}`)}
-                        className="flex items-center gap-1 text-xs text-on-surface-variant hover:text-primary transition-colors border border-surface-variant px-2 py-1"
-                        title="Copy code"
-                      >
-                        <span className="material-symbols-outlined text-[14px]">
-                          {copiedCode === `code-${ac.id}` ? 'check' : 'content_copy'}
-                        </span>
-                        {copiedCode === `code-${ac.id}` ? 'Copied!' : 'Code'}
-                      </button>
-                      <button
-                        onClick={() => copyToClipboard(getShareableLink(ac.code), `link-${ac.id}`)}
-                        className="flex items-center gap-1 text-xs text-on-surface-variant hover:text-primary transition-colors border border-surface-variant px-2 py-1"
-                        title="Copy shareable link"
-                      >
-                        <span className="material-symbols-outlined text-[14px]">
-                          {copiedCode === `link-${ac.id}` ? 'check' : 'link'}
-                        </span>
-                        {copiedCode === `link-${ac.id}` ? 'Copied!' : 'Link'}
-                      </button>
+                  <img
+                    src={currentTierBadge}
+                    alt={`${currentTierLabel} tier badge`}
+                    className="avatar-badge-img"
+                  />
+                </div>
+              ) : (
+                <div className="avatar">{initials}</div>
+              )}
+              <div>
+                <strong>{fullName}</strong>
+                <span>{user.email}</span>
+                <div className="profile-tier-chip">
+                  ✦ {currentTierLabel}
+                </div>
+              </div>
+            </div>
+
+            <nav className="account-nav" aria-label="Account navigation">
+              {navItems.map((item) => (
+                <button
+                  key={item.label}
+                  className={activeNav === item.label ? "active" : ""}
+                  onClick={() => {
+                    setActiveNav(item.label);
+                    setOrderFilter("All orders");
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                >
+                  <Icon name={item.icon} size={18} />
+                  <span>{item.label}</span>
+                  {item.label === "Orders" && <small>{orders.length}</small>}
+                  {item.label === "Bag" && totalItems > 0 && (
+                    <small>{totalItems}</small>
+                  )}
+                </button>
+              ))}
+            </nav>
+
+            <div className="sidebar-support">
+              <span>Need a hand?</span>
+              <a
+                href="#support"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setIsContactOpen(true);
+                }}
+              >
+                Contact support <Icon name="arrow" size={16} />
+              </a>
+            </div>
+          </aside>
+
+          <div className="account-content">
+            {activeNav === "Overview" && (
+              <>
+                <section className="rewards-card">
+                  <div className="reward-copy">
+                    <span className="reward-kicker">
+                      <Icon name="spark" size={16} /> Chill Rewards
+                    </span>
+                    <h2>
+                      {loyaltyPoints} points today.
+                      <br />
+                      {pointsRemaining > 0
+                        ? `${nextTier.name} is close.`
+                        : `${nextTier.name} unlocked.`}
+                    </h2>
+                    <p>
+                      {pointsRemaining > 0
+                        ? `Just ${pointsRemaining} more points to unlock ${nextTier.discount_percentage}% off your next purchase.`
+                        : `You've unlocked ${nextTier.discount_percentage}% off your next purchase.`}
+                    </p>
+                    <Link href="/shop" className="primary-button">
+                      Explore new arrivals <Icon name="arrow" size={18} />
+                    </Link>
+                  </div>
+
+                  <div
+                    className="progress-orbit"
+                    aria-label={`${loyaltyPoints} of ${targetPoints} points earned`}
+                  >
+                    <svg viewBox="0 0 140 140" aria-hidden="true">
+                      <circle className="orbit-track" cx="70" cy="70" r="59" />
+                      <circle
+                        className="orbit-value"
+                        cx="70"
+                        cy="70"
+                        r="59"
+                        style={{ strokeDashoffset }}
+                      />
+                    </svg>
+                    <div className="orbit-label">
+                      <strong>{loyaltyPoints}</strong>
+                      <span>of {targetPoints} pts</span>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-gutter mb-stack-lg">
-        <div className="bg-surface-container-low border border-surface-variant p-5 text-center">
-          <p className="font-display-xl text-headline-lg text-primary">{orders.length}</p>
-          <p className="font-label-caps text-label-caps text-on-surface-variant mt-1">Orders</p>
-        </div>
-        <div className="bg-surface-container-low border border-surface-variant p-5 text-center">
-          <p className="font-display-xl text-headline-lg text-primary">
-            ${orders.reduce((sum, o) => sum + o.total, 0).toFixed(0)}
-          </p>
-          <p className="font-label-caps text-label-caps text-on-surface-variant mt-1">Total Spent</p>
-        </div>
-        <div className="bg-surface-container-low border border-surface-variant p-5 text-center">
-          <p className="font-display-xl text-headline-lg text-primary">
-            {orders.reduce((sum, o) => sum + (o.order_items?.length ?? 0), 0)}
-          </p>
-          <p className="font-label-caps text-label-caps text-on-surface-variant mt-1">Items Purchased</p>
-        </div>
-        <div className="bg-surface-container-low border border-surface-variant p-5 text-center">
-          <p className="font-display-xl text-headline-lg text-primary">
-            {profile?.loyalty_points || 0}
-          </p>
-          <p className="font-label-caps text-label-caps text-on-surface-variant mt-1">Loyalty Points</p>
-        </div>
-      </div>
-
-      {/* Order History */}
-      <div>
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="font-headline-md text-headline-sm uppercase tracking-tight">Order History</h2>
-          {orders.length > 0 && (
-            <span className="font-label-caps text-label-caps text-on-surface-variant">
-              {orders.length} order{orders.length !== 1 ? "s" : ""}
-            </span>
-          )}
-        </div>
-
-        {ordersLoading ? (
-          <div className="py-16 flex items-center justify-center">
-            <div className="w-6 h-6 border-2 border-surface-variant border-t-primary rounded-full animate-spin" />
-          </div>
-        ) : orders.length === 0 ? (
-          <div className="py-16 text-center border border-dashed border-surface-variant">
-            <span className="material-symbols-outlined text-4xl text-on-surface-variant/40 block mb-4">
-              shopping_bag
-            </span>
-            <p className="font-body-md text-on-surface-variant mb-6">No orders yet. Time to get chill.</p>
-            <Link
-              href="/shop"
-              className="inline-flex items-center gap-2 bg-primary text-on-primary font-button-text text-button-text uppercase py-3 px-6 hover:bg-primary-container transition-colors"
-            >
-              Shop Now
-              <span className="material-symbols-outlined text-[18px]">arrow_forward</span>
-            </Link>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {orders.map((order) => (
-              <Link
-                key={order.id}
-                href={`/account/orders/${order.id}`}
-                className="block bg-surface-container-lowest border border-surface-variant hover:border-primary transition-all duration-200 p-5 group"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  {/* Order Info */}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 flex-wrap mb-2">
-                      <span className="font-label-caps text-label-caps text-on-surface-variant">
-                        #{order.id.slice(0, 8).toUpperCase()}
-                      </span>
-                      <span className={`font-label-caps text-label-caps px-2 py-0.5 uppercase ${getStatusColor(order.status)}`}>
-                        {order.status}
-                      </span>
+                  <div className="reward-tier">
+                    <div className="reward-tier-badge-preview">
+                      <img
+                        src={nextTierBadge}
+                        alt={`${nextTier.name} reward badge`}
+                      />
                     </div>
-                    <p className="font-body-md text-sm text-on-surface-variant">
-                      {formatDate(order.created_at)} · {order.order_items?.length ?? 0} item{(order.order_items?.length ?? 0) !== 1 ? "s" : ""}
+                    <span>Next reward</span>
+                    <strong>{nextTier.name}</strong>
+                    <small>{nextTier.discount_percentage}% off</small>
+                  </div>
+                </section>
+
+                <section className="stats-grid" aria-label="Account statistics">
+                  <article>
+                    <span>Total spent</span>
+                    <strong>${Math.round(totalSpent).toLocaleString("en-US")}</strong>
+                    <small>
+                      Across {orders.length} order{orders.length !== 1 ? "s" : ""}
+                    </small>
+                  </article>
+                  <article>
+                    <span>Items purchased</span>
+                    <strong>{totalItemsPurchased}</strong>
+                    <small>Since {memberSinceMonthYear}</small>
+                  </article>
+                  <article className="referral-stat">
+                    <span>Your referral code</span>
+                    <button onClick={copyReferralCode}>
+                      <strong>{copied ? "Copied!" : defaultReferralCode}</strong>
+                      <Icon name="copy" size={17} />
+                    </button>
+                    <small>Give 15%, earn {pointsPerReferral} points</small>
+                  </article>
+                </section>
+              </>
+            )}
+
+            {(activeNav === "Overview" || activeNav === "Orders") && (
+              <section className="orders-section">
+                <div className="section-heading">
+                  <div>
+                    <p className="eyebrow">
+                      {activeNav === "Overview"
+                        ? "Purchase history"
+                        : "All purchases"}
                     </p>
-                    {/* Item thumbnails */}
-                    {order.order_items && order.order_items.length > 0 && (
-                      <div className="flex gap-2 mt-3">
-                        {order.order_items.slice(0, 4).map((item) => (
-                          <div
-                            key={item.id}
-                            className="w-10 h-12 bg-surface-container overflow-hidden flex-shrink-0"
+                    <h2>
+                      {activeNav === "Overview"
+                        ? "Recent orders"
+                        : "Order history"}
+                    </h2>
+                  </div>
+                  <div
+                    className="filter-tabs"
+                    role="group"
+                    aria-label="Filter orders"
+                  >
+                    {["All orders", "Processing", "Delivered"].map((filter) => (
+                      <button
+                        key={filter}
+                        className={orderFilter === filter ? "active" : ""}
+                        onClick={() => setOrderFilter(filter)}
+                      >
+                        {filter}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {ordersLoading ? (
+                  <div className="empty-state">Loading your orders...</div>
+                ) : (
+                  <>
+                    <div className="orders-list">
+                      {visibleOrders.map((order) => {
+                        const isExpanded = expandedOrder === order.id;
+                        return (
+                          <article
+                            className={`order-card ${isExpanded ? "expanded" : ""}`}
+                            key={order.rawId}
                           >
-                            <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
-                          </div>
-                        ))}
-                        {(order.order_items?.length ?? 0) > 4 && (
-                          <div className="w-10 h-12 bg-surface-container-high flex items-center justify-center flex-shrink-0">
-                            <span className="font-label-caps text-[10px] text-on-surface-variant">
-                              +{(order.order_items?.length ?? 0) - 4}
-                            </span>
-                          </div>
-                        )}
+                            <button
+                              className="order-summary"
+                              onClick={() =>
+                                setExpandedOrder(isExpanded ? null : order.id)
+                              }
+                              aria-expanded={isExpanded}
+                            >
+                              <div className={`product-art ${order.color}`}>
+                                <span />
+                                <span />
+                                <span />
+                              </div>
+                              <div className="order-product">
+                                <span className="order-meta">
+                                  {order.id} · {order.date}
+                                </span>
+                                <strong>{order.product}</strong>
+                                <small>{order.items}</small>
+                              </div>
+                              <span
+                                className={`status ${order.status.toLowerCase()}`}
+                              >
+                                {order.status}
+                              </span>
+                              <strong className="order-price">
+                                {order.price}
+                              </strong>
+                              <span className="order-chevron">
+                                <Icon name="chevron" size={19} />
+                              </span>
+                            </button>
+                            {isExpanded && (
+                              <div className="order-details">
+                                <div>
+                                  <span>Shipping to</span>
+                                  <strong>New York, NY 10012</strong>
+                                </div>
+                                <div>
+                                  <span>Tracking</span>
+                                  <strong>
+                                    {order.status === "Processing"
+                                      ? "Preparing your order"
+                                      : "Delivered"}
+                                  </strong>
+                                </div>
+                                <Link href={`/account/orders/${order.rawId}`}>
+                                  View order details{" "}
+                                  <Icon name="arrow" size={16} />
+                                </Link>
+                              </div>
+                            )}
+                          </article>
+                        );
+                      })}
+                    </div>
+                    {visibleOrders.length === 0 && (
+                      <div className="empty-state">
+                        No orders match this filter.
                       </div>
                     )}
-                  </div>
+                  </>
+                )}
+              </section>
+            )}
 
-                  {/* Total + Arrow */}
-                  <div className="flex items-center gap-4">
-                    <div className="text-right">
-                      <p className="font-headline-sm font-semibold text-on-surface">
-                        ${order.total.toFixed(2)}
-                      </p>
-                      {order.shipping === 0 && (
-                        <p className="font-label-caps text-label-caps text-secondary mt-0.5">Free shipping</p>
-                      )}
+            {activeNav === "Rewards" && (
+              <div className="rewards-page">
+                <section className="rewards-card">
+                  <div className="reward-copy">
+                    <span className="reward-kicker">
+                      <Icon name="spark" size={16} /> Current balance
+                    </span>
+                    <h2>
+                      {loyaltyPoints} points.
+                      <br />
+                      Your next perk awaits.
+                    </h2>
+                    <p>
+                      Earn 10 points for every eligible item and{" "}
+                      {pointsPerReferral} points for every friend who joins with
+                      your code.
+                    </p>
+                  </div>
+                  <div
+                    className="progress-orbit"
+                    aria-label={`${loyaltyPoints} of ${targetPoints} points earned`}
+                  >
+                    <svg viewBox="0 0 140 140" aria-hidden="true">
+                      <circle className="orbit-track" cx="70" cy="70" r="59" />
+                      <circle
+                        className="orbit-value"
+                        cx="70"
+                        cy="70"
+                        r="59"
+                        style={{ strokeDashoffset }}
+                      />
+                    </svg>
+                    <div className="orbit-label">
+                      <strong>{loyaltyPoints}</strong>
+                      <span>of {targetPoints} pts</span>
                     </div>
-                    <span className="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">
-                      chevron_right
+                  </div>
+                  <div className="reward-tier">
+                    {currentTierBadge && (
+                      <div className="reward-tier-badge-preview">
+                        <img
+                          src={currentTierBadge}
+                          alt={`${currentTierLabel} tier badge`}
+                        />
+                      </div>
+                    )}
+                    <span>Current tier</span>
+                    <strong>{currentTierLabel}</strong>
+                    <small>
+                      {pointsRemaining > 0
+                        ? `${pointsRemaining} pts to ${nextTier.name}`
+                        : "Max tier reached"}
+                    </small>
+                  </div>
+                </section>
+
+                <section className="tier-section">
+                  <div className="section-heading">
+                    <div>
+                      <p className="eyebrow">Member benefits</p>
+                      <h2>Your reward path</h2>
+                    </div>
+                    <span className="tier-heritage-tag">
+                      Royal Ceylon Heritage Seals
                     </span>
                   </div>
+                  <div className="tier-grid">
+                    {[
+                      {
+                        rank: "Seal I",
+                        name: "Explorer",
+                        motif: "Sandakada · Sacred Lotus",
+                        requiredPoints: 30,
+                        benefit: "25% off",
+                        badgeImg: "/images/badge-explorer.jpg",
+                        lore: "Carved after the Polonnaruwa moonstone lotus — marking the threshold of your journey into Sri Lankan luxury.",
+                      },
+                      {
+                        rank: "Seal II",
+                        name: "Curator",
+                        motif: "Hansa Puttuwa · Twin Swans",
+                        requiredPoints: 60,
+                        benefit: "50% off",
+                        badgeImg: "/images/badge-curator.jpg",
+                        lore: "Bearing the Kandyan intertwined royal swans — an emblem of rare discernment, wisdom, and patronage of the craft.",
+                      },
+                      {
+                        rank: "Seal III",
+                        name: "Culturalist",
+                        motif: "Makara Thorana · Ira Handa",
+                        requiredPoints: 100,
+                        benefit: "Free item",
+                        badgeImg: "/images/badge-culturalist.jpg",
+                        lore: "Crowned by the Royal Dragon Arch, Sun & Moon — eternal sovereignty reserved for our highest inner circle.",
+                      },
+                    ].map((tier) => {
+                      const isUnlocked = loyaltyPoints >= tier.requiredPoints;
+                      const isNextTarget =
+                        !isUnlocked && nextTier.name === tier.name;
+                      const progressPct = Math.min(
+                        100,
+                        Math.round((loyaltyPoints / tier.requiredPoints) * 100)
+                      );
+
+                      return (
+                        <article
+                          key={tier.name}
+                          className={`heritage-tier-card ${
+                            isUnlocked
+                              ? "unlocked"
+                              : isNextTarget
+                                ? "next-target"
+                                : ""
+                          }`}
+                        >
+                          <div className="tier-card-top">
+                            <span className="tier-rank-label">{tier.rank}</span>
+                            <span
+                              className={`tier-points-pill ${
+                                isUnlocked ? "unlocked" : ""
+                              }`}
+                            >
+                              {isUnlocked
+                                ? "Unlocked"
+                                : `${tier.requiredPoints} pts`}
+                            </span>
+                          </div>
+
+                          <div className="tier-medallion-stage">
+                            <div className="tier-medallion-orbit" />
+                            <div className="tier-medallion-frame">
+                              <img
+                                src={tier.badgeImg}
+                                alt={`${tier.name} Sri Lankan heritage seal`}
+                                className="tier-medallion-img"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="tier-body">
+                            <span className="tier-motif-name">
+                              {tier.motif}
+                            </span>
+                            <strong className="tier-title">{tier.name}</strong>
+                            <p className="tier-lore">{tier.lore}</p>
+                          </div>
+
+                          <div className="tier-perk-footer">
+                            <div className="tier-perk-row">
+                              <span className="tier-perk-label">Privilege</span>
+                              <span className="tier-perk-value">
+                                {tier.benefit}
+                              </span>
+                            </div>
+                            <div
+                              className="tier-progress-track"
+                              aria-label={`${progressPct}% toward ${tier.name}`}
+                            >
+                              <div
+                                className="tier-progress-fill"
+                                style={{ width: `${progressPct}%` }}
+                              />
+                            </div>
+                          </div>
+                        </article>
+                      );
+                    })}
+                  </div>
+                </section>
+
+                <section className="referral-card">
+                  <div>
+                    <p className="eyebrow">Share the feeling</p>
+                    <h2>Give 15%. Get {pointsPerReferral} points.</h2>
+                    <p>
+                      Your friend gets 15% off their first order. You receive{" "}
+                      {pointsPerReferral} points after their purchase.
+                    </p>
+                  </div>
+                  <button onClick={copyReferralCode}>
+                    <span>{copied ? "Code copied" : defaultReferralCode}</span>
+                    <Icon name="copy" size={18} />
+                  </button>
+                </section>
+              </div>
+            )}
+
+            {activeNav === "Bag" && (
+              <section className="wishlist-section">
+                <div className="section-heading">
+                  <div>
+                    <p className="eyebrow">Shopping bag</p>
+                    <h2>
+                      {totalItems} {totalItems === 1 ? "piece" : "pieces"} in bag
+                    </h2>
+                  </div>
+                  {bagItems.length > 0 && (
+                    <Link href="/checkout" className="primary-button">
+                      Proceed to checkout <Icon name="arrow" size={18} />
+                    </Link>
+                  )}
                 </div>
-              </Link>
-            ))}
+                {bagItems.length > 0 ? (
+                  <div className="wishlist-grid">
+                    {bagItems.map((item, idx) => (
+                      <article key={item.id}>
+                        <div
+                          className={`wishlist-art ${
+                            ART_COLORS[(idx + 2) % ART_COLORS.length]
+                          }`}
+                        >
+                          {item.image ? (
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="bag-item-image"
+                            />
+                          ) : (
+                            <span>CHILL CO.</span>
+                          )}
+                        </div>
+                        <div className="wishlist-info">
+                          <div>
+                            <div>
+                              <strong>{item.name}</strong>
+                              <small className="bag-item-meta">
+                                {item.color} · Size {item.size} · Qty{" "}
+                                {item.quantity}
+                              </small>
+                            </div>
+                            <span>
+                              $
+                              {(item.price * item.quantity).toLocaleString(
+                                "en-US"
+                              )}
+                            </span>
+                          </div>
+                          <div className="wishlist-actions">
+                            <Link href="/checkout">
+                              <Icon name="bag" size={16} /> Checkout
+                            </Link>
+                            <button
+                              aria-label={`Remove ${item.name} from bag`}
+                              onClick={() => removeFromCart(item.id)}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="empty-state wishlist-empty">
+                    <Icon name="bag" size={26} />
+                    <strong>Your bag is empty.</strong>
+                    <span>Add pieces while you browse the shop.</span>
+                  </div>
+                )}
+              </section>
+            )}
+
+            {activeNav === "Settings" && (
+              <form className="settings-form" onSubmit={saveSettings}>
+                <section className="settings-card">
+                  <div className="settings-heading">
+                    <div>
+                      <p className="eyebrow">Personal details</p>
+                      <h2>Profile information</h2>
+                    </div>
+                    <span>Member since {memberSinceMonthYear}</span>
+                  </div>
+                  <div className="form-grid">
+                    <label>
+                      First name
+                      <input
+                        value={formProfile.firstName}
+                        onChange={(event) =>
+                          setFormProfile({
+                            ...formProfile,
+                            firstName: event.target.value,
+                          })
+                        }
+                      />
+                    </label>
+                    <label>
+                      Last name
+                      <input
+                        value={formProfile.lastName}
+                        onChange={(event) =>
+                          setFormProfile({
+                            ...formProfile,
+                            lastName: event.target.value,
+                          })
+                        }
+                      />
+                    </label>
+                    <label>
+                      Email address
+                      <input
+                        type="email"
+                        value={formProfile.email}
+                        onChange={(event) =>
+                          setFormProfile({
+                            ...formProfile,
+                            email: event.target.value,
+                          })
+                        }
+                      />
+                    </label>
+                    <label>
+                      Phone number
+                      <input
+                        value={formProfile.phone}
+                        onChange={(event) =>
+                          setFormProfile({
+                            ...formProfile,
+                            phone: event.target.value,
+                          })
+                        }
+                      />
+                    </label>
+                  </div>
+                </section>
+
+                <section className="settings-card">
+                  <div className="settings-heading">
+                    <div>
+                      <p className="eyebrow">Communication</p>
+                      <h2>Notification preferences</h2>
+                    </div>
+                  </div>
+                  <div className="preference-list">
+                    {[
+                      [
+                        "orders",
+                        "Order updates",
+                        "Shipping, delivery, and return updates.",
+                      ],
+                      [
+                        "rewards",
+                        "Rewards activity",
+                        "Points earned, tier progress, and new perks.",
+                      ],
+                      [
+                        "editorial",
+                        "Chill Co. notes",
+                        "Occasional product stories and collection previews.",
+                      ],
+                    ].map(([key, title, copy]) => (
+                      <label className="preference-row" key={key}>
+                        <span>
+                          <strong>{title}</strong>
+                          <small>{copy}</small>
+                        </span>
+                        <input
+                          type="checkbox"
+                          checked={
+                            notifications[key as keyof typeof notifications]
+                          }
+                          onChange={() =>
+                            setNotifications({
+                              ...notifications,
+                              [key]:
+                                !notifications[
+                                  key as keyof typeof notifications
+                                ],
+                            })
+                          }
+                        />
+                      </label>
+                    ))}
+                  </div>
+                </section>
+
+                <div className="settings-actions">
+                  <span role="status">
+                    {settingsSaved ? "Changes saved successfully." : ""}
+                  </span>
+                  <button className="primary-button" type="submit">
+                    {settingsSaved ? "Saved" : "Save changes"}
+                    <Icon name="arrow" size={18} />
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
-        )}
-      </div>
-    </main>
+        </div>
+      </main>
+
+      <ContactModal
+        isOpen={isContactOpen}
+        onClose={() => setIsContactOpen(false)}
+      />
+    </div>
   );
 }
