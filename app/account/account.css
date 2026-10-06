@@ -584,7 +584,7 @@
 
 .account-shell .order-summary {
   display: grid;
-  grid-template-columns: 64px minmax(190px, 1fr) 100px 110px 24px;
+  grid-template-columns: 64px minmax(190px, 1fr) 100px minmax(115px, auto) 24px;
   align-items: center;
   gap: 18px;
   width: 100%;
@@ -607,6 +607,22 @@
   padding-bottom: 10px;
   border-radius: 8px;
   background: #d4c5a8;
+}
+
+.account-shell .product-art.has-image {
+  padding-bottom: 0;
+  background: #14120f;
+}
+
+.account-shell .product-art.has-image::before {
+  display: none;
+}
+
+.account-shell .order-product-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .account-shell .product-art::before {
@@ -695,6 +711,7 @@
   font-size: 12px;
   font-weight: 500;
   text-align: right;
+  white-space: nowrap;
 }
 
 .account-shell .order-chevron {
@@ -750,6 +767,70 @@
   color: var(--muted);
   font-size: 12px;
   text-align: center;
+}
+
+.account-shell .orders-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.account-shell .pagination-btn {
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: 180ms ease;
+}
+
+.account-shell .pagination-btn:hover:not(:disabled) {
+  border-color: var(--gold);
+  color: var(--gold-bright);
+}
+
+.account-shell .pagination-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.account-shell .pagination-pages {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.account-shell .pagination-page {
+  min-width: 30px;
+  height: 30px;
+  padding: 0 8px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 11px;
+  transition: 180ms ease;
+}
+
+.account-shell .pagination-page:hover {
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
+.account-shell .pagination-page.active {
+  border-color: var(--gold);
+  background: rgba(198, 155, 84, 0.14);
+  color: var(--gold-bright);
+  font-weight: 600;
 }
 
 .account-shell .rewards-page,

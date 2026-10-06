@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/context/AuthContext";
 import { useCart } from "@/lib/context/CartContext";
 import { createClient } from "@/lib/supabase/client";
 import { Order, AffiliateCode, AffiliateSettings } from "@/lib/types";
+import { products } from "@/lib/data/products";
 import ContactModal from "./ContactModal";
 import "@/app/account/account.css";
 
@@ -147,6 +148,8 @@ const FALLBACK_PRODUCTS = [
 
 const ART_COLORS = ["sand", "clay", "blue", "olive"] as const;
 
+const ORDERS_PER_PAGE = 5;
+
 export default function AccountClient() {
   const { user, profile, isLoading, signOut, refreshProfile } = useAuth();
   const { items: bagItems, removeFromCart, totalItems } = useCart();
@@ -155,6 +158,7 @@ export default function AccountClient() {
 
   const [activeNav, setActiveNav] = useState("Overview");
   const [orderFilter, setOrderFilter] = useState("All orders");
+  const [ordersPage, setOrdersPage] = useState(1);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [isContactOpen, setIsContactOpen] = useState(false);
@@ -299,10 +303,22 @@ export default function AccountClient() {
           ? order.order_items.length
           : 1;
 
-      const productName =
+      const firstItem =
         order.order_items && order.order_items.length > 0
-          ? order.order_items[0].name
-          : FALLBACK_PRODUCTS[idx % FALLBACK_PRODUCTS.length];
+          ? order.order_items[0]
+          : null;
+
+      const productName =
+        firstItem?.name || FALLBACK_PRODUCTS[idx % FALLBACK_PRODUCTS.length];
+
+      const catalogMatch = products.find(
+        (p) =>
+          (firstItem?.product_id && p.id === firstItem.product_id) ||
+          p.name.toLowerCase() === productName.toLowerCase()
+      );
+
+      const productImage =
+        firstItem?.image || catalogMatch?.images?.[0] || null;
 
       const formattedDate = new Date(order.created_at).toLocaleDateString(
         "en-US",
@@ -313,13 +329,17 @@ export default function AccountClient() {
         }
       );
 
-      const formattedPrice = `$${Number(order.total || 0).toLocaleString(
-        "en-US",
-        {
-          minimumFractionDigits: 2,
-          maximumFractionDigits: 2,
-        }
+      const formattedPrice = `LKR ${Number(order.total || 0).toLocaleString(
+        "en-LK"
       )}`;
+
+      const addr = (order as unknown as {
+        shipping_address?: { city?: string; country?: string };
+      }).shipping_address;
+      const shippingLocation =
+        addr?.city
+          ? `${addr.city}${addr.country ? `, ${addr.country}` : ""}`
+          : "Colombo, Sri Lanka";
 
       return {
         rawId: order.id,
@@ -327,9 +347,11 @@ export default function AccountClient() {
         date: formattedDate,
         items: `${itemCount} item${itemCount !== 1 ? "s" : ""}`,
         product: productName,
+        image: productImage,
         price: formattedPrice,
         status: mappedStatus,
         color: ART_COLORS[idx % ART_COLORS.length],
+        shippingLocation,
       };
     });
   }, [orders]);
@@ -341,6 +363,17 @@ export default function AccountClient() {
         : displayOrders.filter((order) => order.status === orderFilter),
     [orderFilter, displayOrders]
   );
+
+  const totalOrderPages = Math.max(
+    1,
+    Math.ceil(visibleOrders.length / ORDERS_PER_PAGE)
+  );
+
+  const paginatedOrders = useMemo(() => {
+    const safePage = Math.min(ordersPage, totalOrderPages);
+    const start = (safePage - 1) * ORDERS_PER_PAGE;
+    return visibleOrders.slice(start, start + ORDERS_PER_PAGE);
+  }, [visibleOrders, ordersPage, totalOrderPages]);
 
   const defaultReferralCode = useMemo(() => {
     if (affiliateCodes.length > 0) {
@@ -574,6 +607,7 @@ export default function AccountClient() {
                   onClick={() => {
                     setActiveNav(item.label);
                     setOrderFilter("All orders");
+                    setOrdersPage(1);
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
                 >
@@ -662,7 +696,9 @@ export default function AccountClient() {
                 <section className="stats-grid" aria-label="Account statistics">
                   <article>
                     <span>Total spent</span>
-                    <strong>${Math.round(totalSpent).toLocaleString("en-US")}</strong>
+                    <strong>
+                      LKR {Math.round(totalSpent).toLocaleString("en-LK")}
+                    </strong>
                     <small>
                       Across {orders.length} order{orders.length !== 1 ? "s" : ""}
                     </small>
@@ -708,7 +744,10 @@ export default function AccountClient() {
                       <button
                         key={filter}
                         className={orderFilter === filter ? "active" : ""}
-                        onClick={() => setOrderFilter(filter)}
+                        onClick={() => {
+                          setOrderFilter(filter);
+                          setOrdersPage(1);
+                        }}
                       >
                         {filter}
                       </button>
@@ -721,7 +760,7 @@ export default function AccountClient() {
                 ) : (
                   <>
                     <div className="orders-list">
-                      {visibleOrders.map((order) => {
+                      {paginatedOrders.map((order) => {
                         const isExpanded = expandedOrder === order.id;
                         return (
                           <article
@@ -735,10 +774,24 @@ export default function AccountClient() {
                               }
                               aria-expanded={isExpanded}
                             >
-                              <div className={`product-art ${order.color}`}>
-                                <span />
-                                <span />
-                                <span />
+                              <div
+                                className={`product-art ${order.color} ${
+                                  order.image ? "has-image" : ""
+                                }`}
+                              >
+                                {order.image ? (
+                                  <img
+                                    src={order.image}
+                                    alt={order.product}
+                                    className="order-product-img"
+                                  />
+                                ) : (
+                                  <>
+                                    <span />
+                                    <span />
+                                    <span />
+                                  </>
+                                )}
                               </div>
                               <div className="order-product">
                                 <span className="order-meta">
@@ -763,7 +816,7 @@ export default function AccountClient() {
                               <div className="order-details">
                                 <div>
                                   <span>Shipping to</span>
-                                  <strong>New York, NY 10012</strong>
+                                  <strong>{order.shippingLocation}</strong>
                                 </div>
                                 <div>
                                   <span>Tracking</span>
@@ -786,6 +839,52 @@ export default function AccountClient() {
                     {visibleOrders.length === 0 && (
                       <div className="empty-state">
                         No orders match this filter.
+                      </div>
+                    )}
+                    {visibleOrders.length > ORDERS_PER_PAGE && (
+                      <div
+                        className="orders-pagination"
+                        aria-label="Orders pagination"
+                      >
+                        <button
+                          type="button"
+                          className="pagination-btn"
+                          disabled={ordersPage <= 1}
+                          onClick={() =>
+                            setOrdersPage((p) => Math.max(1, p - 1))
+                          }
+                        >
+                          Previous
+                        </button>
+                        <div className="pagination-pages">
+                          {Array.from(
+                            { length: totalOrderPages },
+                            (_, idx) => idx + 1
+                          ).map((page) => (
+                            <button
+                              key={page}
+                              type="button"
+                              className={`pagination-page ${
+                                ordersPage === page ? "active" : ""
+                              }`}
+                              onClick={() => setOrdersPage(page)}
+                            >
+                              {page}
+                            </button>
+                          ))}
+                        </div>
+                        <button
+                          type="button"
+                          className="pagination-btn"
+                          disabled={ordersPage >= totalOrderPages}
+                          onClick={() =>
+                            setOrdersPage((p) =>
+                              Math.min(totalOrderPages, p + 1)
+                            )
+                          }
+                        >
+                          Next
+                        </button>
                       </div>
                     )}
                   </>
@@ -1024,9 +1123,9 @@ export default function AccountClient() {
                               </small>
                             </div>
                             <span>
-                              $
+                              LKR{" "}
                               {(item.price * item.quantity).toLocaleString(
-                                "en-US"
+                                "en-LK"
                               )}
                             </span>
                           </div>

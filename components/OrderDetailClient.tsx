@@ -182,15 +182,15 @@ export default function OrderDetailClient({ orderId }: OrderDetailClientProps) {
         <div className="space-y-3">
           <div className="flex justify-between font-body-md text-on-surface-variant">
             <span>Subtotal</span>
-            <span>${order.subtotal.toFixed(2)}</span>
+            <span>LKR {Number(order.subtotal || 0).toLocaleString("en-LK")}</span>
           </div>
           <div className="flex justify-between font-body-md text-on-surface-variant">
             <span>Shipping</span>
-            <span>{order.shipping === 0 ? "Free" : `$${order.shipping.toFixed(2)}`}</span>
+            <span>{order.shipping === 0 ? "Free" : `LKR ${Number(order.shipping || 0).toLocaleString("en-LK")}`}</span>
           </div>
           <div className="flex justify-between font-headline-sm font-semibold uppercase pt-3 border-t border-surface-variant">
             <span>Total</span>
-            <span className="text-primary">${order.total.toFixed(2)}</span>
+            <span className="text-primary">LKR {Number(order.total || 0).toLocaleString("en-LK")}</span>
           </div>
         </div>
       </div>
