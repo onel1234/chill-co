@@ -171,6 +171,7 @@ export default function AccountClient() {
     useState<AffiliateSettings | null>(null);
 
   const [settingsSaved, setSettingsSaved] = useState(false);
+  const [wheelStageIndex, setWheelStageIndex] = useState<number | null>(null);
 
   const [formProfile, setFormProfile] = useState({
     firstName: "Wathila",
@@ -410,10 +411,13 @@ export default function AccountClient() {
   );
 
   const paginatedOrders = useMemo(() => {
+    if (activeNav === "Overview") {
+      return visibleOrders.slice(0, 5);
+    }
     const safePage = Math.min(ordersPage, totalOrderPages);
     const start = (safePage - 1) * ORDERS_PER_PAGE;
     return visibleOrders.slice(start, start + ORDERS_PER_PAGE);
-  }, [visibleOrders, ordersPage, totalOrderPages]);
+  }, [activeNav, visibleOrders, ordersPage, totalOrderPages]);
 
   const defaultReferralCode = useMemo(() => {
     if (affiliateCodes.length > 0) {
@@ -595,6 +599,168 @@ export default function AccountClient() {
 
   const pointsPerReferral = affiliateSettings?.points_per_referral ?? 50;
 
+  const defaultWheelIdx = Math.max(
+    0,
+    sortedTiers.findIndex(
+      (t) => t.name === (activeRewardTier || nextTier)?.name
+    )
+  );
+  const currentWheelIdx =
+    wheelStageIndex !== null
+      ? ((wheelStageIndex % sortedTiers.length) + sortedTiers.length) %
+        sortedTiers.length
+      : defaultWheelIdx;
+
+  const renderRewardFocusWheel = () => {
+    const totalStages = sortedTiers.length;
+    const prevIdx = (currentWheelIdx - 1 + totalStages) % totalStages;
+    const nextIdx = (currentWheelIdx + 1) % totalStages;
+
+    const focusedStage = sortedTiers[currentWheelIdx];
+    const nextStage = sortedTiers[nextIdx];
+
+    const isFocusedUnlocked = loyaltyPoints >= focusedStage.required_points;
+    const isFocusedClaimed =
+      isFocusedUnlocked &&
+      validClaimedTiers.some(
+        (c) => c.toLowerCase() === focusedStage.name.toLowerCase()
+      );
+    const isDefaultNextTarget =
+      !isFocusedUnlocked && focusedStage.name === nextTier?.name;
+
+    const statusLabel = isFocusedClaimed
+      ? "Claimed reward"
+      : isFocusedUnlocked
+        ? "Unlocked reward"
+        : isDefaultNextTarget
+          ? "Next reward"
+          : `Stage 0${currentWheelIdx + 1}`;
+
+    const romanNumerals = ["I", "II", "III"];
+
+    return (
+      <div
+        className="reward-tier reward-focus-wheel"
+        aria-label="Reward stage focus wheel"
+        onWheel={(e) => {
+          if (Math.abs(e.deltaY) > 8) {
+            e.preventDefault();
+            setWheelStageIndex(e.deltaY > 0 ? nextIdx : prevIdx);
+          }
+        }}
+      >
+        <div className="focus-wheel-dial" aria-hidden="false">
+          <svg
+            className="focus-wheel-svg"
+            viewBox="0 0 84 196"
+            aria-hidden="true"
+          >
+            <path
+              d="M 56 14 Q 14 98 56 182"
+              fill="none"
+              stroke="rgba(227, 189, 121, 0.22)"
+              strokeWidth="1"
+            />
+            <path
+              d="M 60 22 Q 22 98 60 174"
+              fill="none"
+              stroke="rgba(227, 189, 121, 0.14)"
+              strokeWidth="1"
+              strokeDasharray="2 4"
+            />
+            <circle
+              cx="36"
+              cy="98"
+              r="34"
+              fill="none"
+              stroke="rgba(227, 189, 121, 0.34)"
+              strokeWidth="1"
+              strokeDasharray="1.5 4.5"
+            />
+            <polygon
+              points="1,98 6,94.5 6,101.5"
+              fill="rgba(227, 189, 121, 0.78)"
+            />
+          </svg>
+
+          {sortedTiers.map((tier, idx) => {
+            let rel = (idx - currentWheelIdx) % totalStages;
+            if (rel < 0) rel += totalStages;
+            const slot = rel === 2 ? -1 : rel; // -1 = top, 0 = center focal, 1 = bottom
+            const badgeSrc =
+              tierBadgeMap[tier.name] || "/images/badge-explorer.jpg";
+            const isTierUnlocked = loyaltyPoints >= tier.required_points;
+
+            return (
+              <button
+                key={tier.name}
+                type="button"
+                data-slot={slot}
+                className={`focus-wheel-medallion ${isTierUnlocked ? "is-unlocked" : ""}`}
+                onClick={() => setWheelStageIndex(idx)}
+                aria-label={`${tier.name} stage (${tier.discount_percentage}% off at ${tier.required_points} points)`}
+                title={`${tier.name} · ${tier.discount_percentage}% off (${tier.required_points} pts)`}
+              >
+                <img src={badgeSrc} alt={tier.name} />
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="focus-wheel-readout">
+          <div className="focus-wheel-eyebrow">
+            <span className={isFocusedUnlocked ? "is-unlocked" : ""}>
+              {statusLabel}
+            </span>
+            <em>
+              {romanNumerals[currentWheelIdx] || currentWheelIdx + 1} /{" "}
+              {romanNumerals[totalStages - 1] || totalStages}
+            </em>
+          </div>
+
+          <strong>{focusedStage.name}</strong>
+
+          <small className="focus-wheel-perk">
+            {focusedStage.discount_percentage}% off ·{" "}
+            {focusedStage.required_points} pts
+          </small>
+
+          <div className="focus-wheel-stepper">
+            <div
+              className="focus-wheel-numerals"
+              role="tablist"
+              aria-label="Reward stages"
+            >
+              {sortedTiers.map((tier, idx) => (
+                <button
+                  key={tier.name}
+                  type="button"
+                  role="tab"
+                  aria-selected={idx === currentWheelIdx}
+                  className={`focus-numeral-btn ${idx === currentWheelIdx ? "active" : ""}`}
+                  onClick={() => setWheelStageIndex(idx)}
+                  title={`${tier.name} (${tier.discount_percentage}% off)`}
+                >
+                  {romanNumerals[idx] || idx + 1}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              className="focus-wheel-next-btn"
+              onClick={() => setWheelStageIndex(nextIdx)}
+              aria-label={`Rotate to ${nextStage.name}`}
+            >
+              <span>Next: {nextStage.name}</span>
+              <Icon name="arrow" size={12} />
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const currentHour = new Date().getHours();
   const timeGreeting =
     currentHour >= 5 && currentHour < 12
@@ -727,10 +893,10 @@ export default function AccountClient() {
                     <p>
                       {activeRewardTier
                         ? activeRewardTier.required_points >= 100
-                          ? `You've reached 100 points and become a Culturalist! Claim your one-time 100% off discount at checkout — points revert to 0 after claiming.`
-                          : `You've unlocked a one-time ${activeRewardTier.discount_percentage}% off ${activeRewardTier.name} discount for checkout! Your points stay when claimed (${pointsRemaining} more pts to ${nextTier.name}).`
+                          ? `You've reached 100 points and become a Culturalist! Claim your 100% off discount at checkout — points revert to 0 after claiming.`
+                          : `You've unlocked your ${activeRewardTier.discount_percentage}% off ${activeRewardTier.name} discount for checkout (${pointsRemaining} more pts to ${nextTier.name}).`
                         : pointsRemaining > 0
-                          ? `Just ${pointsRemaining} more points (${Math.ceil(pointsRemaining / 10)} T-shirt${Math.ceil(pointsRemaining / 10) !== 1 ? "s" : ""}) to unlock your one-time ${nextTier.discount_percentage}% off ${nextTier.name} discount.`
+                          ? `Just ${pointsRemaining} more points to unlock your ${nextTier.discount_percentage}% off ${nextTier.name} discount.`
                           : `You've unlocked ${nextTier.discount_percentage}% off your next purchase.`}
                     </p>
                     <Link href="/shop" className="primary-button">
@@ -758,21 +924,7 @@ export default function AccountClient() {
                     </div>
                   </div>
 
-                  <div className="reward-tier">
-                    <div className="reward-tier-badge-preview">
-                      <img
-                        src={nextTierBadge}
-                        alt={`${(activeRewardTier || nextTier).name} reward badge`}
-                      />
-                    </div>
-                    <span>
-                      {activeRewardTier ? "Unlocked discount" : "Next reward"}
-                    </span>
-                    <strong>{(activeRewardTier || nextTier).name}</strong>
-                    <small>
-                      {(activeRewardTier || nextTier).discount_percentage}% off · One-time
-                    </small>
-                  </div>
+                  {renderRewardFocusWheel()}
                 </section>
 
                 <section className="stats-grid" aria-label="Account statistics">
@@ -923,7 +1075,8 @@ export default function AccountClient() {
                         No orders match this filter.
                       </div>
                     )}
-                    {visibleOrders.length > ORDERS_PER_PAGE && (
+                    {activeNav === "Orders" &&
+                      visibleOrders.length > ORDERS_PER_PAGE && (
                       <div
                         className="orders-pagination"
                         aria-label="Orders pagination"
@@ -985,15 +1138,16 @@ export default function AccountClient() {
                       {loyaltyPoints} of 100 points.
                       <br />
                       {activeRewardTier
-                        ? `${activeRewardTier.discount_percentage}% one-time discount unlocked.`
+                        ? `${activeRewardTier.discount_percentage}% discount unlocked.`
                         : "Your next perk awaits."}
                     </h2>
                     <p>
-                      Each T-shirt purchase earns 10 points toward 100 total
-                      points. Unlock one-time discounts at 30 pts (25%), 60 pts
-                      (50%), and 100 pts (100%). Claiming a discount does not
-                      reset your points — points revert to 0 only when you reach
-                      100 points (Culturalist) and claim the 100% discount.
+                      Earn points through purchases and referrals toward 100
+                      total points. Unlock tier discounts at 30 pts (25%), 60
+                      pts (50%), and 100 pts (100%). Claiming a discount does
+                      not reset your points — points revert to 0 only when you
+                      reach 100 points (Culturalist) and claim the 100%
+                      discount.
                     </p>
                   </div>
                   <div
@@ -1015,24 +1169,264 @@ export default function AccountClient() {
                       <span>of {targetPoints} pts</span>
                     </div>
                   </div>
-                  <div className="reward-tier">
-                    {currentTierBadge && (
-                      <div className="reward-tier-badge-preview">
-                        <img
-                          src={currentTierBadge}
-                          alt={`${currentTierLabel} tier badge`}
-                        />
-                      </div>
-                    )}
-                    <span>Current tier</span>
-                    <strong>{currentTierLabel}</strong>
-                    <small>
-                      {activeRewardTier
-                        ? `${activeRewardTier.discount_percentage}% off ready at checkout`
-                        : pointsRemaining > 0
-                          ? `${pointsRemaining} pts to ${nextTier.name}`
-                          : "Max tier reached"}
-                    </small>
+                  {renderRewardFocusWheel()}
+                </section>
+
+                <section
+                  className="ascension-ladder-section"
+                  aria-label="100-point ascension ladder to complimentary shirt"
+                >
+                  <div className="section-heading ladder-section-heading">
+                    <div>
+                      <p className="eyebrow">Ascension ladder · 0 to 100 pts</p>
+                      <h2>Path to the complimentary shirt</h2>
+                    </div>
+                  </div>
+
+                  <div className="ladder-container">
+                    {/* Vertical Dual-Rail Ladder */}
+                    <div className="ladder-vertical-body">
+                      {[
+                        {
+                          pts: 10,
+                          rungNum: "01",
+                          type: "minor" as const,
+                        },
+                        {
+                          pts: 20,
+                          rungNum: "02",
+                          type: "minor" as const,
+                        },
+                        {
+                          pts: 30,
+                          rungNum: "03",
+                          type: "major" as const,
+                          stageIdx: 0,
+                          roman: "I",
+                          name: "Explorer",
+                          subtitle: "First Milestone Privilege",
+                          perk: "25% Off",
+                          perkNote: "Points stay intact",
+                          badgeImg: "/images/badge-explorer.jpg",
+                          prevMilestonePts: 0,
+                          copy: "Unlock your 25% discount at 30 points. Claiming this reward at checkout does not reset your points — you keep all 30 points as you continue climbing.",
+                        },
+                        {
+                          pts: 40,
+                          rungNum: "04",
+                          type: "minor" as const,
+                        },
+                        {
+                          pts: 50,
+                          rungNum: "05",
+                          type: "minor" as const,
+                        },
+                        {
+                          pts: 60,
+                          rungNum: "06",
+                          type: "major" as const,
+                          stageIdx: 1,
+                          roman: "II",
+                          name: "Curator",
+                          subtitle: "Mid-Ascent Privilege",
+                          perk: "50% Off",
+                          perkNote: "Points stay intact",
+                          badgeImg: "/images/badge-curator.jpg",
+                          prevMilestonePts: 30,
+                          copy: "Reach the halfway mark of the upper climb to unlock 50% off. Your points remain untouched after claiming so you stay on course for 100.",
+                        },
+                        {
+                          pts: 70,
+                          rungNum: "07",
+                          type: "minor" as const,
+                        },
+                        {
+                          pts: 80,
+                          rungNum: "08",
+                          type: "minor" as const,
+                        },
+                        {
+                          pts: 90,
+                          rungNum: "09",
+                          type: "minor" as const,
+                        },
+                        {
+                          pts: 100,
+                          rungNum: "10",
+                          type: "major" as const,
+                          stageIdx: 2,
+                          roman: "III",
+                          name: "Culturalist",
+                          subtitle: "The Summit · Complimentary Piece",
+                          perk: "100% Off · Free Shirt",
+                          perkNote: "Resets to 0 after claim",
+                          badgeImg: "/images/badge-culturalist.jpg",
+                          prevMilestonePts: 60,
+                          isSummit: true,
+                          copy: "Complete the 100-point ladder to unlock a complimentary T-shirt (100% off) at checkout. Once claimed, your points reset to 0 to begin a new cycle.",
+                        },
+                      ].map((step) => {
+                        const isReached = loyaltyPoints >= step.pts;
+                        const isNextStep =
+                          loyaltyPoints < step.pts &&
+                          loyaltyPoints >= step.pts - 10;
+
+                        if (step.type === "minor") {
+                          return (
+                            <div
+                              key={step.pts}
+                              className={`ladder-row ladder-minor-row ${
+                                isReached
+                                  ? "is-reached"
+                                  : isNextStep
+                                    ? "is-current"
+                                    : ""
+                              }`}
+                            >
+                              <div className="ladder-rail-cell">
+                                <span className="ladder-rung-crossbar" />
+                                <span className="ladder-rung-node" />
+                              </div>
+                              <div className="ladder-minor-content">
+                                <span className="ladder-minor-pts">
+                                  Rung {step.rungNum} · {step.pts} pts
+                                </span>
+                                <span className="ladder-minor-line" />
+                                <span className="ladder-minor-state">
+                                  {isReached
+                                    ? "Reached"
+                                    : isNextStep
+                                      ? `${step.pts - loyaltyPoints} pts to rung`
+                                      : `${step.pts} pts`}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        }
+
+                        const isClaimed =
+                          isReached &&
+                          validClaimedTiers.some(
+                            (c) =>
+                              c.toLowerCase() === step.name.toLowerCase()
+                          );
+                        const isFocusedOnWheel =
+                          currentWheelIdx === step.stageIdx;
+                        const segmentSpan = step.pts - step.prevMilestonePts;
+                        const segmentEarned = Math.max(
+                          0,
+                          Math.min(
+                            segmentSpan,
+                            loyaltyPoints - step.prevMilestonePts
+                          )
+                        );
+                        const segmentPct = Math.round(
+                          (segmentEarned / segmentSpan) * 100
+                        );
+                        const ptsRemainingToMajor = Math.max(
+                          0,
+                          step.pts - loyaltyPoints
+                        );
+
+                        return (
+                          <div
+                            key={step.pts}
+                            className={`ladder-row ladder-major-row ${
+                              isReached
+                                ? "is-reached"
+                                : isNextStep || nextTier.name === step.name
+                                  ? "is-next-milestone"
+                                  : ""
+                            } ${step.isSummit ? "is-summit" : ""} ${
+                              isFocusedOnWheel ? "is-wheel-focused" : ""
+                            }`}
+                            onClick={() => setWheelStageIndex(step.stageIdx)}
+                            role="button"
+                            tabIndex={0}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                setWheelStageIndex(step.stageIdx);
+                              }
+                            }}
+                          >
+                            <div className="ladder-rail-cell">
+                              <span className="ladder-rung-crossbar major" />
+                              <div className="ladder-major-seal">
+                                <span>{step.roman}</span>
+                              </div>
+                              <span className="ladder-bridge-line" />
+                            </div>
+
+                            <article className="ladder-landing-card">
+                              <div className="ladder-landing-medallion">
+                                <div className="ladder-medallion-orbit" />
+                                <div className="ladder-medallion-img-wrap">
+                                  <img
+                                    src={step.badgeImg}
+                                    alt={`${step.name} heritage seal`}
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="ladder-landing-info">
+                                <div className="ladder-landing-eyebrow">
+                                  <span>
+                                    Rung {step.rungNum} · {step.pts} Points
+                                  </span>
+                                  <span className="ladder-eyebrow-dot">·</span>
+                                  <span>{step.subtitle}</span>
+                                </div>
+                                <strong className="ladder-landing-title">
+                                  {step.name}
+                                  {step.isSummit && (
+                                    <em className="ladder-summit-tag">
+                                      ✦ Free Shirt Summit
+                                    </em>
+                                  )}
+                                </strong>
+                                <p className="ladder-landing-copy">
+                                  {step.copy}
+                                </p>
+                              </div>
+
+                              <div className="ladder-landing-aside">
+                                <div className="ladder-perk-box">
+                                  <span className="ladder-perk-eyebrow">
+                                    Reward
+                                  </span>
+                                  <strong className="ladder-perk-highlight">
+                                    {step.perk}
+                                  </strong>
+                                  <small className="ladder-perk-rule">
+                                    {step.perkNote}
+                                  </small>
+                                </div>
+
+                                <div className="ladder-stage-progress">
+                                  <div className="ladder-stage-progress-labels">
+                                    <span>
+                                      {isClaimed
+                                        ? "Reward claimed"
+                                        : isReached
+                                          ? "Unlocked · Ready at checkout"
+                                          : `${ptsRemainingToMajor} pts to unlock`}
+                                    </span>
+                                    <strong>{segmentPct}%</strong>
+                                  </div>
+                                  <div className="ladder-stage-track">
+                                    <div
+                                      className="ladder-stage-fill"
+                                      style={{ width: `${segmentPct}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              </div>
+                            </article>
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </section>
 
@@ -1049,31 +1443,31 @@ export default function AccountClient() {
                   <div className="tier-grid">
                     {[
                       {
-                        rank: "Tier 1 · 3 T-shirts",
+                        rank: "Tier 1 · 30 Points",
                         name: "Explorer",
                         motif: "Sandakada · Sacred Lotus",
                         requiredPoints: 30,
-                        benefit: "25% off (One-time)",
+                        benefit: "25% off",
                         badgeImg: "/images/badge-explorer.jpg",
-                        lore: "Unlocks after your 3rd T-shirt purchase (30 pts). Claim a one-time 25% discount — your points stay intact as you progress toward Curator.",
+                        lore: "Unlocks at 30 points with a 25% discount — your points stay intact as you progress toward Curator.",
                       },
                       {
-                        rank: "Tier 2 · 6 T-shirts",
+                        rank: "Tier 2 · 60 Points",
                         name: "Curator",
                         motif: "Hansa Puttuwa · Twin Swans",
                         requiredPoints: 60,
-                        benefit: "50% off (One-time)",
+                        benefit: "50% off",
                         badgeImg: "/images/badge-curator.jpg",
-                        lore: "Unlocks after your 6th T-shirt purchase (60 pts). Claim a one-time 50% discount — your points stay intact as you progress toward Culturalist.",
+                        lore: "Unlocks at 60 points with a 50% discount — your points stay intact as you progress toward Culturalist.",
                       },
                       {
-                        rank: "Tier 3 · 10 T-shirts",
+                        rank: "Tier 3 · 100 Points",
                         name: "Culturalist",
                         motif: "Makara Thorana · Ira Handa",
                         requiredPoints: 100,
-                        benefit: "100% off (One-time)",
+                        benefit: "100% off",
                         badgeImg: "/images/badge-culturalist.jpg",
-                        lore: "Unlocks after your 10th T-shirt purchase (100 pts). Claim your one-time 100% discount — points revert back to 0 to begin a new cycle.",
+                        lore: "Unlocks at 100 points with a 100% discount — points revert back to 0 after claiming to begin a new cycle.",
                       },
                     ].map((tier) => {
                       const isUnlocked = loyaltyPoints >= tier.requiredPoints;

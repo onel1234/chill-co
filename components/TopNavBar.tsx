@@ -330,34 +330,6 @@ export default function TopNavBar() {
         <div style={{ marginTop: '2.5rem', width: '160px' }}>
           <OrnamentalDivider color="#6e4b26" />
         </div>
-
-        {/* Social Links */}
-        <div
-          style={{
-            display: 'flex',
-            gap: '2rem',
-            marginTop: '2rem',
-            opacity: isMobileMenuOpen ? 1 : 0,
-            transition: 'opacity 0.4s ease 0.35s',
-          }}
-        >
-          {['IG', 'TT', 'FB'].map((s) => (
-            <a
-              key={s}
-              href="#"
-              style={{
-                fontSize: '0.6rem',
-                letterSpacing: '0.2em',
-                textTransform: 'uppercase',
-                color: 'rgba(201,169,110,0.5)',
-                textDecoration: 'none',
-                fontWeight: 600,
-              }}
-            >
-              {s}
-            </a>
-          ))}
-        </div>
       </div>
 
       {/* Search Overlay */}

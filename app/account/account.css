@@ -287,7 +287,7 @@
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 174px 168px;
+  grid-template-columns: minmax(0, 1fr) 168px 264px;
   align-items: center;
   min-height: 290px;
   overflow: hidden;
@@ -1705,3 +1705,912 @@
     padding: 18px 0;
   }
 }
+
+/* ============================================================
+   REWARD STAGE FOCUS WHEEL (HOROLOGICAL ROTARY DIAL)
+   ============================================================ */
+.account-shell .reward-tier.reward-focus-wheel {
+  position: relative;
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  min-height: 196px;
+  padding-left: 22px;
+  border-left: 1px solid var(--line);
+  user-select: none;
+}
+
+.account-shell .focus-wheel-dial {
+  position: relative;
+  width: 84px;
+  height: 196px;
+  flex-shrink: 0;
+}
+
+.account-shell .focus-wheel-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.account-shell .focus-wheel-medallion {
+  position: absolute;
+  top: 98px;
+  left: 36px;
+  width: 58px;
+  height: 58px;
+  padding: 2px;
+  border-radius: 50%;
+  border: 1px dashed rgba(227, 189, 121, 0.35);
+  background: #0d0c0a;
+  cursor: pointer;
+  overflow: hidden;
+  transition:
+    transform 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 420ms ease,
+    filter 420ms ease,
+    border-color 420ms ease,
+    box-shadow 420ms ease;
+}
+
+.account-shell .focus-wheel-medallion img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  transform: scale(1.08);
+  display: block;
+  background: #0d0c0a;
+}
+
+/* Center Focal Stage (Active Lock) */
+.account-shell .focus-wheel-medallion[data-slot="0"] {
+  z-index: 3;
+  opacity: 1;
+  filter: none;
+  border: 1.5px solid rgba(227, 189, 121, 0.72);
+  transform: translate(-50%, -50%) translate3d(0, 0, 0) scale(1);
+  box-shadow:
+    0 10px 24px rgba(0, 0, 0, 0.78),
+    0 0 22px rgba(198, 155, 84, 0.26);
+}
+
+/* Top Satellite (Previous Stage on Wheel Arc) */
+.account-shell .focus-wheel-medallion[data-slot="-1"] {
+  z-index: 2;
+  opacity: 0.42;
+  filter: saturate(0.6) brightness(0.78);
+  transform: translate(-50%, -50%) translate3d(12px, -64px, 0) scale(0.52);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.55);
+}
+
+.account-shell .focus-wheel-medallion[data-slot="-1"]:hover {
+  opacity: 0.86;
+  filter: saturate(0.95) brightness(0.98);
+  border-color: rgba(227, 189, 121, 0.6);
+  transform: translate(-50%, -50%) translate3d(10px, -62px, 0) scale(0.57);
+}
+
+/* Bottom Satellite (Next Stage on Wheel Arc) */
+.account-shell .focus-wheel-medallion[data-slot="1"] {
+  z-index: 2;
+  opacity: 0.42;
+  filter: saturate(0.6) brightness(0.78);
+  transform: translate(-50%, -50%) translate3d(12px, 64px, 0) scale(0.52);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.55);
+}
+
+.account-shell .focus-wheel-medallion[data-slot="1"]:hover {
+  opacity: 0.86;
+  filter: saturate(0.95) brightness(0.98);
+  border-color: rgba(227, 189, 121, 0.6);
+  transform: translate(-50%, -50%) translate3d(10px, 62px, 0) scale(0.57);
+}
+
+/* Quiet-Luxury Editorial Readout */
+.account-shell .focus-wheel-readout {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.account-shell .focus-wheel-eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.account-shell .focus-wheel-eyebrow span {
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.account-shell .focus-wheel-eyebrow span.is-unlocked {
+  color: var(--gold-bright);
+}
+
+.account-shell .focus-wheel-eyebrow em {
+  font-style: normal;
+  color: rgba(227, 189, 121, 0.65);
+  font-size: 8.5px;
+  letter-spacing: 0.14em;
+}
+
+.account-shell .focus-wheel-readout strong {
+  margin: 0 0 5px;
+  color: var(--gold-bright);
+  font-size: 21px;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+  line-height: 1.12;
+}
+
+.account-shell .focus-wheel-perk {
+  display: block;
+  color: var(--muted);
+  font-size: 9.5px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  line-height: 1.35;
+}
+
+.account-shell .focus-wheel-stepper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 14px;
+  padding-top: 11px;
+  border-top: 1px solid rgba(231, 211, 166, 0.12);
+}
+
+.account-shell .focus-wheel-numerals {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.account-shell .focus-numeral-btn {
+  position: relative;
+  padding: 2px 6px 4px;
+  border: 0;
+  background: transparent;
+  color: rgba(159, 154, 143, 0.68);
+  font-family: var(--font-poppins), "Poppins", sans-serif;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: color 180ms ease;
+}
+
+.account-shell .focus-numeral-btn:hover {
+  color: var(--text);
+}
+
+.account-shell .focus-numeral-btn.active {
+  color: var(--gold-bright);
+}
+
+.account-shell .focus-numeral-btn.active::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  right: 5px;
+  bottom: 0;
+  height: 1px;
+  background: var(--gold-bright);
+}
+
+.account-shell .focus-wheel-next-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-family: var(--font-poppins), "Poppins", sans-serif;
+  font-size: 8.5px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 180ms ease, transform 180ms ease;
+}
+
+.account-shell .focus-wheel-next-btn:hover {
+  color: var(--gold-bright);
+  transform: translateX(2px);
+}
+
+@media (max-width: 980px) {
+  .account-shell .reward-tier.reward-focus-wheel {
+    grid-column: 1 / -1;
+    grid-template-columns: 92px minmax(0, 1fr);
+    gap: 22px;
+    min-height: 188px;
+    margin-top: 28px;
+    padding: 24px 4px 4px;
+    border-left: 0;
+    border-top: 1px solid rgba(231, 211, 166, 0.15);
+  }
+}
+
+@media (max-width: 700px) {
+  .account-shell .rewards-card {
+    padding: 28px 22px 26px;
+  }
+
+  .account-shell .reward-copy {
+    padding-top: 66px;
+  }
+
+  .account-shell .reward-copy p {
+    margin-bottom: 22px;
+  }
+
+  .account-shell .reward-tier.reward-focus-wheel {
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: 18px;
+    min-height: 184px;
+    margin-top: 28px;
+    padding: 24px 2px 2px;
+    border-left: 0;
+    border-top: 1px solid rgba(231, 211, 166, 0.16);
+  }
+
+  .account-shell .focus-wheel-eyebrow {
+    margin-bottom: 6px;
+  }
+
+  .account-shell .focus-wheel-readout strong {
+    font-size: 22px;
+    margin-bottom: 6px;
+  }
+
+  .account-shell .focus-wheel-perk {
+    font-size: 10px;
+    letter-spacing: 0.11em;
+  }
+
+  .account-shell .focus-wheel-stepper {
+    margin-top: 16px;
+    padding-top: 12px;
+  }
+
+  .account-shell .focus-numeral-btn {
+    padding: 4px 8px 6px;
+    font-size: 9.5px;
+  }
+
+  .account-shell .focus-wheel-next-btn {
+    padding: 4px 0;
+    font-size: 9px;
+  }
+}
+
+/* ============================================================
+   100-POINT ASCENSION LADDER (REWARDS PAGE)
+   ============================================================ */
+.account-shell .ascension-ladder-section {
+  margin-top: 28px;
+}
+
+.account-shell .ladder-section-heading {
+  margin-bottom: 20px;
+}
+
+.account-shell .ladder-container {
+  position: relative;
+  padding: 26px 32px 30px;
+  border: 1px solid rgba(231, 211, 166, 0.16);
+  border-radius: 20px;
+  background:
+    radial-gradient(
+      circle at 86% 100%,
+      rgba(198, 155, 84, 0.13),
+      transparent 52%
+    ),
+    radial-gradient(
+      circle at 12% 0%,
+      rgba(227, 189, 121, 0.08),
+      transparent 44%
+    ),
+    linear-gradient(
+      180deg,
+      rgba(22, 19, 15, 0.94) 0%,
+      rgba(13, 12, 10, 0.98) 100%
+    );
+  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.48);
+  overflow: hidden;
+}
+
+/* Vertical Dual-Rail Ladder Body */
+.account-shell .ladder-vertical-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.account-shell .ladder-row {
+  display: grid;
+  grid-template-columns: 74px minmax(0, 1fr);
+  align-items: stretch;
+  gap: 20px;
+}
+
+/* Dual Vertical Ladder Rails */
+.account-shell .ladder-rail-cell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.account-shell .ladder-rail-cell::before,
+.account-shell .ladder-rail-cell::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(231, 211, 166, 0.16);
+  transition: background 400ms ease, box-shadow 400ms ease;
+}
+
+.account-shell .ladder-rail-cell::before {
+  left: 20px;
+}
+
+.account-shell .ladder-rail-cell::after {
+  right: 20px;
+}
+
+.account-shell .ladder-row.is-reached .ladder-rail-cell::before,
+.account-shell .ladder-row.is-reached .ladder-rail-cell::after {
+  background: linear-gradient(
+    180deg,
+    rgba(227, 189, 121, 0.65),
+    rgba(198, 155, 84, 0.45)
+  );
+  box-shadow: 0 0 8px rgba(227, 189, 121, 0.22);
+}
+
+.account-shell .ladder-row.is-current .ladder-rail-cell::before,
+.account-shell .ladder-row.is-current .ladder-rail-cell::after,
+.account-shell .ladder-row.is-next-milestone .ladder-rail-cell::before,
+.account-shell .ladder-row.is-next-milestone .ladder-rail-cell::after {
+  background: linear-gradient(
+    180deg,
+    rgba(227, 189, 121, 0.55) 0%,
+    rgba(231, 211, 166, 0.16) 100%
+  );
+}
+
+/* Horizontal Ladder Rung Crossbar between the Two Rails */
+.account-shell .ladder-rung-crossbar {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  height: 1px;
+  background: rgba(231, 211, 166, 0.22);
+  transition: background 320ms ease, box-shadow 320ms ease;
+}
+
+.account-shell .ladder-rung-crossbar.major {
+  height: 1.5px;
+  background: rgba(227, 189, 121, 0.42);
+}
+
+.account-shell .ladder-row.is-reached .ladder-rung-crossbar {
+  background: var(--gold-bright);
+  box-shadow: 0 0 10px rgba(227, 189, 121, 0.45);
+}
+
+/* Minor 10-Point Rungs */
+.account-shell .ladder-minor-row {
+  min-height: 40px;
+}
+
+.account-shell .ladder-rung-node {
+  position: relative;
+  z-index: 1;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid rgba(231, 211, 166, 0.34);
+  background: #12100d;
+  transition:
+    transform 280ms ease,
+    border-color 280ms ease,
+    background 280ms ease,
+    box-shadow 280ms ease;
+}
+
+.account-shell .ladder-minor-row.is-reached .ladder-rung-node {
+  border-color: var(--gold-bright);
+  background: var(--gold-bright);
+  box-shadow: 0 0 10px rgba(227, 189, 121, 0.6);
+}
+
+.account-shell .ladder-minor-row.is-current .ladder-rung-node {
+  border-color: var(--gold-bright);
+  background: #1a1610;
+  animation: ladderNodePulse 2.4s ease-in-out infinite;
+}
+
+@keyframes ladderNodePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(227, 189, 121, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 6px rgba(227, 189, 121, 0);
+  }
+}
+
+.account-shell .ladder-minor-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 4px;
+  opacity: 0.66;
+  transition: opacity 240ms ease;
+}
+
+.account-shell .ladder-minor-row:hover .ladder-minor-content,
+.account-shell .ladder-minor-row.is-reached .ladder-minor-content,
+.account-shell .ladder-minor-row.is-current .ladder-minor-content {
+  opacity: 1;
+}
+
+.account-shell .ladder-minor-pts {
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.account-shell .ladder-minor-row.is-reached .ladder-minor-pts {
+  color: var(--gold-soft);
+}
+
+.account-shell .ladder-minor-line {
+  flex: 1;
+  height: 1px;
+  border-bottom: 1px dashed rgba(231, 211, 166, 0.1);
+}
+
+.account-shell .ladder-minor-state {
+  color: rgba(159, 154, 143, 0.72);
+  font-size: 8.5px;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.account-shell .ladder-minor-row.is-reached .ladder-minor-state {
+  color: var(--gold-bright);
+}
+
+.account-shell .ladder-minor-row.is-current .ladder-minor-state {
+  color: var(--gold-bright);
+}
+
+/* Major Milestone Landings (30, 60, 100 pts) */
+.account-shell .ladder-major-row {
+  padding: 10px 0;
+  cursor: pointer;
+  outline: none;
+}
+
+.account-shell .ladder-major-seal {
+  position: relative;
+  z-index: 2;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #110f0c;
+  border: 1px solid rgba(227, 189, 121, 0.42);
+  color: var(--gold-soft);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.7);
+  transition:
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 320ms ease,
+    background 320ms ease,
+    box-shadow 320ms ease;
+}
+
+.account-shell .ladder-major-row.is-reached .ladder-major-seal {
+  border-color: var(--gold-bright);
+  background: radial-gradient(
+    circle at 35% 30%,
+    rgba(227, 189, 121, 0.28),
+    #14110c 75%
+  );
+  color: var(--gold-bright);
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.8),
+    0 0 18px rgba(227, 189, 121, 0.32);
+}
+
+.account-shell .ladder-major-row.is-summit .ladder-major-seal {
+  width: 38px;
+  height: 38px;
+  border-width: 1.5px;
+  border-color: rgba(227, 189, 121, 0.7);
+  color: var(--gold-bright);
+}
+
+.account-shell .ladder-major-row:hover .ladder-major-seal,
+.account-shell .ladder-major-row.is-wheel-focused .ladder-major-seal {
+  transform: scale(1.08);
+  border-color: var(--gold-bright);
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.8),
+    0 0 18px rgba(227, 189, 121, 0.35);
+}
+
+.account-shell .ladder-bridge-line {
+  position: absolute;
+  right: -20px;
+  width: 24px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    rgba(227, 189, 121, 0.45),
+    rgba(227, 189, 121, 0.18)
+  );
+  transition: background 280ms ease;
+}
+
+.account-shell .ladder-major-row:hover .ladder-bridge-line,
+.account-shell .ladder-major-row.is-reached .ladder-bridge-line {
+  background: linear-gradient(
+    90deg,
+    var(--gold-bright),
+    rgba(227, 189, 121, 0.45)
+  );
+}
+
+.account-shell .ladder-landing-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) 210px;
+  align-items: center;
+  gap: 22px;
+  padding: 22px 24px;
+  border-radius: 16px;
+  border: 1px solid rgba(231, 211, 166, 0.15);
+  background:
+    radial-gradient(
+      circle at 0% 50%,
+      rgba(198, 155, 84, 0.1),
+      transparent 55%
+    ),
+    rgba(22, 19, 15, 0.78);
+  transition:
+    transform 340ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 340ms ease,
+    box-shadow 340ms ease,
+    background 340ms ease;
+}
+
+.account-shell .ladder-major-row:hover .ladder-landing-card,
+.account-shell .ladder-major-row.is-wheel-focused .ladder-landing-card {
+  transform: translateX(4px);
+  border-color: rgba(227, 189, 121, 0.38);
+  box-shadow:
+    0 18px 38px rgba(0, 0, 0, 0.52),
+    0 0 26px rgba(198, 155, 84, 0.1);
+}
+
+.account-shell .ladder-major-row.is-reached .ladder-landing-card {
+  border-color: rgba(227, 189, 121, 0.42);
+  background:
+    radial-gradient(
+      circle at 0% 50%,
+      rgba(227, 189, 121, 0.16),
+      transparent 60%
+    ),
+    rgba(27, 23, 17, 0.88);
+}
+
+/* Summit (100 Points Free Shirt) Card */
+.account-shell .ladder-major-row.is-summit .ladder-landing-card {
+  border-color: rgba(227, 189, 121, 0.36);
+  background:
+    radial-gradient(
+      circle at 12% 50%,
+      rgba(227, 189, 121, 0.18),
+      transparent 58%
+    ),
+    radial-gradient(
+      circle at 92% 20%,
+      rgba(198, 155, 84, 0.12),
+      transparent 50%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(31, 25, 17, 0.94) 0%,
+      rgba(16, 14, 11, 0.96) 100%
+    );
+}
+
+.account-shell .ladder-landing-medallion {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.account-shell .ladder-medallion-orbit {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1px dashed rgba(227, 189, 121, 0.3);
+  transition: transform 800ms cubic-bezier(0.22, 1, 0.36, 1), border-color 320ms ease;
+}
+
+.account-shell .ladder-major-row:hover .ladder-medallion-orbit {
+  transform: rotate(26deg) scale(1.04);
+  border-color: rgba(227, 189, 121, 0.6);
+}
+
+.account-shell .ladder-medallion-img-wrap {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 1.5px solid rgba(227, 189, 121, 0.5);
+  background: #0d0c0a;
+  box-shadow:
+    0 8px 20px rgba(0, 0, 0, 0.78),
+    0 0 18px rgba(198, 155, 84, 0.2);
+}
+
+.account-shell .ladder-medallion-img-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.08);
+  display: block;
+}
+
+.account-shell .ladder-landing-info {
+  min-width: 0;
+}
+
+.account-shell .ladder-landing-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+  margin-bottom: 5px;
+  color: var(--gold);
+  font-size: 9px;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.account-shell .ladder-eyebrow-dot {
+  opacity: 0.55;
+}
+
+.account-shell .ladder-landing-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 6px;
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.025em;
+}
+
+.account-shell .ladder-summit-tag {
+  font-style: normal;
+  padding: 3px 9px;
+  border-radius: 999px;
+  border: 1px solid rgba(227, 189, 121, 0.36);
+  background: rgba(198, 155, 84, 0.14);
+  color: var(--gold-bright);
+  font-size: 8.5px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.account-shell .ladder-landing-copy {
+  margin: 0;
+  max-width: 460px;
+  color: var(--muted);
+  font-size: 11.5px;
+  line-height: 1.6;
+}
+
+.account-shell .ladder-landing-aside {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 14px;
+  padding-left: 20px;
+  border-left: 1px solid rgba(231, 211, 166, 0.12);
+}
+
+.account-shell .ladder-perk-box {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.account-shell .ladder-perk-eyebrow {
+  color: var(--muted);
+  font-size: 8.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.account-shell .ladder-perk-highlight {
+  color: var(--gold-bright);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.account-shell .ladder-perk-rule {
+  color: rgba(236, 229, 216, 0.68);
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.account-shell .ladder-stage-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.account-shell .ladder-stage-progress-labels {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.account-shell .ladder-stage-progress-labels span {
+  color: var(--muted);
+  font-size: 8.5px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.account-shell .ladder-stage-progress-labels strong {
+  color: var(--gold-soft);
+  font-size: 9px;
+  font-weight: 500;
+}
+
+.account-shell .ladder-stage-track {
+  width: 100%;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.account-shell .ladder-stage-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+  transition: width 480ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (max-width: 980px) {
+  .account-shell .ladder-calibration-bar {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    row-gap: 12px;
+  }
+
+  .account-shell .ladder-landing-card {
+    grid-template-columns: 68px minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .account-shell .ladder-landing-aside {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-left: 0;
+    padding-top: 14px;
+    border-left: 0;
+    border-top: 1px solid rgba(231, 211, 166, 0.12);
+  }
+
+  .account-shell .ladder-stage-progress {
+    min-width: 165px;
+  }
+}
+
+@media (max-width: 700px) {
+  .account-shell .ladder-container {
+    padding: 22px 16px 26px;
+  }
+
+  .account-shell .ladder-row {
+    grid-template-columns: 46px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .account-shell .ladder-rail-cell::before {
+    left: 11px;
+  }
+
+  .account-shell .ladder-rail-cell::after {
+    right: 11px;
+  }
+
+  .account-shell .ladder-rung-crossbar {
+    left: 11px;
+    right: 11px;
+  }
+
+  .account-shell .ladder-major-seal {
+    width: 28px;
+    height: 28px;
+    font-size: 9px;
+  }
+
+  .account-shell .ladder-major-row.is-summit .ladder-major-seal {
+    width: 30px;
+    height: 30px;
+  }
+
+  .account-shell .ladder-bridge-line {
+    right: -12px;
+    width: 14px;
+  }
+
+  .account-shell .ladder-landing-card {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 18px 16px;
+  }
+
+  .account-shell .ladder-landing-medallion {
+    width: 60px;
+    height: 60px;
+  }
+
+  .account-shell .ladder-medallion-img-wrap {
+    width: 48px;
+    height: 48px;
+  }
+
+  .account-shell .ladder-landing-aside {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .account-shell .ladder-stage-progress {
+    min-width: 0;
+  }
+}
+
