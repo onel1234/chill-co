@@ -40,10 +40,29 @@ export async function POST() {
     return NextResponse.json({ error: 'Could not fetch tiers' }, { status: 500 });
   }
 
-  const eligibleTier = tiers.find(t => (profile.loyalty_points || 0) >= t.required_points);
+  // Fetch already-claimed tier discounts in the current cycle
+  const { data: claimedCoupons } = await supabase
+    .from('discount_coupons')
+    .select('tier_name')
+    .eq('user_id', user.id)
+    .is('expires_at', null);
+
+  const currentPts = Math.min(100, profile.loyalty_points || 0);
+  const claimedNames = (claimedCoupons || [])
+    .map((c: { tier_name: string }) => c.tier_name)
+    .filter((name: string) => {
+      const t = tiers.find(tier => tier.name.toLowerCase() === name.toLowerCase());
+      return t ? currentPts >= t.required_points : false;
+    });
+
+  const eligibleTier = tiers.find(
+    t =>
+      currentPts >= t.required_points &&
+      !claimedNames.some((c: string) => c.toLowerCase() === t.name.toLowerCase())
+  );
 
   if (!eligibleTier) {
-    return NextResponse.json({ error: 'No eligible tier for your current points' }, { status: 400 });
+    return NextResponse.json({ error: 'No eligible unclaimed tier discount for your current points' }, { status: 400 });
   }
 
   // Generate a unique coupon code
@@ -60,6 +79,11 @@ export async function POST() {
     attempts++;
   }
 
+  const isCulturalist =
+    eligibleTier.name.toLowerCase() === 'culturalist' ||
+    eligibleTier.required_points >= 100 ||
+    eligibleTier.discount_percentage >= 100;
+
   // Insert coupon into DB
   const { error: insertError } = await supabase
     .from('discount_coupons')
@@ -69,6 +93,7 @@ export async function POST() {
       discount_percentage: eligibleTier.discount_percentage,
       tier_name: eligibleTier.name,
       is_used: false,
+      expires_at: null,
     });
 
   if (insertError) {
@@ -76,14 +101,23 @@ export async function POST() {
     return NextResponse.json({ error: 'Failed to generate coupon' }, { status: 500 });
   }
 
-  // Reset user loyalty points and tier
-  const { error: updateError } = await supabase
-    .from('profiles')
-    .update({ loyalty_points: 0, loyalty_tier: null })
-    .eq('id', user.id);
+  // Points revert back to 0 ONLY when reaching 100 points (Culturalist) and unlocking/claiming the 100% discount
+  if (isCulturalist) {
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ loyalty_points: 0, loyalty_tier: null })
+      .eq('id', user.id);
 
-  if (updateError) {
-    console.error('Error resetting points:', updateError);
+    if (updateError) {
+      console.error('Error resetting points:', updateError);
+    }
+
+    await supabase
+      .from('discount_coupons')
+      .update({ expires_at: new Date().toISOString() })
+      .eq('user_id', user.id)
+      .neq('code', code)
+      .is('expires_at', null);
   }
 
   // Send email with the coupon code (async, non-blocking)

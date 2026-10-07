@@ -112,6 +112,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Failed to create order items' }, { status: 500 });
     }
 
+    // If a loyalty tier one-time discount was applied, record it linked to this order
+    if (validUserId && appliedTier && appliedTier.name) {
+      await supabase.from('discount_coupons').insert({
+        code: `ORDER-${orderId.slice(0, 8).toUpperCase()}`,
+        user_id: validUserId,
+        discount_percentage: appliedTier.discount_percentage,
+        tier_name: appliedTier.name,
+        is_used: false,
+        expires_at: null,
+      });
+    }
+
     // Create Genie payment transaction
     const companyId = process.env.GENIE_MERCHANT_ID;
     if (!companyId) {

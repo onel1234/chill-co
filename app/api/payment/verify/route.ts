@@ -55,23 +55,68 @@ export async function POST(request: Request) {
           .eq('id', order.user_id)
           .single();
 
-        if (pointsEarned > 0) {
-          const newPoints = (profile?.loyalty_points || 0) + pointsEarned;
+        const orderCouponCode = `ORDER-${orderId.slice(0, 8).toUpperCase()}`;
+        const { data: orderCoupon } = await supabase
+          .from('discount_coupons')
+          .select('id, tier_name, discount_percentage')
+          .eq('code', orderCouponCode)
+          .eq('user_id', order.user_id)
+          .maybeSingle();
 
-          // Determine the tier based on new points total
-          const { data: tiers } = await supabase
-            .from('loyalty_tiers')
-            .select('name, required_points')
-            .lte('required_points', newPoints)
-            .order('required_points', { ascending: false })
-            .limit(1);
+        const isCulturalistClaim =
+          orderCoupon &&
+          (orderCoupon.tier_name.toLowerCase() === 'culturalist' ||
+            Number(orderCoupon.discount_percentage) >= 100);
 
-          const newTier = tiers && tiers.length > 0 ? tiers[0].name : null;
-
+        if (isCulturalistClaim) {
+          // Points revert back to 0 only when reaching 100 points (Culturalist) and claiming the 100% discount
           await supabase
             .from('profiles')
-            .update({ loyalty_points: newPoints, loyalty_tier: newTier, is_loyalty_member: true })
+            .update({ loyalty_points: 0, loyalty_tier: null, is_loyalty_member: true })
             .eq('id', order.user_id);
+
+          await supabase
+            .from('discount_coupons')
+            .update({ is_used: true, expires_at: new Date().toISOString() })
+            .eq('user_id', order.user_id)
+            .is('expires_at', null);
+
+          pointsEarned = 0;
+        } else {
+          if (orderCoupon) {
+            await supabase
+              .from('discount_coupons')
+              .update({ is_used: true, expires_at: null })
+              .eq('id', orderCoupon.id);
+          }
+
+          if (pointsEarned > 0) {
+            const newPoints = Math.min(100, (profile?.loyalty_points || 0) + pointsEarned);
+
+            // Determine the tier based on new points total
+            const { data: tiers } = await supabase
+              .from('loyalty_tiers')
+              .select('name, required_points')
+              .lte('required_points', newPoints)
+              .order('required_points', { ascending: false })
+              .limit(1);
+
+            const newTier =
+              tiers && tiers.length > 0
+                ? tiers[0].name
+                : newPoints >= 100
+                  ? 'Culturalist'
+                  : newPoints >= 60
+                    ? 'Curator'
+                    : newPoints >= 30
+                      ? 'Explorer'
+                      : null;
+
+            await supabase
+              .from('profiles')
+              .update({ loyalty_points: newPoints, loyalty_tier: newTier, is_loyalty_member: true })
+              .eq('id', order.user_id);
+          }
         }
       }
 

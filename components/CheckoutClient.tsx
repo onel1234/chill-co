@@ -34,7 +34,19 @@ export default function CheckoutClient() {
   });
   
   // Loyalty States
-  const [availableTiers, setAvailableTiers] = useState<any[]>([]);
+  const [availableTiers, setAvailableTiers] = useState<
+    {
+      id: string;
+      name: string;
+      discount_percentage: number;
+      required_points: number;
+    }[]
+  >([
+    { id: '3', name: 'Culturalist', required_points: 100, discount_percentage: 100 },
+    { id: '2', name: 'Curator', required_points: 60, discount_percentage: 50 },
+    { id: '1', name: 'Explorer', required_points: 30, discount_percentage: 25 },
+  ]);
+  const [claimedTiers, setClaimedTiers] = useState<string[]>([]);
   const [appliedTier, setAppliedTier] = useState<{
     id: string;
     name: string;
@@ -66,10 +78,48 @@ export default function CheckoutClient() {
   useEffect(() => {
     const fetchTiers = async () => {
       const { data } = await supabase.from('loyalty_tiers').select('*').order('required_points', { ascending: false });
-      if (data) setAvailableTiers(data);
+      if (data && data.length > 0) setAvailableTiers(data);
     };
     fetchTiers();
   }, [supabase]);
+
+  useEffect(() => {
+    if (!user) return;
+    const currentPts = Math.min(100, profile?.loyalty_points || 0);
+    const storageKey = `chill_co_claimed_tiers_${user.id}`;
+
+    let localClaimed: string[] = [];
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem(storageKey);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) localClaimed = parsed;
+        }
+      } catch {
+        // Ignore storage errors
+      }
+    }
+
+    if (currentPts === 0 && typeof window !== 'undefined') {
+      localStorage.removeItem(storageKey);
+      localClaimed = [];
+    }
+
+    supabase
+      .from('discount_coupons')
+      .select('tier_name')
+      .eq('user_id', user.id)
+      .eq('is_used', true)
+      .is('expires_at', null)
+      .then(({ data }) => {
+        const dbClaimed = Array.isArray(data)
+          ? data.map((row: { tier_name: string }) => row.tier_name)
+          : [];
+        const combined = Array.from(new Set([...localClaimed, ...dbClaimed]));
+        setClaimedTiers(combined);
+      });
+  }, [user, profile?.loyalty_points, supabase]);
 
   // Free shipping over Rs. 15,000 — otherwise use Royal Express live rate
   const effectiveShippingCost = totalPrice >= 15000 || items.length === 0 ? 0 : shippingCost;
@@ -123,14 +173,20 @@ export default function CheckoutClient() {
     const generatedOrderId = crypto.randomUUID();
 
     // Ensure user profile exists in profiles table before inserting order
+    // and read existingPoints BEFORE order_items insert so DB triggers don't double-count
     let resolvedUserId: string | null = user?.id || null;
+    let existingPoints = Math.min(100, profile?.loyalty_points || 0);
     if (user) {
       try {
         const { data: existingProfile } = await supabase
           .from('profiles')
-          .select('id')
+          .select('id, loyalty_points')
           .eq('id', user.id)
           .maybeSingle();
+
+        if (existingProfile && typeof existingProfile.loyalty_points === 'number') {
+          existingPoints = Math.min(100, existingProfile.loyalty_points);
+        }
 
         if (!existingProfile) {
           const { error: profileCreateError } = await supabase
@@ -206,29 +262,70 @@ export default function CheckoutClient() {
       console.error('Failed to insert order items:', itemsError);
     }
 
-    // Update Loyalty Points for logged in members
+    // Update Loyalty Points & One-Time Tier Discount Claim for logged in members
     if (user) {
-      const { data: currentProfile } = await supabase
-        .from('profiles')
-        .select('loyalty_points')
-        .eq('id', user.id)
-        .maybeSingle();
+      const storageKey = `chill_co_claimed_tiers_${user.id}`;
+      const isCulturalistClaim =
+        appliedTier &&
+        (appliedTier.name.toLowerCase() === 'culturalist' ||
+          appliedTier.required_points >= 100 ||
+          appliedTier.discount_percentage >= 100);
 
-      const existingPoints = currentProfile?.loyalty_points || 0;
-      let newTotalPoints = existingPoints + pointsEarned;
-      if (appliedTier) {
-        newTotalPoints = pointsEarned;
+      let newTotalPoints = Math.min(100, existingPoints + pointsEarned);
+      let newTier: string | null = null;
+
+      if (isCulturalistClaim) {
+        // Points revert back to 0 only when you reach 100 points (Culturalist) and claim the 100% discount
+        newTotalPoints = 0;
+        newTier = null;
+
+        await supabase
+          .from('discount_coupons')
+          .update({ expires_at: new Date().toISOString() })
+          .eq('user_id', user.id)
+          .is('expires_at', null);
+
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem(storageKey);
+        }
+        setClaimedTiers([]);
+      } else {
+        // Points do NOT revert to 0 when claiming Explorer (25%) or Curator (50%)
+        if (appliedTier) {
+          const updatedClaimed = Array.from(new Set([...claimedTiers, appliedTier.name]));
+          setClaimedTiers(updatedClaimed);
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(storageKey, JSON.stringify(updatedClaimed));
+          }
+          await supabase.from('discount_coupons').insert({
+            code: `TIER-${appliedTier.name.toUpperCase()}-${generatedOrderId.slice(0, 8).toUpperCase()}`,
+            user_id: user.id,
+            discount_percentage: appliedTier.discount_percentage,
+            tier_name: appliedTier.name,
+            is_used: true,
+            expires_at: null,
+          });
+        }
+
+        // Determine the tier based on new points total
+        const { data: tierData } = await supabase
+          .from('loyalty_tiers')
+          .select('name, required_points')
+          .lte('required_points', newTotalPoints)
+          .order('required_points', { ascending: false })
+          .limit(1);
+
+        newTier =
+          tierData && tierData.length > 0
+            ? tierData[0].name
+            : newTotalPoints >= 100
+              ? 'Culturalist'
+              : newTotalPoints >= 60
+                ? 'Curator'
+                : newTotalPoints >= 30
+                  ? 'Explorer'
+                  : null;
       }
-
-      // Determine the tier based on new points total
-      const { data: tierData } = await supabase
-        .from('loyalty_tiers')
-        .select('name, required_points')
-        .lte('required_points', newTotalPoints)
-        .order('required_points', { ascending: false })
-        .limit(1);
-
-      const newTier = tierData && tierData.length > 0 ? tierData[0].name : null;
 
       await supabase
         .from('profiles')
@@ -314,6 +411,20 @@ export default function CheckoutClient() {
       
       if (!response.ok) {
         throw new Error(data.error || 'Payment creation failed');
+      }
+
+      if (user && appliedTier && typeof window !== 'undefined') {
+        const storageKey = `chill_co_claimed_tiers_${user.id}`;
+        const isCulturalistClaim =
+          appliedTier.name.toLowerCase() === 'culturalist' ||
+          appliedTier.required_points >= 100 ||
+          appliedTier.discount_percentage >= 100;
+        if (isCulturalistClaim) {
+          localStorage.removeItem(storageKey);
+        } else {
+          const updatedClaimed = Array.from(new Set([...claimedTiers, appliedTier.name]));
+          localStorage.setItem(storageKey, JSON.stringify(updatedClaimed));
+        }
       }
       
       if (data.paymentUrl) {
@@ -613,9 +724,11 @@ export default function CheckoutClient() {
                     {appliedTier ? (
                       <div className="flex items-center justify-between bg-primary/5 border border-primary/30 px-3 py-2">
                         <div>
-                          <p className="font-mono text-sm font-bold text-primary tracking-wider">{appliedTier.name} Applied</p>
+                          <p className="font-mono text-sm font-bold text-primary tracking-wider">{appliedTier.name} One-Time Discount Applied</p>
                           <p className="font-label-caps text-[10px] text-secondary uppercase tracking-wider mt-0.5">
-                            {appliedTier.discount_percentage}% OFF (uses {appliedTier.required_points} points)
+                            {appliedTier.name.toLowerCase() === 'culturalist' || appliedTier.required_points >= 100 || appliedTier.discount_percentage >= 100
+                              ? `${appliedTier.discount_percentage}% OFF (100 pts Culturalist reward — points reset to 0 after order)`
+                              : `${appliedTier.discount_percentage}% OFF (One-time discount — points do not reset)`}
                           </p>
                         </div>
                         <button
@@ -628,27 +741,54 @@ export default function CheckoutClient() {
                       </div>
                     ) : (
                       <div className="flex flex-col gap-2">
-                        <p className="text-xs text-on-surface-variant">You have <span className="font-bold text-primary">{profile?.loyalty_points || 0}</span> points.</p>
                         {(() => {
-                          const eligibleTiers = availableTiers.filter(t => (profile?.loyalty_points || 0) >= t.required_points);
-                          if (eligibleTiers.length > 0) {
-                            const bestTier = eligibleTiers[0];
-                            return (
-                              <button
-                                type="button"
-                                onClick={() => setAppliedTier(bestTier)}
-                                className="bg-primary text-on-primary font-button-text text-xs uppercase tracking-widest py-2 px-4 hover:opacity-90 transition-opacity flex justify-center w-full"
-                              >
-                                Claim {bestTier.name} (-{bestTier.discount_percentage}%)
-                              </button>
-                            );
-                          } else {
-                            const nextTier = [...availableTiers].reverse().find(t => (profile?.loyalty_points || 0) < t.required_points);
-                            if (nextTier) {
-                              return <p className="text-xs text-on-surface-variant">Earn <span className="font-bold text-primary">{nextTier.required_points - (profile?.loyalty_points || 0)}</span> more points to unlock the {nextTier.name} discount.</p>;
-                            }
-                            return null;
-                          }
+                          const currentPts = Math.min(100, profile?.loyalty_points || 0);
+                          const tiersDesc = [...availableTiers].sort((a, b) => b.required_points - a.required_points);
+                          const tiersAsc = [...availableTiers].sort((a, b) => a.required_points - b.required_points);
+
+                          const validClaimed = claimedTiers.filter((tierName) => {
+                            const t = tiersAsc.find(item => item.name.toLowerCase() === tierName.toLowerCase());
+                            return t ? currentPts >= t.required_points : false;
+                          });
+
+                          const eligibleTiers = tiersDesc.filter(
+                            t =>
+                              currentPts >= t.required_points &&
+                              !validClaimed.some(c => c.toLowerCase() === t.name.toLowerCase())
+                          );
+
+                          const nextTier = tiersAsc.find(t => currentPts < t.required_points);
+
+                          return (
+                            <>
+                              <p className="text-xs text-on-surface-variant">
+                                You have <span className="font-bold text-primary">{currentPts}</span> / 100 points.
+                              </p>
+                              {eligibleTiers.length > 0 ? (
+                                <div className="flex flex-col gap-2">
+                                  {eligibleTiers.map((tier) => (
+                                    <button
+                                      key={tier.id || tier.name}
+                                      type="button"
+                                      onClick={() => setAppliedTier(tier)}
+                                      className="bg-primary text-on-primary font-button-text text-xs uppercase tracking-widest py-2 px-4 hover:opacity-90 transition-opacity flex justify-center w-full"
+                                    >
+                                      Claim {tier.name} One-Time Discount (-{tier.discount_percentage}%)
+                                    </button>
+                                  ))}
+                                </div>
+                              ) : nextTier ? (
+                                <p className="text-xs text-on-surface-variant">
+                                  {validClaimed.length > 0 && (
+                                    <span className="block mb-1 text-primary/80 font-medium">
+                                      ✓ {validClaimed.join(', ')} one-time discount claimed.
+                                    </span>
+                                  )}
+                                  Earn <span className="font-bold text-primary">{nextTier.required_points - currentPts}</span> more points to unlock the one-time {nextTier.name} ({nextTier.discount_percentage}% OFF) discount.
+                                </p>
+                              ) : null}
+                            </>
+                          );
                         })()}
                       </div>
                     )}
@@ -691,7 +831,11 @@ export default function CheckoutClient() {
                 {user && pointsEarned > 0 && (
                   <div className="text-center border-t border-surface-variant pt-4">
                     <p className="font-label-caps text-xs text-on-surface-variant uppercase tracking-widest">
-                      You will earn <span className="text-primary font-bold">{pointsEarned}</span> points
+                      {appliedTier && (appliedTier.name.toLowerCase() === 'culturalist' || appliedTier.required_points >= 100 || appliedTier.discount_percentage >= 100) ? (
+                        <>Culturalist 100% discount applied — points reset to <span className="text-primary font-bold">0</span></>
+                      ) : (
+                        <>You will earn <span className="text-primary font-bold">{pointsEarned}</span> points</>
+                      )}
                     </p>
                   </div>
                 )}

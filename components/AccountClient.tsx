@@ -261,6 +261,46 @@ export default function AccountClient() {
     }
   }, [user]);
 
+  const [claimedTiers, setClaimedTiers] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    const currentPts = Math.min(100, profile?.loyalty_points ?? 0);
+    const storageKey = `chill_co_claimed_tiers_${user.id}`;
+
+    let localClaimed: string[] = [];
+    if (typeof window !== "undefined") {
+      try {
+        const raw = localStorage.getItem(storageKey);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed)) localClaimed = parsed;
+        }
+      } catch {
+        // Ignore storage errors
+      }
+    }
+
+    if (currentPts === 0 && typeof window !== "undefined") {
+      localStorage.removeItem(storageKey);
+      localClaimed = [];
+    }
+
+    supabase
+      .from("discount_coupons")
+      .select("tier_name")
+      .eq("user_id", user.id)
+      .eq("is_used", true)
+      .is("expires_at", null)
+      .then(({ data }) => {
+        const dbClaimed = Array.isArray(data)
+          ? data.map((row: { tier_name: string }) => row.tier_name)
+          : [];
+        const combined = Array.from(new Set([...localClaimed, ...dbClaimed]));
+        setClaimedTiers(combined);
+      });
+  }, [user, profile?.loyalty_points, supabase]);
+
   const fetchAffiliateData = useCallback(async () => {
     try {
       const [codesRes, settingsRes] = await Promise.all([
@@ -476,7 +516,7 @@ export default function AccountClient() {
     .toUpperCase()
     .slice(0, 2);
 
-  const loyaltyPoints = profile?.loyalty_points ?? 0;
+  const loyaltyPoints = Math.min(100, profile?.loyalty_points ?? 0);
 
   const sortedTiers =
     tiers.length > 0
@@ -486,6 +526,26 @@ export default function AccountClient() {
           { id: "2", name: "Curator", required_points: 60, discount_percentage: 50 },
           { id: "3", name: "Culturalist", required_points: 100, discount_percentage: 100 },
         ];
+
+  const validClaimedTiers = claimedTiers.filter((tierName) => {
+    const t = sortedTiers.find(
+      (item) => item.name.toLowerCase() === tierName.toLowerCase()
+    );
+    return t ? loyaltyPoints >= t.required_points : false;
+  });
+
+  const unlockedUnclaimedTiers = sortedTiers.filter(
+    (t) =>
+      loyaltyPoints >= t.required_points &&
+      !validClaimedTiers.some(
+        (claimed) => claimed.toLowerCase() === t.name.toLowerCase()
+      )
+  );
+
+  const activeRewardTier =
+    unlockedUnclaimedTiers.length > 0
+      ? unlockedUnclaimedTiers[unlockedUnclaimedTiers.length - 1]
+      : null;
 
   const nextTier =
     sortedTiers.find((t) => loyaltyPoints < t.required_points) ||
@@ -508,10 +568,14 @@ export default function AccountClient() {
     : null;
 
   const nextTierBadge =
-    tierBadgeMap[nextTier?.name] || "/images/badge-explorer.jpg";
+    tierBadgeMap[(activeRewardTier || nextTier)?.name] ||
+    "/images/badge-explorer.jpg";
 
-  const targetPoints = nextTier?.required_points || 30;
-  const pointsRemaining = Math.max(0, targetPoints - loyaltyPoints);
+  const targetPoints = 100;
+  const pointsRemaining =
+    loyaltyPoints < 100
+      ? Math.max(0, (nextTier?.required_points || 30) - loyaltyPoints)
+      : 0;
   const progressRatio = Math.min(1, Math.max(0, loyaltyPoints / targetPoints));
   const strokeDashoffset = Math.round(371 * (1 - progressRatio));
 
@@ -531,9 +595,17 @@ export default function AccountClient() {
 
   const pointsPerReferral = affiliateSettings?.points_per_referral ?? 50;
 
+  const currentHour = new Date().getHours();
+  const timeGreeting =
+    currentHour >= 5 && currentHour < 12
+      ? "Good morning"
+      : currentHour >= 12 && currentHour < 17
+        ? "Good afternoon"
+        : "Good evening";
+
   const pageIntro: Record<string, { title: string; copy: string }> = {
     Overview: {
-      title: `Good morning, ${firstName}.`,
+      title: `${timeGreeting}, ${firstName}.`,
       copy: "Everything you love, ordered and rewarded.",
     },
     Orders: {
@@ -646,14 +718,20 @@ export default function AccountClient() {
                     <h2>
                       {loyaltyPoints} points today.
                       <br />
-                      {pointsRemaining > 0
-                        ? `${nextTier.name} is close.`
-                        : `${nextTier.name} unlocked.`}
+                      {activeRewardTier
+                        ? `${activeRewardTier.name} (${activeRewardTier.discount_percentage}% off) unlocked.`
+                        : pointsRemaining > 0
+                          ? `${nextTier.name} is close.`
+                          : `${nextTier.name} unlocked.`}
                     </h2>
                     <p>
-                      {pointsRemaining > 0
-                        ? `Just ${pointsRemaining} more points to unlock ${nextTier.discount_percentage}% off your next purchase.`
-                        : `You've unlocked ${nextTier.discount_percentage}% off your next purchase.`}
+                      {activeRewardTier
+                        ? activeRewardTier.required_points >= 100
+                          ? `You've reached 100 points and become a Culturalist! Claim your one-time 100% off discount at checkout — points revert to 0 after claiming.`
+                          : `You've unlocked a one-time ${activeRewardTier.discount_percentage}% off ${activeRewardTier.name} discount for checkout! Your points stay when claimed (${pointsRemaining} more pts to ${nextTier.name}).`
+                        : pointsRemaining > 0
+                          ? `Just ${pointsRemaining} more points (${Math.ceil(pointsRemaining / 10)} T-shirt${Math.ceil(pointsRemaining / 10) !== 1 ? "s" : ""}) to unlock your one-time ${nextTier.discount_percentage}% off ${nextTier.name} discount.`
+                          : `You've unlocked ${nextTier.discount_percentage}% off your next purchase.`}
                     </p>
                     <Link href="/shop" className="primary-button">
                       Explore new arrivals <Icon name="arrow" size={18} />
@@ -684,12 +762,16 @@ export default function AccountClient() {
                     <div className="reward-tier-badge-preview">
                       <img
                         src={nextTierBadge}
-                        alt={`${nextTier.name} reward badge`}
+                        alt={`${(activeRewardTier || nextTier).name} reward badge`}
                       />
                     </div>
-                    <span>Next reward</span>
-                    <strong>{nextTier.name}</strong>
-                    <small>{nextTier.discount_percentage}% off</small>
+                    <span>
+                      {activeRewardTier ? "Unlocked discount" : "Next reward"}
+                    </span>
+                    <strong>{(activeRewardTier || nextTier).name}</strong>
+                    <small>
+                      {(activeRewardTier || nextTier).discount_percentage}% off · One-time
+                    </small>
                   </div>
                 </section>
 
@@ -900,14 +982,18 @@ export default function AccountClient() {
                       <Icon name="spark" size={16} /> Current balance
                     </span>
                     <h2>
-                      {loyaltyPoints} points.
+                      {loyaltyPoints} of 100 points.
                       <br />
-                      Your next perk awaits.
+                      {activeRewardTier
+                        ? `${activeRewardTier.discount_percentage}% one-time discount unlocked.`
+                        : "Your next perk awaits."}
                     </h2>
                     <p>
-                      Earn 10 points for every eligible item and{" "}
-                      {pointsPerReferral} points for every friend who joins with
-                      your code.
+                      Each T-shirt purchase earns 10 points toward 100 total
+                      points. Unlock one-time discounts at 30 pts (25%), 60 pts
+                      (50%), and 100 pts (100%). Claiming a discount does not
+                      reset your points — points revert to 0 only when you reach
+                      100 points (Culturalist) and claim the 100% discount.
                     </p>
                   </div>
                   <div
@@ -941,9 +1027,11 @@ export default function AccountClient() {
                     <span>Current tier</span>
                     <strong>{currentTierLabel}</strong>
                     <small>
-                      {pointsRemaining > 0
-                        ? `${pointsRemaining} pts to ${nextTier.name}`
-                        : "Max tier reached"}
+                      {activeRewardTier
+                        ? `${activeRewardTier.discount_percentage}% off ready at checkout`
+                        : pointsRemaining > 0
+                          ? `${pointsRemaining} pts to ${nextTier.name}`
+                          : "Max tier reached"}
                     </small>
                   </div>
                 </section>
@@ -961,34 +1049,39 @@ export default function AccountClient() {
                   <div className="tier-grid">
                     {[
                       {
-                        rank: "Seal I",
+                        rank: "Tier 1 · 3 T-shirts",
                         name: "Explorer",
                         motif: "Sandakada · Sacred Lotus",
                         requiredPoints: 30,
-                        benefit: "25% off",
+                        benefit: "25% off (One-time)",
                         badgeImg: "/images/badge-explorer.jpg",
-                        lore: "Carved after the Polonnaruwa moonstone lotus — marking the threshold of your journey into Sri Lankan luxury.",
+                        lore: "Unlocks after your 3rd T-shirt purchase (30 pts). Claim a one-time 25% discount — your points stay intact as you progress toward Curator.",
                       },
                       {
-                        rank: "Seal II",
+                        rank: "Tier 2 · 6 T-shirts",
                         name: "Curator",
                         motif: "Hansa Puttuwa · Twin Swans",
                         requiredPoints: 60,
-                        benefit: "50% off",
+                        benefit: "50% off (One-time)",
                         badgeImg: "/images/badge-curator.jpg",
-                        lore: "Bearing the Kandyan intertwined royal swans — an emblem of rare discernment, wisdom, and patronage of the craft.",
+                        lore: "Unlocks after your 6th T-shirt purchase (60 pts). Claim a one-time 50% discount — your points stay intact as you progress toward Culturalist.",
                       },
                       {
-                        rank: "Seal III",
+                        rank: "Tier 3 · 10 T-shirts",
                         name: "Culturalist",
                         motif: "Makara Thorana · Ira Handa",
                         requiredPoints: 100,
-                        benefit: "Free item",
+                        benefit: "100% off (One-time)",
                         badgeImg: "/images/badge-culturalist.jpg",
-                        lore: "Crowned by the Royal Dragon Arch, Sun & Moon — eternal sovereignty reserved for our highest inner circle.",
+                        lore: "Unlocks after your 10th T-shirt purchase (100 pts). Claim your one-time 100% discount — points revert back to 0 to begin a new cycle.",
                       },
                     ].map((tier) => {
                       const isUnlocked = loyaltyPoints >= tier.requiredPoints;
+                      const isClaimed =
+                        isUnlocked &&
+                        validClaimedTiers.some(
+                          (c) => c.toLowerCase() === tier.name.toLowerCase()
+                        );
                       const isNextTarget =
                         !isUnlocked && nextTier.name === tier.name;
                       const progressPct = Math.min(
@@ -1014,9 +1107,11 @@ export default function AccountClient() {
                                 isUnlocked ? "unlocked" : ""
                               }`}
                             >
-                              {isUnlocked
-                                ? "Unlocked"
-                                : `${tier.requiredPoints} pts`}
+                              {isClaimed
+                                ? "Claimed"
+                                : isUnlocked
+                                  ? "Unlocked"
+                                  : `${tier.requiredPoints} pts`}
                             </span>
                           </div>
 

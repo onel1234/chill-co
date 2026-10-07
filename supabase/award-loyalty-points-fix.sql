@@ -53,10 +53,10 @@ BEGIN
   IF v_user_id IS NOT NULL THEN
     v_points := COALESCE(NEW.quantity * 10, 10);
 
-    -- Add points to user profile and ensure they are a loyalty member
+    -- Add points to user profile (capped at 100 max points) and ensure they are a loyalty member
     UPDATE public.profiles
     SET 
-      loyalty_points = COALESCE(loyalty_points, 0) + v_points,
+      loyalty_points = LEAST(100, COALESCE(loyalty_points, 0) + v_points),
       is_loyalty_member = true
     WHERE id = v_user_id
     RETURNING loyalty_points INTO v_new_points;
