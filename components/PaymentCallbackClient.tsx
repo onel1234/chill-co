@@ -30,10 +30,18 @@ export default function PaymentCallbackClient() {
 
     const verifyPayment = async () => {
       try {
+        const fallbackAffiliateCode =
+          (user?.user_metadata?.pending_affiliate_code as string | undefined) ||
+          (typeof window !== 'undefined' ? localStorage.getItem('affiliate_ref_code') : null);
+
         const res = await fetch('/api/payment/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ transactionId, orderId }),
+          body: JSON.stringify({
+            transactionId,
+            orderId,
+            affiliateCode: fallbackAffiliateCode,
+          }),
         });
         
         const data = await res.json();
@@ -41,6 +49,9 @@ export default function PaymentCallbackClient() {
         if (data.paymentStatus === 'COMPLETED') {
           setStatus('success');
           setPointsEarned(data.pointsEarned || 0);
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('affiliate_ref_code');
+          }
           await clearCart();
         } else if (data.paymentStatus === 'PENDING') {
           setStatus('pending');

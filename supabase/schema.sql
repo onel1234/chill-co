@@ -155,17 +155,13 @@ create policy "Users can insert their own order items"
 -- ============================================================
 -- 5. AUTO-CREATE PROFILE ON SIGN UP
 -- Trigger fires after a new user is inserted into auth.users
--- Now also processes affiliate referral codes
+-- Affiliate points (5 pts) are awarded only after the user's first purchase, not at signup
 -- ============================================================
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
 security definer set search_path = ''
 as $$
-declare
-  v_affiliate_code text;
-  v_affiliate_user_id uuid;
-  v_points integer;
 begin
   -- Create profile
   insert into public.profiles (id, email, full_name, avatar_url)
@@ -175,38 +171,6 @@ begin
     new.raw_user_meta_data ->> 'full_name',
     new.raw_user_meta_data ->> 'avatar_url'
   );
-
-  -- Process affiliate code if provided during signup
-  v_affiliate_code := new.raw_user_meta_data ->> 'affiliate_code';
-  if v_affiliate_code is not null and v_affiliate_code != '' then
-    -- Look up the code owner
-    select user_id into v_affiliate_user_id
-    from public.affiliate_codes
-    where code = upper(v_affiliate_code) and is_active = true;
-
-    if v_affiliate_user_id is not null and v_affiliate_user_id != new.id then
-      -- Get reward points from settings
-      select points_per_referral into v_points
-      from public.affiliate_settings limit 1;
-      v_points := coalesce(v_points, 50);
-
-      -- Award points to affiliate
-      update public.profiles
-      set loyalty_points = loyalty_points + v_points
-      where id = v_affiliate_user_id;
-
-      -- Record the referral
-      insert into public.affiliate_referrals
-        (affiliate_user_id, referred_user_id, code_used, points_awarded)
-      values
-        (v_affiliate_user_id, new.id, upper(v_affiliate_code), v_points);
-
-      -- Increment code counter
-      update public.affiliate_codes
-      set total_referrals = total_referrals + 1
-      where code = upper(v_affiliate_code);
-    end if;
-  end if;
 
   return new;
 end;
@@ -307,7 +271,7 @@ create policy "Users can update their own coupons"
 -- ============================================================
 create table if not exists public.affiliate_settings (
   id uuid default gen_random_uuid() primary key,
-  points_per_referral integer not null default 50,
+  points_per_referral integer not null default 5,
   max_codes_per_user integer not null default 3,
   updated_at timestamptz default now()
 );
@@ -320,10 +284,12 @@ create policy "Anyone can view affiliate settings"
   on public.affiliate_settings for select
   using (true);
 
--- Seed default settings row
+-- Seed default settings row (5 points per unique referred user's first purchase)
 insert into public.affiliate_settings (points_per_referral, max_codes_per_user)
-values (50, 3)
+values (5, 3)
 on conflict do nothing;
+
+update public.affiliate_settings set points_per_referral = 5;
 
 
 -- ============================================================
@@ -365,7 +331,7 @@ create policy "Anyone can validate affiliate codes"
 
 -- ============================================================
 -- 11. AFFILIATE REFERRALS TABLE
--- Audit log of successful referrals
+-- Audit log of successful referrals (unique per referred_user_id)
 -- ============================================================
 create table if not exists public.affiliate_referrals (
   id uuid default gen_random_uuid() primary key,
@@ -379,44 +345,57 @@ create table if not exists public.affiliate_referrals (
 -- Enable RLS
 alter table public.affiliate_referrals enable row level security;
 
--- Users can view referrals where they are the affiliate
+-- Users can view referrals where they are the affiliate or the referred user
 create policy "Users can view their own referrals"
   on public.affiliate_referrals for select
-  using (auth.uid() = affiliate_user_id);
+  using (auth.uid() = affiliate_user_id or auth.uid() = referred_user_id);
 
--- Insert handled by the trigger (security definer), not by users directly
+-- Insert handled by process_affiliate_referral (security definer), not by users directly
 
 
 -- ============================================================
 -- 12. AFFILIATE REFERRAL RPC FUNCTION
--- Used by OAuth callback to process referrals server-side
+-- Awards 5 points to the affiliate owner upon the referred user's FIRST purchase
+-- One-time deal per unique referred user
 -- ============================================================
 create or replace function public.process_affiliate_referral(
   p_affiliate_user_id uuid,
   p_referred_user_id uuid,
   p_code text,
-  p_points integer
+  p_points integer default 5
 )
 returns void
 language plpgsql
 security definer set search_path = ''
 as $$
 begin
-  -- Award points to affiliate
-  update public.profiles
-  set loyalty_points = loyalty_points + p_points
-  where id = p_affiliate_user_id;
+  -- Enforce one-time reward per unique referred user and prevent self-referral
+  if p_affiliate_user_id = p_referred_user_id then
+    return;
+  end if;
 
-  -- Record the referral
+  if exists (
+    select 1 from public.affiliate_referrals
+    where referred_user_id = p_referred_user_id
+  ) then
+    return;
+  end if;
+
+  -- Record the referral first (referred_user_id is UNIQUE)
   insert into public.affiliate_referrals
     (affiliate_user_id, referred_user_id, code_used, points_awarded)
   values
-    (p_affiliate_user_id, p_referred_user_id, p_code, p_points);
+    (p_affiliate_user_id, p_referred_user_id, upper(p_code), coalesce(p_points, 5));
+
+  -- Award points to affiliate owner
+  update public.profiles
+  set loyalty_points = loyalty_points + coalesce(p_points, 5)
+  where id = p_affiliate_user_id;
 
   -- Increment code counter
   update public.affiliate_codes
   set total_referrals = total_referrals + 1
-  where code = p_code;
+  where code = upper(p_code);
 end;
 $$;
 

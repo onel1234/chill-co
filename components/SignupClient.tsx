@@ -16,9 +16,9 @@ function SignupForm() {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
 
-  // Affiliate / Referral state variables
+  // Affiliate / Referral state variables — visible by default so users can easily enter an affiliate code
   const [affiliateCode, setAffiliateCode] = useState("");
-  const [showAffiliateField, setShowAffiliateField] = useState(false);
+  const [showAffiliateField, setShowAffiliateField] = useState(true);
   const [affiliateValid, setAffiliateValid] = useState<boolean | null>(null);
   const [affiliateChecking, setAffiliateChecking] = useState(false);
 
@@ -27,37 +27,40 @@ function SignupForm() {
   const { user, isLoading: authLoading } = useAuth();
   const supabase = createClient();
 
+  const redirectParam = searchParams.get("redirect") || searchParams.get("next");
+  const redirectUrl = redirectParam && redirectParam.startsWith("/") ? redirectParam : "/account";
+
   useEffect(() => {
     if (!authLoading && user) {
-      router.push("/account");
+      router.push(redirectUrl);
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, router, redirectUrl]);
 
   // Read ?ref=CODE on mount or restore from localStorage
   useEffect(() => {
     const refParam = searchParams.get("ref");
     if (refParam) {
-      setAffiliateCode(refParam);
+      setAffiliateCode(refParam.toUpperCase());
       setShowAffiliateField(true);
       if (typeof window !== "undefined") {
-        localStorage.setItem("affiliate_ref_code", refParam);
+        localStorage.setItem("affiliate_ref_code", refParam.toUpperCase());
       }
     } else if (typeof window !== "undefined") {
       const savedCode = localStorage.getItem("affiliate_ref_code");
       if (savedCode) {
-        setAffiliateCode(savedCode);
+        setAffiliateCode(savedCode.toUpperCase());
         setShowAffiliateField(true);
       }
     }
   }, [searchParams]);
 
   // Function to validate affiliate code via API
-  const validateAffiliateCode = async (code: string) => {
+  const validateAffiliateCode = async (code: string): Promise<boolean> => {
     const trimmed = code.trim();
     if (!trimmed) {
       setAffiliateValid(null);
       setAffiliateChecking(false);
-      return;
+      return true;
     }
 
     setAffiliateChecking(true);
@@ -68,11 +71,14 @@ function SignupForm() {
       const data = await res.json();
       if (res.ok && data.valid) {
         setAffiliateValid(true);
+        return true;
       } else {
         setAffiliateValid(false);
+        return false;
       }
     } catch {
       setAffiliateValid(false);
+      return false;
     } finally {
       setAffiliateChecking(false);
     }
@@ -107,15 +113,32 @@ function SignupForm() {
       return;
     }
 
+    const trimmedCode = affiliateCode.trim().toUpperCase();
+    if (trimmedCode) {
+      const isValid = affiliateValid === true ? true : await validateAffiliateCode(trimmedCode);
+      if (!isValid) {
+        setError("Invalid affiliate code. Please enter a valid code or leave it blank.");
+        return;
+      }
+    }
+
     setIsLoading(true);
 
-    const { data, error } = await supabase.auth.signUp({
+    if (typeof window !== "undefined") {
+      if (trimmedCode) {
+        localStorage.setItem("affiliate_ref_code", trimmedCode);
+      } else {
+        localStorage.removeItem("affiliate_ref_code");
+      }
+    }
+
+    const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         data: {
           full_name: fullName,
-          ...(affiliateCode.trim() ? { affiliate_code: affiliateCode.trim() } : {}),
+          ...(trimmedCode ? { pending_affiliate_code: trimmedCode } : {}),
         },
       },
     });
@@ -124,25 +147,44 @@ function SignupForm() {
       setError(error.message);
       setIsLoading(false);
     } else {
-      router.push("/account");
+      router.push(redirectUrl);
       router.refresh();
     }
   };
 
   const handleGoogleSignup = async () => {
-    setIsGoogleLoading(true);
     setError(null);
 
-    const codeToSave = affiliateCode.trim() || (typeof window !== "undefined" ? localStorage.getItem("affiliate_ref_code") || "" : "");
-    if (codeToSave && typeof window !== "undefined") {
-      localStorage.setItem("affiliate_ref_code", codeToSave);
+    const trimmedCode = affiliateCode.trim().toUpperCase();
+    if (trimmedCode) {
+      const isValid = affiliateValid === true ? true : await validateAffiliateCode(trimmedCode);
+      if (!isValid) {
+        setError("Invalid affiliate code. Please enter a valid code or leave it blank.");
+        return;
+      }
+    }
+
+    setIsGoogleLoading(true);
+
+    const codeToSave = trimmedCode || (typeof window !== "undefined" ? localStorage.getItem("affiliate_ref_code") || "" : "");
+    if (typeof window !== "undefined") {
+      if (codeToSave) {
+        localStorage.setItem("affiliate_ref_code", codeToSave.toUpperCase());
+      } else {
+        localStorage.removeItem("affiliate_ref_code");
+      }
     }
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
-    let redirectTo = `${siteUrl}/auth/callback`;
-    if (codeToSave) {
-      redirectTo += `?affiliate_ref=${encodeURIComponent(codeToSave)}`;
+    const callbackParams = new URLSearchParams();
+    if (redirectUrl && redirectUrl !== "/account") {
+      callbackParams.set("next", redirectUrl);
     }
+    if (codeToSave) {
+      callbackParams.set("affiliate_ref", codeToSave.toUpperCase());
+    }
+    const queryString = callbackParams.toString();
+    const redirectTo = `${siteUrl}/auth/callback${queryString ? `?${queryString}` : ""}`;
 
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -172,12 +214,22 @@ function SignupForm() {
             Join Chill Co.
           </h1>
           <p className="font-body-md text-body-md text-on-surface-variant mt-2">
-            Create your account and stay effortlessly comfortable
+            {redirectUrl === "/checkout"
+              ? "Create your account to complete your purchase"
+              : "Create your account and stay effortlessly comfortable"}
           </p>
         </div>
 
         {/* Card */}
         <div className="bg-surface-container-lowest border border-surface-variant p-8 shadow-sm">
+          {redirectUrl === "/checkout" && (
+            <div className="mb-6 p-4 bg-primary/5 border border-primary/20 flex items-start gap-3">
+              <span className="material-symbols-outlined text-primary text-sm mt-0.5">shopping_bag</span>
+              <p className="font-body-md text-xs text-on-surface">
+                An account is required to make a purchase. You can also enter an affiliate code below before creating your account.
+              </p>
+            </div>
+          )}
           {error && (
             <div className="mb-6 p-4 bg-error-container border border-error/20 flex items-start gap-3">
               <span className="material-symbols-outlined text-on-error-container text-sm mt-0.5">error</span>
@@ -300,14 +352,14 @@ function SignupForm() {
             ) : (
               <div className="space-y-1.5 pt-1 animate-fadeIn transition-all duration-300">
                 <label className="font-label-caps text-label-caps text-on-surface-variant mb-1.5 block">
-                  Referral Code
+                  Affiliate / Referral Code (Optional)
                 </label>
                 <div className="relative">
                   <input
                     type="text"
                     value={affiliateCode}
                     onChange={(e) => setAffiliateCode(e.target.value.toUpperCase())}
-                    placeholder="Enter referral code"
+                    placeholder="Enter affiliate code (optional)"
                     className="w-full bg-surface-container-low border border-surface-variant p-4 pr-12 font-body-md text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-on-surface-variant/50 uppercase"
                   />
                   <div className="absolute right-4 top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
@@ -329,13 +381,13 @@ function SignupForm() {
                 {!affiliateChecking && affiliateValid === true && (
                   <p className="font-body-md text-xs text-green-600 flex items-center gap-1">
                     <span className="material-symbols-outlined text-[14px]">check</span>
-                    Valid referral code!
+                    Valid affiliate code!
                   </p>
                 )}
                 {!affiliateChecking && affiliateValid === false && affiliateCode.trim() !== "" && (
                   <p className="font-body-md text-xs text-red-500 flex items-center gap-1">
                     <span className="material-symbols-outlined text-[14px]">error</span>
-                    Invalid referral code
+                    Invalid affiliate code
                   </p>
                 )}
               </div>
@@ -365,7 +417,7 @@ function SignupForm() {
         <p className="text-center font-body-md text-sm text-on-surface-variant mt-6">
           Already have an account?{" "}
           <Link
-            href="/account/login"
+            href={redirectUrl !== "/account" ? `/account/login?redirect=${encodeURIComponent(redirectUrl)}` : "/account/login"}
             className="text-primary font-semibold hover:text-primary-container transition-colors"
           >
             Sign in

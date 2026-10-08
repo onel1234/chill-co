@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { getGenieTransactionStatus } from '@/lib/genie';
+import { processFirstPurchaseAffiliateReward } from '@/lib/affiliate';
 
 export async function POST(request: Request) {
   try {
-    const { transactionId, orderId } = await request.json();
+    const { transactionId, orderId, affiliateCode } = await request.json();
 
     if (!transactionId || !orderId) {
       return NextResponse.json({ error: 'Missing parameters' }, { status: 400 });
@@ -118,6 +119,14 @@ export async function POST(request: Request) {
               .eq('id', order.user_id);
           }
         }
+
+        // Award 5 points to the affiliate code owner if this is the referred user's first purchase
+        await processFirstPurchaseAffiliateReward(
+          supabase,
+          order.user_id,
+          orderId,
+          affiliateCode
+        );
       }
 
       // Trigger order confirmation email asynchronously

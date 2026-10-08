@@ -2,13 +2,15 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useCart } from '@/lib/context/CartContext';
 import { useAuth } from '@/lib/context/AuthContext';
 import { createClient } from '@/lib/supabase/client';
 
 export default function CheckoutClient() {
   const { items, updateQuantity, removeFromCart, totalPrice, clearCart } = useCart();
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile, isLoading: authLoading, refreshProfile } = useAuth();
+  const router = useRouter();
   
   const [step, setStep] = useState<1 | 2>(1);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -164,10 +166,18 @@ export default function CheckoutClient() {
 
   const handleProceedToCheckout = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      router.push('/account/signup?redirect=/checkout');
+      return;
+    }
     setStep(2);
   };
 
   const handleCashOnDelivery = async () => {
+    if (!user) {
+      router.push('/account/signup?redirect=/checkout');
+      return;
+    }
     setIsProcessing(true);
 
     const generatedOrderId = crypto.randomUUID();
@@ -336,6 +346,26 @@ export default function CheckoutClient() {
         })
         .eq('id', user.id);
 
+      // Process one-time 5-point affiliate reward on referred user's first purchase
+      try {
+        const fallbackAffiliateCode =
+          (user.user_metadata?.pending_affiliate_code as string | undefined) ||
+          (typeof window !== 'undefined' ? localStorage.getItem('affiliate_ref_code') : null);
+        await fetch('/api/affiliate/reward-first-purchase', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            orderId: generatedOrderId,
+            affiliateCode: fallbackAffiliateCode,
+          }),
+        });
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('affiliate_ref_code');
+        }
+      } catch (affErr) {
+        console.warn('Could not process first-purchase affiliate reward:', affErr);
+      }
+
       await refreshProfile();
     }
 
@@ -388,6 +418,10 @@ export default function CheckoutClient() {
   };
 
   const handleOnlinePayment = async () => {
+    if (!user) {
+      router.push('/account/signup?redirect=/checkout');
+      return;
+    }
     setIsProcessing(true);
     try {
       const response = await fetch('/api/payment/create', {
@@ -400,7 +434,7 @@ export default function CheckoutClient() {
           shippingAddress,
           appliedTier,
           discountAmount,
-          userId: user?.id || null,
+          userId: user.id,
           totalPrice,
           shippingCost,
           orderTotal
@@ -487,21 +521,52 @@ export default function CheckoutClient() {
         Checkout
       </h1>
 
-      {/* Guest prompt */}
-      {!user && step === 1 && (
-        <div className="mb-stack-lg p-4 bg-primary/5 border border-primary/20 flex items-center gap-4">
-          <span className="material-symbols-outlined text-primary">person</span>
-          <p className="font-body-md text-sm text-on-surface flex-1">
-            <Link href="/account/login" className="text-primary font-semibold hover:underline">Sign in</Link>
-            {" "}to save your order history and earn loyalty points.
-          </p>
-        </div>
-      )}
-
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-gutter">
-        {/* Left Column: Form / Payment Options */}
+        {/* Left Column: Account Gate or Form / Payment Options */}
         <div className="lg:col-span-7 flex flex-col gap-stack-lg">
-          {step === 1 ? (
+          {authLoading ? (
+            <div className="bg-surface-container-lowest border border-surface-variant p-12 flex flex-col items-center justify-center text-center">
+              <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin mb-4" />
+              <p className="font-body-md text-sm text-on-surface-variant">Checking your account status...</p>
+            </div>
+          ) : !user ? (
+            <section className="bg-surface-container-lowest border border-surface-variant p-8 md:p-10 space-y-6">
+              <div className="w-14 h-14 bg-primary/10 text-primary rounded-full flex items-center justify-center">
+                <span className="material-symbols-outlined text-3xl">lock</span>
+              </div>
+              <div className="space-y-2">
+                <h2 className="font-headline-sm text-headline-sm uppercase text-on-surface">
+                  Account Required to Purchase
+                </h2>
+                <p className="font-body-md text-sm text-on-surface-variant leading-relaxed">
+                  Guest checkout is disabled. To make a purchase, please create an account first.
+                  When creating your account, you will have the option to enter an affiliate / referral code.
+                </p>
+              </div>
+              <div className="p-4 bg-primary/5 border border-primary/20 flex items-start gap-3">
+                <span className="material-symbols-outlined text-primary text-lg mt-0.5">card_giftcard</span>
+                <p className="font-body-md text-xs text-on-surface">
+                  <strong>Have an affiliate code?</strong> Enter it during account creation. Your bag items will be saved automatically.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4 pt-2">
+                <Link
+                  href="/account/signup?redirect=/checkout"
+                  className="flex-1 bg-primary text-on-primary font-button-text text-button-text uppercase py-4 px-6 hover:bg-primary-container transition-colors flex items-center justify-center gap-2 text-center"
+                >
+                  Create Account
+                  <span className="material-symbols-outlined text-[18px]">person_add</span>
+                </Link>
+                <Link
+                  href="/account/login?redirect=/checkout"
+                  className="flex-1 bg-surface-container-low border border-surface-variant text-on-surface font-button-text text-button-text uppercase py-4 px-6 hover:border-primary transition-colors flex items-center justify-center gap-2 text-center"
+                >
+                  Sign In
+                  <span className="material-symbols-outlined text-[18px]">login</span>
+                </Link>
+              </div>
+            </section>
+          ) : step === 1 ? (
             <form onSubmit={handleProceedToCheckout} className="space-y-stack-lg">
               {/* Contact Information */}
               <section>

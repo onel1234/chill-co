@@ -591,7 +591,7 @@ export default function AccountClient() {
       })
     : "June 2026";
 
-  const pointsPerReferral = affiliateSettings?.points_per_referral ?? 50;
+  const pointsPerReferral = affiliateSettings?.points_per_referral ?? 5;
 
   const defaultWheelIdx = Math.max(
     0,
@@ -1561,10 +1561,10 @@ export default function AccountClient() {
                 <section className="referral-card">
                   <div>
                     <p className="eyebrow">Share the feeling</p>
-                    <h2>Give 15%. Get {pointsPerReferral} points.</h2>
+                    <h2>Refer a friend. Get {pointsPerReferral} points.</h2>
                     <p>
-                      Your friend gets 15% off their first order. You receive{" "}
-                      {pointsPerReferral} points after their purchase.
+                      Share your affiliate code with friends when they create an account. You receive{" "}
+                      {pointsPerReferral} points after their first purchase.
                     </p>
                   </div>
                   <button onClick={copyReferralCode}>

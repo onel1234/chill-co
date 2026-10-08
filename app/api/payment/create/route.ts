@@ -12,6 +12,17 @@ export async function POST(request: Request) {
     }
 
     const supabase = await createClient();
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
+
+    const effectiveUserId = authUser?.id || userId || null;
+    if (!effectiveUserId) {
+      return NextResponse.json(
+        { error: 'You must create an account and sign in to make a purchase.' },
+        { status: 401 }
+      );
+    }
 
     // Recalculate totals server-side from item data
     // Products are static data in this app (not stored in Supabase),
@@ -31,8 +42,8 @@ export async function POST(request: Request) {
 
     const orderId = crypto.randomUUID();
 
-    let validUserId: string | null = userId || null;
-    if (userId) {
+    let validUserId: string | null = effectiveUserId;
+    if (effectiveUserId) {
       try {
         const { data: existingProfile } = await supabase
           .from('profiles')

@@ -19,12 +19,15 @@ function LoginForm() {
   const supabase = createClient();
 
 
+  const redirectParam = searchParams.get("redirect") || searchParams.get("next");
+  const redirectUrl = redirectParam && redirectParam.startsWith("/") ? redirectParam : "/account";
+
   useEffect(() => {
     // Only redirect once auth state is fully resolved
     if (!authLoading && user) {
-      router.push("/account");
+      router.push(redirectUrl);
     }
-  }, [user, authLoading, router]);
+  }, [user, authLoading, router, redirectUrl]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,7 +40,7 @@ function LoginForm() {
       setError(error.message);
       setIsLoading(false);
     } else {
-      router.push("/account");
+      router.push(redirectUrl);
       router.refresh();
     }
   };
@@ -46,10 +49,14 @@ function LoginForm() {
     setIsGoogleLoading(true);
     setError(null);
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin;
+    const callbackUrl =
+      redirectUrl && redirectUrl !== "/account"
+        ? `${siteUrl}/auth/callback?next=${encodeURIComponent(redirectUrl)}`
+        : `${siteUrl}/auth/callback`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${siteUrl}/auth/callback`,
+        redirectTo: callbackUrl,
       },
     });
     if (error) {
@@ -185,7 +192,7 @@ function LoginForm() {
         <p className="text-center font-body-md text-sm text-on-surface-variant mt-6">
           New to Chill Co.?{" "}
           <Link
-            href="/account/signup"
+            href={redirectUrl !== "/account" ? `/account/signup?redirect=${encodeURIComponent(redirectUrl)}` : "/account/signup"}
             className="text-primary font-semibold hover:text-primary-container transition-colors"
           >
             Create an account

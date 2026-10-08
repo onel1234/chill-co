@@ -29,52 +29,43 @@ export async function GET(request: Request) {
         console.error('Failed to ensure profile in OAuth callback:', profileErr);
       }
 
-      // If there's an affiliate referral code, process it after OAuth signup
+      // If there's an affiliate referral code on OAuth signup, store it as pending
+      // so the affiliate owner receives 5 points once this user completes their first purchase.
       if (affiliateRef) {
         try {
           const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            // Update user metadata with affiliate code so the trigger-based 
-            // approach can be supplemented with a direct API call for OAuth users
-            const affiliateCode = affiliateRef.toUpperCase();
-            
-            // Look up the affiliate code
+          if (user && !user.user_metadata?.affiliate_reward_processed) {
+            const affiliateCode = affiliateRef.trim().toUpperCase();
+
+            // Validate that the affiliate code exists, is active, and does not belong to the user
             const { data: codeData } = await supabase
               .from('affiliate_codes')
               .select('user_id')
               .eq('code', affiliateCode)
               .eq('is_active', true)
-              .single();
+              .maybeSingle();
 
             if (codeData && codeData.user_id !== user.id) {
-              // Check if this user was already referred
-              const { data: existingReferral } = await supabase
-                .from('affiliate_referrals')
+              // Check if this user has already made any purchases
+              const { data: existingOrders } = await supabase
+                .from('orders')
                 .select('id')
-                .eq('referred_user_id', user.id)
-                .single();
+                .eq('user_id', user.id)
+                .in('status', ['confirmed', 'pending', 'processing', 'delivered', 'completed'])
+                .limit(1);
 
-              if (!existingReferral) {
-                // Get reward points from settings
-                const { data: settings } = await supabase
-                  .from('affiliate_settings')
-                  .select('points_per_referral')
-                  .single();
-                const points = settings?.points_per_referral ?? 50;
-
-                // Award points to affiliate (using service-level operations)
-                await supabase.rpc('process_affiliate_referral', {
-                  p_affiliate_user_id: codeData.user_id,
-                  p_referred_user_id: user.id,
-                  p_code: affiliateCode,
-                  p_points: points,
+              if (!existingOrders || existingOrders.length === 0) {
+                await supabase.auth.updateUser({
+                  data: {
+                    pending_affiliate_code: affiliateCode,
+                  },
                 });
               }
             }
           }
         } catch (e) {
-          // Don't block the redirect if affiliate processing fails
-          console.error('Affiliate processing error:', e);
+          // Don't block the redirect if affiliate code persistence fails
+          console.error('Affiliate code persistence error:', e);
         }
       }
       return NextResponse.redirect(`${origin}${next}`);

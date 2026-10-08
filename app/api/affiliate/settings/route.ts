@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { AFFILIATE_POINTS_PER_REFERRAL } from '@/lib/affiliate';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,10 +14,16 @@ export async function GET() {
       .single();
 
     if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({
+        points_per_referral: AFFILIATE_POINTS_PER_REFERRAL,
+        max_codes_per_user: 3,
+      });
     }
 
-    return NextResponse.json(settings);
+    return NextResponse.json({
+      ...settings,
+      points_per_referral: AFFILIATE_POINTS_PER_REFERRAL,
+    });
   } catch (error: any) {
     return NextResponse.json(
       { error: error?.message || 'Internal Server Error' },
