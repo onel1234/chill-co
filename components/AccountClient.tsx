@@ -4,7 +4,6 @@ import React, { useMemo, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/context/AuthContext";
-import { useCart } from "@/lib/context/CartContext";
 import { createClient } from "@/lib/supabase/client";
 import { Order, AffiliateCode, AffiliateSettings } from "@/lib/types";
 import { products } from "@/lib/data/products";
@@ -135,7 +134,6 @@ const navItems: { label: string; icon: IconName }[] = [
   { label: "Overview", icon: "user" },
   { label: "Orders", icon: "package" },
   { label: "Rewards", icon: "gift" },
-  { label: "Bag", icon: "bag" },
   { label: "Settings", icon: "settings" },
 ];
 
@@ -152,7 +150,6 @@ const ORDERS_PER_PAGE = 5;
 
 export default function AccountClient() {
   const { user, profile, isLoading, signOut, refreshProfile } = useAuth();
-  const { items: bagItems, removeFromCart, totalItems } = useCart();
   const router = useRouter();
   const supabase = createClient();
 
@@ -411,13 +408,10 @@ export default function AccountClient() {
   );
 
   const paginatedOrders = useMemo(() => {
-    if (activeNav === "Overview") {
-      return visibleOrders.slice(0, 5);
-    }
     const safePage = Math.min(ordersPage, totalOrderPages);
     const start = (safePage - 1) * ORDERS_PER_PAGE;
     return visibleOrders.slice(start, start + ORDERS_PER_PAGE);
-  }, [activeNav, visibleOrders, ordersPage, totalOrderPages]);
+  }, [visibleOrders, ordersPage, totalOrderPages]);
 
   const defaultReferralCode = useMemo(() => {
     if (affiliateCodes.length > 0) {
@@ -752,10 +746,26 @@ export default function AccountClient() {
               onClick={() => setWheelStageIndex(nextIdx)}
               aria-label={`Rotate to ${nextStage.name}`}
             >
-              <span>Next: {nextStage.name}</span>
+              <span>
+                <em className="focus-wheel-next-highlight">Next:</em>{" "}
+                {nextStage.name}
+              </span>
               <Icon name="arrow" size={12} />
             </button>
           </div>
+
+          {activeNav !== "Rewards" && (
+            <button
+              type="button"
+              className="focus-wheel-more-info"
+              onClick={() => {
+                setActiveNav("Rewards");
+                window.scrollTo({ top: 0, behavior: "smooth" });
+              }}
+            >
+              More info →
+            </button>
+          )}
         </div>
       </div>
     );
@@ -781,10 +791,6 @@ export default function AccountClient() {
     Rewards: {
       title: "Chill Rewards.",
       copy: "Earn points, unlock perks, and share the good stuff.",
-    },
-    Bag: {
-      title: "Your bag.",
-      copy: "Pieces ready for checkout whenever you are.",
     },
     Settings: {
       title: "Account settings.",
@@ -852,9 +858,6 @@ export default function AccountClient() {
                   <Icon name={item.icon} size={18} />
                   <span>{item.label}</span>
                   {item.label === "Orders" && <small>{orders.length}</small>}
-                  {item.label === "Bag" && totalItems > 0 && (
-                    <small>{totalItems}</small>
-                  )}
                 </button>
               ))}
             </nav>
@@ -954,20 +957,12 @@ export default function AccountClient() {
               </>
             )}
 
-            {(activeNav === "Overview" || activeNav === "Orders") && (
+            {activeNav === "Orders" && (
               <section className="orders-section">
                 <div className="section-heading">
                   <div>
-                    <p className="eyebrow">
-                      {activeNav === "Overview"
-                        ? "Purchase history"
-                        : "All purchases"}
-                    </p>
-                    <h2>
-                      {activeNav === "Overview"
-                        ? "Recent orders"
-                        : "Order history"}
-                    </h2>
+                    <p className="eyebrow">All purchases</p>
+                    <h2>Order history</h2>
                   </div>
                   <div
                     className="filter-tabs"
@@ -1141,14 +1136,26 @@ export default function AccountClient() {
                         ? `${activeRewardTier.discount_percentage}% discount unlocked.`
                         : "Your next perk awaits."}
                     </h2>
-                    <p>
-                      Earn points through purchases and referrals toward 100
-                      total points. Unlock tier discounts at 30 pts (25%), 60
-                      pts (50%), and 100 pts (100%). Claiming a discount does
-                      not reset your points — points revert to 0 only when you
-                      reach 100 points (Culturalist) and claim the 100%
-                      discount.
-                    </p>
+                    <ul className="reward-points-list">
+                      <li>
+                        <span className="reward-bullet">✦</span>
+                        <span>
+                          <strong>Earn</strong> — Collect points via purchases & referrals.
+                        </span>
+                      </li>
+                      <li>
+                        <span className="reward-bullet">✦</span>
+                        <span>
+                          <strong>Unlock</strong> — 25% off (30 pts) · 50% off (60 pts) · 100% off (100 pts).
+                        </span>
+                      </li>
+                      <li>
+                        <span className="reward-bullet">✦</span>
+                        <span>
+                          <strong>Keep climbing</strong> — Points only reset after claiming 100% off at 100 pts.
+                        </span>
+                      </li>
+                    </ul>
                   </div>
                   <div
                     className="progress-orbit"
@@ -1566,81 +1573,6 @@ export default function AccountClient() {
                   </button>
                 </section>
               </div>
-            )}
-
-            {activeNav === "Bag" && (
-              <section className="wishlist-section">
-                <div className="section-heading">
-                  <div>
-                    <p className="eyebrow">Shopping bag</p>
-                    <h2>
-                      {totalItems} {totalItems === 1 ? "piece" : "pieces"} in bag
-                    </h2>
-                  </div>
-                  {bagItems.length > 0 && (
-                    <Link href="/checkout" className="primary-button">
-                      Proceed to checkout <Icon name="arrow" size={18} />
-                    </Link>
-                  )}
-                </div>
-                {bagItems.length > 0 ? (
-                  <div className="wishlist-grid">
-                    {bagItems.map((item, idx) => (
-                      <article key={item.id}>
-                        <div
-                          className={`wishlist-art ${
-                            ART_COLORS[(idx + 2) % ART_COLORS.length]
-                          }`}
-                        >
-                          {item.image ? (
-                            <img
-                              src={item.image}
-                              alt={item.name}
-                              className="bag-item-image"
-                            />
-                          ) : (
-                            <span>CHILL CO.</span>
-                          )}
-                        </div>
-                        <div className="wishlist-info">
-                          <div>
-                            <div>
-                              <strong>{item.name}</strong>
-                              <small className="bag-item-meta">
-                                {item.color} · Size {item.size} · Qty{" "}
-                                {item.quantity}
-                              </small>
-                            </div>
-                            <span>
-                              LKR{" "}
-                              {(item.price * item.quantity).toLocaleString(
-                                "en-LK"
-                              )}
-                            </span>
-                          </div>
-                          <div className="wishlist-actions">
-                            <Link href="/checkout">
-                              <Icon name="bag" size={16} /> Checkout
-                            </Link>
-                            <button
-                              aria-label={`Remove ${item.name} from bag`}
-                              onClick={() => removeFromCart(item.id)}
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="empty-state wishlist-empty">
-                    <Icon name="bag" size={26} />
-                    <strong>Your bag is empty.</strong>
-                    <span>Add pieces while you browse the shop.</span>
-                  </div>
-                )}
-              </section>
             )}
 
             {activeNav === "Settings" && (
