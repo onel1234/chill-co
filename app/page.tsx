@@ -6,6 +6,7 @@ import CuratedSelection from '@/components/CuratedSelection';
 
 const CustomPrintSection = dynamic(() => import('@/components/CustomPrintSection'));
 const OurCollections = dynamic(() => import('@/components/OurCollections'));
+const RewardsProgramSection = dynamic(() => import('@/components/RewardsProgramSection'));
 const Manifesto = dynamic(() => import('@/components/Manifesto'));
 const Newsletter = dynamic(() => import('@/components/Newsletter'));
 const Footer = dynamic(() => import('@/components/Footer'));
@@ -19,6 +20,7 @@ export default function Home() {
       <CuratedSelection />
       <CustomPrintSection />
       <OurCollections />
+      <RewardsProgramSection />
       <Manifesto />
       <Newsletter />
       <Footer />

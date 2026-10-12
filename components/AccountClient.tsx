@@ -13,17 +13,21 @@ import "@/app/account/account.css";
 type IconName =
   | "arrow"
   | "bag"
+  | "check"
   | "chevron"
   | "copy"
   | "gift"
   | "heart"
+  | "link"
   | "logout"
   | "menu"
   | "package"
   | "search"
   | "settings"
+  | "shield"
   | "spark"
-  | "user";
+  | "user"
+  | "users";
 
 function Icon({
   name,
@@ -47,6 +51,7 @@ function Icon({
         <path d="M9 9V6a3 3 0 0 1 6 0v3" />
       </>
     ),
+    check: <path d="M20 6 9 17l-5-5" />,
     chevron: <path d="m9 18 6-6-6-6" />,
     copy: (
       <>
@@ -62,6 +67,12 @@ function Icon({
     ),
     heart: (
       <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1.1L12 21l7.8-7.5 1.1-1.1a5.5 5.5 0 0 0-.1-7.8Z" />
+    ),
+    link: (
+      <>
+        <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+        <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+      </>
     ),
     logout: (
       <>
@@ -92,6 +103,7 @@ function Icon({
         <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.6v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z" />
       </>
     ),
+    shield: <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />,
     spark: (
       <>
         <path d="m12 3 1.4 4.1L17.5 9l-4.1 1.5L12 15l-1.5-4.5L6.5 9l4-1.9L12 3Z" />
@@ -102,6 +114,14 @@ function Icon({
       <>
         <circle cx="12" cy="8" r="4" />
         <path d="M4 21a8 8 0 0 1 16 0" />
+      </>
+    ),
+    users: (
+      <>
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
       </>
     ),
   };
@@ -134,6 +154,7 @@ const navItems: { label: string; icon: IconName }[] = [
   { label: "Overview", icon: "user" },
   { label: "Orders", icon: "package" },
   { label: "Rewards", icon: "gift" },
+  { label: "Referrals", icon: "users" },
   { label: "Settings", icon: "settings" },
 ];
 
@@ -166,6 +187,12 @@ export default function AccountClient() {
   const [affiliateCodes, setAffiliateCodes] = useState<AffiliateCode[]>([]);
   const [affiliateSettings, setAffiliateSettings] =
     useState<AffiliateSettings | null>(null);
+  const [affiliateStats, setAffiliateStats] = useState<{
+    total_referrals: number;
+    total_points_earned: number;
+    recent_referrals: Array<{ id: string; code_used: string; points_awarded: number; created_at: string }>;
+  } | null>(null);
+  const [copiedLink, setCopiedLink] = useState(false);
 
   const [settingsSaved, setSettingsSaved] = useState(false);
   const [wheelStageIndex, setWheelStageIndex] = useState<number | null>(null);
@@ -182,6 +209,31 @@ export default function AccountClient() {
     rewards: true,
     editorial: false,
   });
+
+  const navContainerRef = React.useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const tabParam = new URLSearchParams(window.location.search).get("tab");
+      if (tabParam) {
+        const matched = navItems.find(
+          (item) => item.label.toLowerCase() === tabParam.toLowerCase()
+        );
+        if (matched) {
+          setActiveNav(matched.label);
+        }
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (navContainerRef.current) {
+      const activeBtn = navContainerRef.current.querySelector<HTMLButtonElement>("button.active");
+      if (activeBtn) {
+        activeBtn.scrollIntoView({ behavior: "smooth", block: "nearest", inline: "nearest" });
+      }
+    }
+  }, [activeNav]);
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -301,14 +353,17 @@ export default function AccountClient() {
 
   const fetchAffiliateData = useCallback(async () => {
     try {
-      const [codesRes, settingsRes] = await Promise.all([
+      const [codesRes, settingsRes, statsRes] = await Promise.all([
         fetch("/api/affiliate/my-codes"),
         fetch("/api/affiliate/settings"),
+        fetch("/api/affiliate/stats"),
       ]);
       const codesData = await codesRes.json();
       const settingsData = await settingsRes.json();
+      const statsData = await statsRes.json();
       if (Array.isArray(codesData)) setAffiliateCodes(codesData);
       if (settingsData && !settingsData.error) setAffiliateSettings(settingsData);
+      if (statsData && !statsData.error) setAffiliateStats(statsData);
     } catch {
       // Ignore network errors
     }
@@ -427,6 +482,35 @@ export default function AccountClient() {
     navigator.clipboard?.writeText(defaultReferralCode);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
+
+    // Ensure the referral code exists in the database if the user has none yet
+    if (user && affiliateCodes.length === 0) {
+      try {
+        const res = await fetch("/api/affiliate/create-code", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ code: defaultReferralCode }),
+        });
+        if (res.ok) {
+          fetchAffiliateData();
+        }
+      } catch {
+        // Ignore if code already exists
+      }
+    }
+  }
+
+  const referralLink = useMemo(() => {
+    if (typeof window !== "undefined") {
+      return `${window.location.origin}/account/signup?ref=${defaultReferralCode}`;
+    }
+    return `https://chillco.store/account/signup?ref=${defaultReferralCode}`;
+  }, [defaultReferralCode]);
+
+  async function copyReferralLink() {
+    navigator.clipboard?.writeText(referralLink);
+    setCopiedLink(true);
+    window.setTimeout(() => setCopiedLink(false), 1800);
 
     // Ensure the referral code exists in the database if the user has none yet
     if (user && affiliateCodes.length === 0) {
@@ -790,7 +874,11 @@ export default function AccountClient() {
     },
     Rewards: {
       title: "Chill Rewards.",
-      copy: "Earn points, unlock perks, and share the good stuff.",
+      copy: "Earn 10 points per purchase, unlock perks, and climb the ladder.",
+    },
+    Referrals: {
+      title: "Affiliate & Referrals.",
+      copy: "Share Chill Co. with friends and earn 5 loyalty points on their first purchase.",
     },
     Settings: {
       title: "Account settings.",
@@ -843,7 +931,7 @@ export default function AccountClient() {
               </div>
             </div>
 
-            <nav className="account-nav" aria-label="Account navigation">
+            <nav ref={navContainerRef} className="account-nav" aria-label="Account navigation">
               {navItems.map((item) => (
                 <button
                   key={item.label}
@@ -951,7 +1039,7 @@ export default function AccountClient() {
                       <strong>{copied ? "Copied!" : defaultReferralCode}</strong>
                       <Icon name="copy" size={17} />
                     </button>
-                    <small>Give 15%, earn {pointsPerReferral} points</small>
+                    <small>Earn {pointsPerReferral} points on first purchase</small>
                   </article>
                 </section>
               </>
@@ -1140,7 +1228,7 @@ export default function AccountClient() {
                       <li>
                         <span className="reward-bullet">✦</span>
                         <span>
-                          <strong>Earn</strong> — Collect points via purchases & referrals.
+                          <strong>Earn</strong> — Each purchase carries 10 points.
                         </span>
                       </li>
                       <li>
@@ -1558,19 +1646,266 @@ export default function AccountClient() {
                   </div>
                 </section>
 
-                <section className="referral-card">
-                  <div>
-                    <p className="eyebrow">Share the feeling</p>
-                    <h2>Refer a friend. Get {pointsPerReferral} points.</h2>
-                    <p>
-                      Share your affiliate code with friends when they create an account. You receive{" "}
-                      {pointsPerReferral} points after their first purchase.
+              </div>
+            )}
+
+            {activeNav === "Referrals" && (
+              <div className="referrals-page">
+                {/* Hero / Code Card */}
+                <section className="referrals-hero-card">
+                  <div className="referrals-hero-content">
+                    <span className="referrals-kicker">
+                      <Icon name="spark" size={16} /> Official Affiliate Program
+                    </span>
+                    <h2>
+                      Invite friends.
+                      <br />
+                      Earn 5 loyalty points.
+                    </h2>
+                    <p className="referrals-hero-desc">
+                      Invite friends and creators to Chill Co. When they create an account and complete their first purchase with your referral code, you earn 5 loyalty points credited directly toward your next tier privilege.
                     </p>
+
+                    <div className="referrals-code-box">
+                      <div className="referrals-code-chip">
+                        <span className="referrals-code-label">Your Referral Code</span>
+                        <strong className="referrals-code-val">{defaultReferralCode}</strong>
+                      </div>
+                      <div className="referrals-code-actions">
+                        <button
+                          type="button"
+                          className="referrals-action-btn primary"
+                          onClick={copyReferralCode}
+                        >
+                          <Icon name={copied ? "check" : "copy"} size={16} />
+                          <span>{copied ? "Code copied!" : "Copy code"}</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="referrals-action-btn secondary"
+                          onClick={copyReferralLink}
+                        >
+                          <Icon name={copiedLink ? "check" : "link"} size={16} />
+                          <span>{copiedLink ? "Link copied!" : "Copy invite link"}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="referrals-link-preview">
+                      <span className="referrals-link-label">Direct invite link:</span>
+                      <div className="referrals-link-box">
+                        <code>{referralLink}</code>
+                        <button
+                          type="button"
+                          className="referrals-link-copy-icon-btn"
+                          onClick={copyReferralLink}
+                          aria-label="Copy direct invite link"
+                          title="Copy link"
+                        >
+                          <Icon name={copiedLink ? "check" : "copy"} size={14} />
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <button onClick={copyReferralCode}>
-                    <span>{copied ? "Code copied" : defaultReferralCode}</span>
-                    <Icon name="copy" size={18} />
-                  </button>
+
+                  <div className="referrals-hero-badge-wrap">
+                    <div className="referrals-hero-seal">
+                      <div className="referrals-seal-frame">
+                        <div className="referrals-seal-orbit" />
+                        <img
+                          src="/images/badge-affiliate.jpg"
+                          alt="Chill Co. Peer-to-Peer Network Affiliate Seal"
+                          className="referrals-seal-img"
+                        />
+                      </div>
+                      <div className="referrals-seal-text">
+                        <strong>Chill Co. Affiliate</strong>
+                        <small>Peer-to-Peer Network</small>
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Metrics / Stats Row */}
+                <section className="referrals-stats-grid" aria-label="Referral Program Statistics">
+                  <article className="referrals-stat-card">
+                    <span className="stat-label">Total Referrals</span>
+                    <strong className="stat-num">{affiliateStats?.total_referrals ?? 0}</strong>
+                    <small className="stat-sub">Successful first purchases</small>
+                  </article>
+
+                  <article className="referrals-stat-card">
+                    <span className="stat-label">Points Earned</span>
+                    <strong className="stat-num">
+                      {affiliateStats?.total_points_earned ??
+                        (affiliateStats?.total_referrals ? affiliateStats.total_referrals * pointsPerReferral : 0)}{" "}
+                      <em className="stat-unit">pts</em>
+                    </strong>
+                    <small className="stat-sub">Added to your loyalty balance</small>
+                  </article>
+
+                  <article className="referrals-stat-card">
+                    <span className="stat-label">Qualifying Action</span>
+                    <strong className="stat-num">
+                      1st <em className="stat-unit">ORDER</em>
+                    </strong>
+                    <small className="stat-sub">Friend&apos;s first purchase</small>
+                  </article>
+
+                  <article className="referrals-stat-card">
+                    <span className="stat-label">Your Reward</span>
+                    <strong className="stat-num">
+                      +5 <em className="stat-unit">PTS</em>
+                    </strong>
+                    <small className="stat-sub">Per unique qualified friend</small>
+                  </article>
+                </section>
+
+                {/* How It Works */}
+                <section className="referrals-steps-card">
+                  <div className="section-heading">
+                    <div>
+                      <p className="eyebrow">Program Workflow</p>
+                      <h2>How the affiliate program works</h2>
+                    </div>
+                  </div>
+
+                  <div className="referrals-steps-grid">
+                    <div className="referrals-step-item">
+                      <div className="step-num">01</div>
+                      <strong>Share Your Code</strong>
+                      <p>
+                        Share your unique code ({defaultReferralCode}) or direct invite link with friends via messaging or social channels.
+                      </p>
+                    </div>
+
+                    <div className="referrals-step-item">
+                      <div className="step-num">02</div>
+                      <strong>Friend Signs Up</strong>
+                      <p>
+                        Your friend joins Chill Co. and enters your referral code during account registration.
+                      </p>
+                    </div>
+
+                    <div className="referrals-step-item">
+                      <div className="step-num">03</div>
+                      <strong>First Purchase Completed</strong>
+                      <p>
+                        When they complete payment for their first order, our system securely validates the referral.
+                      </p>
+                    </div>
+
+                    <div className="referrals-step-item">
+                      <div className="step-num">04</div>
+                      <strong>Points Deposited</strong>
+                      <p>
+                        You instantly receive 5 loyalty points to accelerate your climb toward 25%, 50%, or 100% off perks.
+                      </p>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Terms & Conditions Section */}
+                <section className="referrals-terms-card">
+                  <div className="section-heading">
+                    <div>
+                      <p className="eyebrow">Terms & Conditions</p>
+                      <h2>Affiliate & Referral Program Terms</h2>
+                    </div>
+                    <span className="terms-update-tag">Official Terms · October 2026</span>
+                  </div>
+
+                  <div className="referrals-terms-grid">
+                    <article className="referrals-term-item">
+                      <div className="term-header">
+                        <span className="term-num">01</span>
+                        <strong>Eligibility & Account Standing</strong>
+                      </div>
+                      <p>
+                        All registered Chill Co. account holders in good standing are eligible to participate and generate an affiliate code. Chill Co. reserves the right to decline or suspend access for any account violating our general terms of service.
+                      </p>
+                    </article>
+
+                    <article className="referrals-term-item">
+                      <div className="term-header">
+                        <span className="term-num">02</span>
+                        <strong>Qualified Referral Criteria</strong>
+                      </div>
+                      <p>
+                        A referral qualifies for rewards only when a new customer who has never previously registered or placed an order on Chill Co. creates an account using your referral code/link and successfully completes their first purchase.
+                      </p>
+                    </article>
+
+                    <article className="referrals-term-item">
+                      <div className="term-header">
+                        <span className="term-num">03</span>
+                        <strong>Reward Allocation & Loyalty Points</strong>
+                      </div>
+                      <p>
+                        For each verified first purchase made by a qualified referral, the referrer will receive 5 loyalty points. Points are automatically credited to your loyalty balance upon verified order settlement.
+                      </p>
+                    </article>
+
+                    <article className="referrals-term-item">
+                      <div className="term-header">
+                        <span className="term-num">04</span>
+                        <strong>Referee First Purchase Requirement</strong>
+                      </div>
+                      <p>
+                        Referral rewards are awarded upon the referred friend&apos;s first completed purchase. Referral codes connect the friend to your account without applying an order discount.
+                      </p>
+                    </article>
+
+                    <article className="referrals-term-item">
+                      <div className="term-header">
+                        <span className="term-num">05</span>
+                        <strong>Single Reward per Referee</strong>
+                      </div>
+                      <p>
+                        Referral rewards are strictly one-time per unique referred person. Subsequent purchases by the same customer will not generate additional affiliate points for the referrer.
+                      </p>
+                    </article>
+
+                    <article className="referrals-term-item">
+                      <div className="term-header">
+                        <span className="term-num">06</span>
+                        <strong>Prohibition of Self-Referral & Abuse</strong>
+                      </div>
+                      <p>
+                        Self-referrals (including creating duplicate accounts, using alias email addresses, or placing orders on behalf of oneself using one&apos;s own code) are strictly prohibited. Detected abuse will result in instant point cancellation and referral ban.
+                      </p>
+                    </article>
+
+                    <article className="referrals-term-item">
+                      <div className="term-header">
+                        <span className="term-num">07</span>
+                        <strong>Marketing & Distribution Guidelines</strong>
+                      </div>
+                      <p>
+                        Referral codes and links must only be distributed via direct peer-to-peer communication, personal social profiles, and organic channels. Paid search advertising (e.g. Google Ads bidding on &quot;Chill Co.&quot; keywords) or spam is strictly prohibited.
+                      </p>
+                    </article>
+
+                    <article className="referrals-term-item">
+                      <div className="term-header">
+                        <span className="term-num">08</span>
+                        <strong>Loyalty Tier Integration</strong>
+                      </div>
+                      <p>
+                        Points earned through the affiliate program carry full parity with purchase points (where each purchase earns 10 points) and directly count toward unlocking Explorer (30 pts · 25% off), Curator (60 pts · 50% off), and Culturalist (100 pts · 100% off).
+                      </p>
+                    </article>
+
+                    <article className="referrals-term-item">
+                      <div className="term-header">
+                        <span className="term-num">09</span>
+                        <strong>Modifications & Right of Termination</strong>
+                      </div>
+                      <p>
+                        Chill Co. Apparel Enterprises reserves the right to amend, update, or discontinue the affiliate referral program, reward rates, or these terms and conditions at any time upon notice on this page.
+                      </p>
+                    </article>
+                  </div>
                 </section>
               </div>
             )}
@@ -1685,6 +2020,45 @@ export default function AccountClient() {
                         />
                       </label>
                     ))}
+                  </div>
+                </section>
+
+                <section className="settings-card">
+                  <div className="settings-heading">
+                    <div>
+                      <p className="eyebrow">Affiliate & Referrals</p>
+                      <h2>Affiliate program</h2>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                    <p style={{ color: "var(--muted)", fontSize: "13px", lineHeight: 1.6, margin: 0 }}>
+                      Share your code <strong style={{ color: "var(--gold-bright)", letterSpacing: "0.05em" }}>{defaultReferralCode}</strong> with friends. When they complete their first purchase, you receive 5 loyalty points.
+                    </p>
+                    <div>
+                      <button
+                        type="button"
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          padding: "10px 18px",
+                          borderRadius: "8px",
+                          border: "1px solid rgba(227, 189, 121, 0.3)",
+                          background: "rgba(198, 155, 84, 0.08)",
+                          color: "var(--gold-bright)",
+                          cursor: "pointer",
+                          fontSize: "12px",
+                          fontWeight: 500,
+                        }}
+                        onClick={() => {
+                          setActiveNav("Referrals");
+                          window.scrollTo({ top: 0, behavior: "smooth" });
+                        }}
+                      >
+                        <span>Open Referrals & Terms</span>
+                        <Icon name="arrow" size={14} />
+                      </button>
+                    </div>
                   </div>
                 </section>
 
