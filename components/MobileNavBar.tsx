@@ -4,11 +4,13 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/context/AuthContext';
+import { useCart } from '@/lib/context/CartContext';
 
 export default function MobileNavBar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
   const { user } = useAuth();
+  const { openCart } = useCart();
 
   return (
     <>
@@ -26,7 +28,14 @@ export default function MobileNavBar() {
         </div>
         <div className="flex items-center gap-stack-md">
           <button className="material-symbols-outlined text-primary">search</button>
-          <Link href="/checkout" className="material-symbols-outlined text-primary">shopping_bag</Link>
+          <button
+            type="button"
+            onClick={openCart}
+            className="material-symbols-outlined text-primary bg-transparent border-none cursor-pointer p-0"
+            aria-label="Open shopping bag"
+          >
+            shopping_bag
+          </button>
         </div>
       </nav>
 

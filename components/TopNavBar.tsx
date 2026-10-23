@@ -7,6 +7,7 @@ import { usePathname } from 'next/navigation';
 import { useCart } from '@/lib/context/CartContext';
 import { useAuth } from '@/lib/context/AuthContext';
 import SearchOverlay from './SearchOverlay';
+import CartDrawer from './CartDrawer';
 import OrnamentalDivider from './OrnamentalDivider';
 
 export default function TopNavBar() {
@@ -14,7 +15,7 @@ export default function TopNavBar() {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
-  const { totalItems } = useCart();
+  const { totalItems, openCart } = useCart();
   const { user, profile, isAdmin, isLoading } = useAuth();
 
   useEffect(() => {
@@ -162,7 +163,21 @@ export default function TopNavBar() {
           )}
 
           {/* Shopping Bag Icon */}
-          <Link href="/checkout" style={{ position: 'relative', color: '#c9a96e', display: 'flex', alignItems: 'center' }}>
+          <button
+            type="button"
+            onClick={openCart}
+            aria-label={`Shopping bag with ${totalItems} items`}
+            style={{
+              position: 'relative',
+              color: '#c9a96e',
+              display: 'flex',
+              alignItems: 'center',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+            }}
+          >
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
               <path d="M3 6h18M16 10a4 4 0 01-8 0" />
@@ -186,7 +201,7 @@ export default function TopNavBar() {
             >
               {totalItems}
             </span>
-          </Link>
+          </button>
         </div>
 
         {/* Mobile Controls */}
@@ -202,7 +217,21 @@ export default function TopNavBar() {
             </svg>
           </button>
 
-          <Link href="/checkout" style={{ position: 'relative', color: '#c9a96e', display: 'flex', alignItems: 'center' }}>
+          <button
+            type="button"
+            onClick={openCart}
+            aria-label={`Shopping bag with ${totalItems} items`}
+            style={{
+              position: 'relative',
+              color: '#c9a96e',
+              display: 'flex',
+              alignItems: 'center',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+            }}
+          >
             <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="1.5">
               <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
               <path d="M3 6h18M16 10a4 4 0 01-8 0" />
@@ -226,7 +255,7 @@ export default function TopNavBar() {
             >
               {totalItems}
             </span>
-          </Link>
+          </button>
 
           {/* Hamburger toggle button */}
           <button
@@ -334,6 +363,9 @@ export default function TopNavBar() {
 
       {/* Search Overlay */}
       <SearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
+
+      {/* Cart Drawer */}
+      <CartDrawer />
     </>
   );
 }

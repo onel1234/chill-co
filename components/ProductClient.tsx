@@ -10,7 +10,7 @@ interface ProductClientProps {
 }
 
 export default function ProductClient({ product }: ProductClientProps) {
-  const { addToCart } = useCart();
+  const { addToCart, openCart } = useCart();
   const [selectedColor, setSelectedColor] = useState(product.colors[0]);
   const [selectedSize, setSelectedSize] = useState(product.sizes[0]);
   const [isAdding, setIsAdding] = useState(false);
@@ -29,10 +29,11 @@ export default function ProductClient({ product }: ProductClientProps) {
       loyaltyPoints: product.loyaltyPoints,
     });
     
-    // Simulate short loading state
+    // Simulate short loading state and open cart drawer
     setTimeout(() => {
       setIsAdding(false);
-    }, 500);
+      openCart();
+    }, 400);
   };
 
   return (
