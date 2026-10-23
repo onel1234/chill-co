@@ -661,7 +661,6 @@ export default function AccountClient() {
   const progressRatio = Math.min(1, Math.max(0, loyaltyPoints / targetPoints));
   const strokeDashoffset = Math.round(371 * (1 - progressRatio));
 
-  const totalSpent = orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
   const totalItemsPurchased = orders.reduce(
     (sum, o) =>
       sum + (o.order_items && o.order_items.length > 0 ? o.order_items.length : 1),
@@ -1019,15 +1018,6 @@ export default function AccountClient() {
                 </section>
 
                 <section className="stats-grid" aria-label="Account statistics">
-                  <article>
-                    <span>Total spent</span>
-                    <strong>
-                      LKR {Math.round(totalSpent).toLocaleString("en-LK")}
-                    </strong>
-                    <small>
-                      Across {orders.length} order{orders.length !== 1 ? "s" : ""}
-                    </small>
-                  </article>
                   <article>
                     <span>Items purchased</span>
                     <strong>{totalItemsPurchased}</strong>

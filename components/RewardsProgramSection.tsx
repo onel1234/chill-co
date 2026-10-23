@@ -88,7 +88,7 @@ export default function RewardsProgramSection() {
 
               {/* Narrative subtext */}
               <p className="text-[0.88rem] sm:text-[0.98rem] text-[rgba(240,230,211,0.68)] font-light leading-[1.8] max-w-[480px] mb-8">
-                Every purchase brings something exceptional closer. Visit your account to discover your progress and the rewards waiting for you.
+                Every purchase brings you closer to an exceptional reward. Visit your account to discover your progress and the rewards waiting for you.
               </p>
 
               {/* Dual-state Gold Action Button */}
